@@ -1,0 +1,1320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Algorithm Bench</title>
+<meta name="description" content="Visualize data and step through algorithms: arrays, graphs, grids and your own code.">
+<meta name="theme-color" content="#EDF0F4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1319" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Algo Bench">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="fonts.css">
+<style>
+html{color-scheme:light;box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font-size:14px;-webkit-text-size-adjust:100%}
+img{max-width:100%}
+[hidden]{display:none!important}
+@media (pointer:coarse){
+  .keys{display:none!important}
+  .card select,.card input[type=number],.card input[type=text],.card textarea,.inline-edit,.editor textarea{font-size:16px!important}
+  .editor textarea{line-height:20px!important}
+  .player .ib{width:40px;height:38px}
+  .player .ib.play{width:52px}
+}
+@media (max-width:560px){
+  .brand{font-size:17px}
+  header.top{gap:10px}
+  .modes{order:5;width:100%}
+  .modes button{flex:1;justify-content:center;padding:7px 4px;white-space:nowrap;font-size:12.5px}
+  .stage{min-height:min(52vh,460px)}
+  #inkClear{display:none}
+}
+</style>
+<style>
+/* Layout: workbench — header strip, canvas stage with player on the left, inspector column on the right; stacks on phones. */
+:root{
+  --bg:#EDF0F4; --surface:#FFFFFF; --surface-2:#F4F6F9; --line:#D5DBE4; --fg:#17202C; --muted:#5A6577;
+  --accent:#2B59E0; --accent-soft:#DCE4FB; --on-accent:#FFFFFF;
+  --cmp:#D98E0B; --cmp-soft:#FBE8C2; --swap:#DC4F39; --done:#13937A; --done-soft:#CBEEE4;
+  --ink:#D3307A; --wall:#283244; --mud:#C49A68; --bar:#9AA9C2;
+  --f-display:"Space Grotesk", "Inter", system-ui, sans-serif;
+  --f-ui:"Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1319; --surface:#151B24; --surface-2:#1B232E; --line:#2A3443; --fg:#E4E9F1; --muted:#93A0B3;
+  --accent:#7196FF; --accent-soft:#23335C; --on-accent:#0E1319;
+  --cmp:#F0B13E; --cmp-soft:#4A3912; --swap:#FF7B65; --done:#3CC8A4; --done-soft:#153F36;
+  --ink:#FF62A6; --wall:#8E9BB1; --mud:#86663F; --bar:#4B5B78; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1319; --surface:#151B24; --surface-2:#1B232E; --line:#2A3443; --fg:#E4E9F1; --muted:#93A0B3;
+  --accent:#7196FF; --accent-soft:#23335C; --on-accent:#0E1319;
+  --cmp:#F0B13E; --cmp-soft:#4A3912; --swap:#FF7B65; --done:#3CC8A4; --done-soft:#153F36;
+  --ink:#FF62A6; --wall:#8E9BB1; --mud:#86663F; --bar:#4B5B78; color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font:14px/1.45 var(--f-ui)}
+*{box-sizing:border-box}
+.app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr);gap:12px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px}
+header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{font-family:var(--f-display);font-weight:700;font-size:19px;letter-spacing:-.01em;display:flex;align-items:center;gap:9px;margin:0}
+.brand svg{flex:none}
+.spacer{flex:1}
+.modes{display:flex;gap:2px;padding:3px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;flex-wrap:wrap}
+.modes button{font:500 13px var(--f-ui);color:var(--muted);background:transparent;border:0;border-radius:7px;padding:6px 12px;cursor:pointer;display:flex;gap:6px;align-items:center}
+.modes button kbd{font:500 10px var(--f-mono);color:var(--muted);opacity:.7}
+.modes button[aria-selected="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(10,20,40,.12)}
+.btn{font:500 13px var(--f-ui);color:var(--fg);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:6px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn:disabled{opacity:.45;cursor:default}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+main.work{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:12px;min-height:0}
+.stage-wrap{display:flex;flex-direction:column;min-height:0;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.toolbar{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);min-height:46px;flex-wrap:wrap}
+.toolbar > div{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.hint{color:var(--muted);font-size:12.5px}
+.hint b{color:var(--fg);font-weight:600}
+.hint code,.card code{font:500 12px var(--f-mono);background:var(--surface-2);padding:1px 4px;border-radius:4px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{font:500 12.5px var(--f-ui);background:var(--surface-2);color:var(--muted);border:0;padding:5px 10px;cursor:pointer}
+.seg button + button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--surface)}
+.stage{position:relative;flex:1;min-height:280px;touch-action:none;user-select:none;-webkit-user-select:none}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.inline-edit{position:absolute;z-index:3;width:76px;font:500 13px var(--f-mono);padding:3px 6px;border:2px solid var(--accent);border-radius:6px;background:var(--surface);color:var(--fg);transform:translate(-50%,-50%)}
+.caption{padding:9px 14px;font:500 13px/1.4 var(--f-mono);border-top:1px solid var(--line);min-height:40px;display:flex;align-items:center;gap:10px}
+.caption .stepno{color:var(--muted);font-weight:400;flex:none}
+.player{display:flex;align-items:center;gap:6px;padding:8px 12px;border-top:1px solid var(--line);flex-wrap:wrap;background:var(--surface-2)}
+.player .ib{width:34px;height:32px;display:grid;place-items:center;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.player .ib:disabled{opacity:.4;cursor:default}
+.player .ib.play{width:44px;background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.player input[type=range]{flex:1;min-width:120px;accent-color:var(--accent)}
+.count{font:500 12px var(--f-mono);color:var(--muted);min-width:76px;text-align:right;font-variant-numeric:tabular-nums}
+.speed{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.speed input{width:90px;min-width:0!important;flex:none!important}
+.speed output{font:500 12px var(--f-mono);min-width:48px;font-variant-numeric:tabular-nums}
+.keys{width:100%;font-size:11.5px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;padding-top:2px}
+.keys kbd{font:500 10.5px var(--f-mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:var(--surface);color:var(--fg)}
+
+aside.panel{overflow:auto;display:flex;flex-direction:column;gap:12px;min-height:0;min-width:0;padding-bottom:4px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card h3{font:600 11px var(--f-ui);text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card select,.card input[type=number],.card input[type=text],.card textarea{font:13px var(--f-ui);color:var(--fg);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:7px 9px;width:100%;min-width:0}
+.card textarea{font:12.5px/1.5 var(--f-mono);resize:vertical}
+.mono{font-family:var(--f-mono)!important}
+.row{display:flex;gap:6px;flex-wrap:wrap}
+.field{display:grid;grid-template-columns:72px minmax(0,1fr) auto;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.field output{font:500 12px var(--f-mono);color:var(--fg);min-width:22px;text-align:right}
+.check{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer}
+.check input{accent-color:var(--accent);width:15px;height:15px}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+
+ol.pc{list-style:none;margin:0;padding:6px 0;font:12.5px/1.6 var(--f-mono);background:var(--surface-2);border-radius:8px;counter-reset:ln;overflow-x:auto}
+ol.pc li{counter-increment:ln;padding:0 10px 0 0;white-space:pre;display:flex}
+ol.pc li::before{content:counter(ln);width:30px;flex:none;text-align:right;padding-right:10px;color:var(--muted);opacity:.7}
+ol.pc li.on{background:var(--accent-soft);color:var(--fg);font-weight:600}
+ol.pc li.on::before{color:var(--accent);opacity:1}
+
+.ds{display:flex;flex-direction:column;gap:6px}
+.ds-name{font-size:12px;color:var(--muted)}
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.chip{font:500 12px var(--f-mono);padding:2px 7px;border-radius:6px;background:var(--cmp-soft);color:var(--fg);border:1px solid var(--line)}
+dl.vars{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;margin:0;font:12.5px var(--f-mono)}
+dl.vars dt{color:var(--muted)}
+dl.vars dd{margin:0;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.logs{font:12px/1.5 var(--f-mono);background:var(--surface-2);border-radius:8px;padding:6px 10px;max-height:140px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+.editor{position:relative;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.editor .hl{position:absolute;left:0;right:0;height:20px;background:var(--accent-soft);pointer-events:none}
+.editor textarea{position:relative;display:block;background:transparent!important;border:0!important;border-radius:0!important;font:12.5px/20px var(--f-mono)!important;padding:10px 12px!important;min-height:300px;white-space:pre;overflow:auto;tab-size:2}
+.err{font:12px/1.5 var(--f-mono);color:var(--swap);white-space:pre-wrap;margin:0}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--surface);padding:8px 14px;border-radius:8px;font-size:13px;z-index:20}
+
+@media (max-width:880px){
+  html,body{height:auto}
+  .app{height:auto}
+  main.work{grid-template-columns:minmax(0,1fr)}
+  .stage{min-height:58vh}
+  aside.panel{overflow:visible}
+  .modes button kbd{display:none}
+}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto}}
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1 class="brand">
+      <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="11" width="4" height="9" rx="1" fill="var(--bar)"/><rect x="9" y="4" width="4" height="16" rx="1" fill="var(--accent)"/><rect x="16" y="8" width="4" height="12" rx="1" fill="var(--cmp)"/></svg>
+      Algorithm Bench
+    </h1>
+    <nav class="modes" role="tablist" aria-label="Workspace">
+      <button role="tab" data-mode="array" id="tab-array">Array <kbd>1</kbd></button>
+      <button role="tab" data-mode="graph" id="tab-graph">Graph <kbd>2</kbd></button>
+      <button role="tab" data-mode="grid" id="tab-grid">Grid <kbd>3</kbd></button>
+      <button role="tab" data-mode="custom" id="tab-custom">Your code <kbd>4</kbd></button>
+    </nav>
+    <div class="spacer"></div>
+    <button class="btn primary" id="installBtn" hidden title="Install as an app on this device">Install app</button>
+    <button class="btn" id="penBtn" aria-pressed="false" title="Draw notes on top of the canvas (P)">
+      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M11.3 1.7l3 3L5 14H2v-3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Annotate</button>
+    <button class="btn" id="inkClear" title="Erase your notes in this workspace">Clear notes</button>
+  </header>
+
+  <main class="work">
+    <section class="stage-wrap">
+      <div class="toolbar">
+        <div data-for="array"><span class="hint">Drag a bar <b>up or down</b> to change its value, <b>sideways</b> to move it.</span></div>
+        <div data-for="graph">
+          <div class="seg" id="gTool">
+            <button data-v="move" id="gt-move">Add / move</button>
+            <button data-v="connect" id="gt-connect">Connect</button>
+            <button data-v="erase" id="gt-erase">Erase</button>
+          </div>
+          <span class="hint" id="gHint"></span>
+        </div>
+        <div data-for="grid">
+          <div class="seg" id="brush">
+            <button data-v="1" id="br-wall">Wall</button>
+            <button data-v="2" id="br-mud">Mud ×5</button>
+            <button data-v="0" id="br-erase">Erase</button>
+          </div>
+          <span class="hint">Drag to paint. Drag <b>S</b> or <b>E</b> to move them.</span>
+        </div>
+        <div data-for="custom"><span class="hint">Write <code>run(data, step)</code>, press <b>Run</b>. Every <code>step()</code> call becomes a frame.</span></div>
+      </div>
+      <div class="stage" id="stage"><canvas id="cv" aria-label="Visualization canvas"></canvas><input id="inlineEdit" class="inline-edit" hidden></div>
+      <div class="caption"><span class="stepno" id="stepno"></span><span id="msg"></span></div>
+      <div class="player">
+        <button class="ib" id="pFirst" title="First step (Home)" aria-label="First step"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M3 2v12M13 2L5 8l8 6z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
+        <button class="ib" id="pPrev" title="Step back (←)" aria-label="Step back"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M11 2L4 8l7 6z" fill="currentColor"/></svg></button>
+        <button class="ib play" id="pPlay" title="Play / pause (Space)" aria-label="Play"><svg id="playIco" width="15" height="15" viewBox="0 0 16 16"><path d="M4 2l10 6-10 6z" fill="currentColor"/></svg></button>
+        <button class="ib" id="pNext" title="Step forward (→)" aria-label="Step forward"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M5 2l7 6-7 6z" fill="currentColor"/></svg></button>
+        <button class="ib" id="pLast" title="Last step (End)" aria-label="Last step"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M13 2v12M3 2l8 6-8 6z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
+        <input type="range" id="pScrub" min="0" max="0" value="0" aria-label="Timeline">
+        <span class="count" id="pCount">0 / 0</span>
+        <label class="speed" for="pSpeed">Speed <input type="range" id="pSpeed" min="0" max="7" step="1"><output id="pSpeedLbl"></output></label>
+        <div class="keys"><span><kbd>Space</kbd> play</span><span><kbd>←</kbd> <kbd>→</kbd> step</span><span><kbd>Home</kbd> <kbd>End</kbd> jump</span><span><kbd>P</kbd> annotate</span><span><kbd>1</kbd>–<kbd>4</kbd> switch workspace</span></div>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <!-- ARRAY -->
+      <div class="card" data-for="array">
+        <h3>Algorithm</h3>
+        <select id="aAlgo" aria-label="Array algorithm">
+          <option value="bubble">Bubble sort</option>
+          <option value="insertion">Insertion sort</option>
+          <option value="selection">Selection sort</option>
+          <option value="quick">Quicksort (Lomuto)</option>
+          <option value="merge">Merge sort</option>
+          <option value="binary">Binary search</option>
+          <option value="twosum">Two pointers: pair with sum</option>
+        </select>
+        <label class="field" id="aTargetWrap" for="aTarget"><span id="aTargetLbl">Target</span><input type="number" id="aTarget"><span></span></label>
+      </div>
+      <div class="card" data-for="array">
+        <h3>Data</h3>
+        <input type="text" id="aData" class="mono" spellcheck="false" aria-label="Array values">
+        <div class="row">
+          <button class="btn" data-gen="random" id="ag-random">Random</button>
+          <button class="btn" data-gen="sorted" id="ag-sorted">Sorted</button>
+          <button class="btn" data-gen="reversed" id="ag-reversed">Reversed</button>
+          <button class="btn" data-gen="few" id="ag-few">Few unique</button>
+        </div>
+        <label class="field" for="aSize"><span>Size</span><input type="range" id="aSize" min="3" max="48"><output id="aSizeOut"></output></label>
+        <div class="row"><button class="btn" id="aCopy">Copy as JSON</button></div>
+      </div>
+
+      <!-- GRAPH -->
+      <div class="card" data-for="graph">
+        <h3>Algorithm</h3>
+        <select id="gAlgo" aria-label="Graph algorithm">
+          <option value="bfs">Breadth-first search</option>
+          <option value="dfs">Depth-first search</option>
+          <option value="dijkstra">Dijkstra (shortest paths)</option>
+          <option value="prim">Prim (minimum spanning tree)</option>
+          <option value="topo">Topological sort (Kahn)</option>
+        </select>
+        <label class="field" for="gStart"><span>Start</span><select id="gStart"></select><span></span></label>
+        <label class="field" for="gTarget"><span>Target</span><select id="gTarget"></select><span></span></label>
+        <div class="row" style="gap:16px">
+          <label class="check"><input type="checkbox" id="gDirected"> Directed</label>
+          <label class="check"><input type="checkbox" id="gWeights"> Show weights</label>
+        </div>
+      </div>
+      <div class="card" data-for="graph">
+        <h3>Data</h3>
+        <div class="row">
+          <button class="btn" data-preset="sample" id="gp-sample">Weighted</button>
+          <button class="btn" data-preset="tree" id="gp-tree">Tree</button>
+          <button class="btn" data-preset="dag" id="gp-dag">DAG</button>
+          <button class="btn" data-preset="clear" id="gp-clear">Clear</button>
+        </div>
+        <textarea id="gImport" rows="4" spellcheck="false" placeholder="Paste an edge list, one per line:&#10;A B 4&#10;B -> C 2&#10;or JSON: {&quot;A&quot;: [&quot;B&quot;, &quot;C&quot;]}"></textarea>
+        <div class="row"><button class="btn" id="gApply">Load edge list</button><button class="btn" id="gCopy">Copy edge list</button></div>
+      </div>
+
+      <!-- GRID -->
+      <div class="card" data-for="grid">
+        <h3>Algorithm</h3>
+        <select id="rAlgo" aria-label="Grid algorithm">
+          <option value="bfs">Breadth-first search</option>
+          <option value="dfs">Depth-first search</option>
+          <option value="dijkstra">Dijkstra</option>
+          <option value="astar">A* (Manhattan heuristic)</option>
+          <option value="greedy">Greedy best-first</option>
+        </select>
+        <label class="check"><input type="checkbox" id="rDiag"> Allow diagonal moves</label>
+        <div class="legend">
+          <span><i style="background:var(--cmp-soft);border:1px solid var(--cmp)"></i>frontier</span>
+          <span><i style="background:var(--accent-soft)"></i>expanded</span>
+          <span><i style="background:var(--done)"></i>path</span>
+          <span><i style="background:var(--mud)"></i>mud (cost 5)</span>
+        </div>
+      </div>
+      <div class="card" data-for="grid">
+        <h3>Map</h3>
+        <label class="field" for="rSize"><span>Size</span><select id="rSize"><option value="21x13">21 × 13</option><option value="33x19">33 × 19</option><option value="49x27">49 × 27</option></select><span></span></label>
+        <div class="row">
+          <button class="btn" id="rMaze">Maze</button>
+          <button class="btn" id="rRandom">Random walls</button>
+          <button class="btn" id="rClear">Clear</button>
+        </div>
+        <textarea id="rImport" rows="4" spellcheck="false" placeholder="Paste a text map:&#10;#  wall   ~  mud&#10;S  start  E  end&#10;anything else is open"></textarea>
+        <div class="row"><button class="btn" id="rApply">Load map</button><button class="btn" id="rCopy">Copy map</button></div>
+      </div>
+
+      <!-- CUSTOM -->
+      <div class="card" data-for="custom">
+        <h3>Code <select id="cTpl" aria-label="Load an example" style="width:auto;padding:3px 6px;font-size:12px">
+          <option value="">Load example…</option>
+          <option value="bubble">Bubble sort</option>
+          <option value="window">Sliding window</option>
+          <option value="lcs">DP table (LCS)</option>
+          <option value="stack">Stack: brackets</option>
+          <option value="blank">Blank</option>
+        </select></h3>
+        <div class="editor"><div class="hl" id="cHl" hidden></div><textarea id="cCode" spellcheck="false" wrap="off" aria-label="Your code"></textarea></div>
+        <div class="row"><button class="btn primary" id="cRun">Run</button><span class="hint" style="align-self:center">⌘/Ctrl + Enter</span></div>
+        <pre class="err" id="cErr" hidden></pre>
+        <p class="small muted" style="margin:0">
+          <code>step(message, pointers, vars)</code> records a frame.
+          Pointers like <code>{ i: 2, j: 5 }</code> point into the first list, <code>{ cell: [r, c] }</code> into the first table,
+          and <code>hl: [...]</code> highlights items. <code>log(...)</code> prints below. Change <code>data</code> in place.
+        </p>
+      </div>
+      <div class="card" data-for="custom">
+        <h3>Input (JSON)</h3>
+        <textarea id="cInput" rows="4" spellcheck="false" aria-label="Input JSON"></textarea>
+      </div>
+
+      <!-- SHARED -->
+      <div class="card" id="pcCard"><h3>Pseudocode</h3><ol class="pc" id="pc"></ol></div>
+      <div class="card"><h3>State</h3><div id="state"></div></div>
+    </aside>
+  </main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const clone = o => JSON.parse(JSON.stringify(o));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const FM = '"JetBrains Mono", ui-monospace, Menlo, monospace';
+const FU = '"Inter", system-ui, sans-serif';
+const SPEEDS = [0.5, 1, 2, 4, 8, 15, 30, 60];
+const KEY = 'algobench.v1';
+
+/* ---------------- templates for "Your code" ---------------- */
+const TPL = {
+bubble: {input: '[29, 10, 14, 37, 13, 5, 41, 22]', code:
+`// data is your JSON input. Change it in place and call
+// step(message, pointers, vars) whenever you want a frame.
+function run(data, step) {
+  const a = data;
+  for (let i = 0; i < a.length - 1; i++) {
+    for (let j = 0; j < a.length - 1 - i; j++) {
+      step(\`compare \${a[j]} and \${a[j + 1]}\`, { j, hl: [j, j + 1] }, { pass: i + 1 });
+      if (a[j] > a[j + 1]) {
+        [a[j], a[j + 1]] = [a[j + 1], a[j]];
+        step('swap', { j, hl: [j, j + 1] }, { pass: i + 1 });
+      }
+    }
+  }
+}
+`},
+window: {input: '{"nums": [4, -2, 7, 1, -5, 9, 3, -1, 6], "k": 3}', code:
+`// Largest sum of k consecutive numbers (sliding window).
+function run(data, step) {
+  const { nums, k } = data;
+  let sum = 0, best = -Infinity;
+  for (let r = 0; r < nums.length; r++) {
+    sum += nums[r];
+    const l = r - k + 1;
+    if (l >= 0) {
+      best = Math.max(best, sum);
+      const hl = Array.from({ length: k }, (_, t) => l + t);
+      step(\`window \${l}..\${r} sums to \${sum}\`, { l, r, hl }, { sum, best });
+      sum -= nums[l];
+    } else {
+      step(\`grow the window to \${r + 1}\`, { r }, { sum });
+    }
+  }
+  return best;
+}
+`},
+lcs: {input: '{"a": "ABCBDAB", "b": "BDCABA"}', code:
+`// Longest common subsequence: fill the DP table one cell at a time.
+function run(data, step) {
+  const { a, b } = data;
+  const dp = data.dp = Array.from({ length: a.length + 1 },
+    () => Array(b.length + 1).fill(0));
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      if (a[i - 1] === b[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1] + 1;
+        step(\`\${a[i - 1]} = \${b[j - 1]}: diagonal + 1\`,
+          { cell: [i, j], hl: [[i - 1, j - 1]] });
+      } else {
+        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+        step(\`\${a[i - 1]} ≠ \${b[j - 1]}: max of up and left\`,
+          { cell: [i, j], hl: [[i - 1, j], [i, j - 1]] });
+      }
+    }
+  }
+  return dp[a.length][b.length];
+}
+`},
+stack: {input: '{"text": "{[()()]}(", "stack": []}', code:
+`// Are the brackets balanced? Watch the stack grow and shrink.
+function run(data, step, log) {
+  const s = data.text, stack = data.stack;
+  const pairs = { ')': '(', ']': '[', '}': '{' };
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if ('([{'.includes(ch)) {
+      stack.push(ch);
+      step(\`push \${ch}\`, { i });
+    } else if (stack[stack.length - 1] === pairs[ch]) {
+      stack.pop();
+      step(\`\${ch} matches, pop\`, { i });
+    } else {
+      step(\`\${ch} has no partner\`, { i });
+      return false;
+    }
+  }
+  log('left on the stack:', stack);
+  return stack.length === 0;
+}
+`},
+blank: {input: '[3, 1, 2]', code:
+`function run(data, step, log) {
+  for (let i = 0; i < data.length; i++) {
+    step(\`look at \${data[i]}\`, { i });
+  }
+}
+`}
+};
+
+/* ---------------- default state ---------------- */
+function sampleGraph(){
+  const P = [['A',.12,.32],['B',.32,.14],['C',.3,.58],['D',.52,.38],['E',.48,.82],['F',.72,.18],['G',.74,.62],['H',.9,.4]];
+  const nodes = P.map(([label,x,y],id) => ({id,label,x,y}));
+  const E = [[0,1,4],[0,2,2],[1,3,5],[2,3,8],[2,4,10],[3,5,3],[3,6,2],[4,6,4],[5,7,6],[6,7,1],[1,5,12]];
+  return {nodes, edges:E.map(([a,b,w])=>({a,b,w})), nextId:8};
+}
+function treeGraph(){
+  const L = 'ABCDEFGHIJ'.split(''); const P=[[.5,.12],[.28,.38],[.72,.38],[.15,.66],[.38,.66],[.6,.66],[.85,.66],[.08,.9],[.24,.9],[.52,.9]];
+  const nodes = P.map(([x,y],id)=>({id,label:L[id],x,y}));
+  const E=[[0,1],[0,2],[1,3],[1,4],[2,5],[2,6],[3,7],[3,8],[5,9]];
+  return {nodes, edges:E.map(([a,b])=>({a,b,w:1})), nextId:10};
+}
+function dagGraph(){
+  const P=[['shirt',.12,.2],['tie',.36,.2],['jacket',.62,.2],['belt',.62,.55],['pants',.36,.55],['shoes',.36,.88],['socks',.12,.88],['watch',.88,.88]];
+  const nodes=P.map(([label,x,y],id)=>({id,label,x,y}));
+  const E=[[0,1],[1,2],[0,3],[3,2],[4,3],[4,5],[6,5]];
+  return {nodes, edges:E.map(([a,b])=>({a,b,w:1})), nextId:8};
+}
+function defaultGrid(){
+  const w=33,h=19,cells=new Array(w*h).fill(0),set=(r,c,v)=>cells[r*w+c]=v;
+  for(let r=0;r<14;r++) set(r,10,1);
+  for(let r=5;r<h;r++) set(r,22,1);
+  for(let c=23;c<29;c++) set(4,c,1);
+  for(let r=3;r<10;r++) for(let c=14;c<19;c++) set(r,c,2);
+  return {w,h,cells,start:[9,3],end:[9,29],algo:'astar',diag:false};
+}
+const DEF = {
+  mode:'array', speed:3,
+  ui:{gtool:'move', brush:1},
+  array:{values:[38,12,61,27,85,44,9,70,53,19,66,31], algo:'bubble', target:53},
+  graph:Object.assign(sampleGraph(), {directed:false, algo:'dijkstra', start:0, target:7, weights:true}),
+  grid:defaultGrid(),
+  custom:{code:TPL.bubble.code, input:TPL.bubble.input},
+  ink:{array:[],graph:[],grid:[],custom:[]}
+};
+function load(){
+  const s = clone(DEF);
+  try{
+    const raw = localStorage.getItem(KEY); if(!raw) return s;
+    const o = JSON.parse(raw);
+    for(const k of ['ui','array','graph','grid','custom','ink']) if(o[k] && typeof o[k]==='object') Object.assign(s[k], o[k]);
+    if(['array','graph','grid','custom'].includes(o.mode)) s.mode=o.mode;
+    if(Number.isInteger(o.speed)) s.speed=clamp(o.speed,0,7);
+    if(!Array.isArray(s.array.values)||!s.array.values.length) s.array.values=clone(DEF.array.values);
+    if(!Array.isArray(s.grid.cells)||s.grid.cells.length!==s.grid.w*s.grid.h) s.grid=defaultGrid();
+    if(!Array.isArray(s.graph.nodes)||!Array.isArray(s.graph.edges)) s.graph=clone(DEF.graph);
+  }catch(e){ return clone(DEF); }
+  return s;
+}
+const S = load();
+let saveT=0;
+function save(){ clearTimeout(saveT); saveT=setTimeout(()=>{ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }, 300); }
+
+/* ---------------- canvas + theme ---------------- */
+const cv=$('#cv'), ctx=cv.getContext('2d'), stage=$('#stage');
+let W=0,H=0,dpr=1;
+const T={};
+function readTheme(){ const cs=getComputedStyle(document.documentElement);
+  for(const k of ['bg','surface','surface-2','line','fg','muted','accent','accent-soft','on-accent','cmp','cmp-soft','swap','done','done-soft','ink','wall','mud','bar']) T[k]=cs.getPropertyValue('--'+k).trim(); }
+function resize(){ const r=stage.getBoundingClientRect(); dpr=window.devicePixelRatio||1; W=Math.max(1,r.width); H=Math.max(1,r.height);
+  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); draw(); }
+function rr(x,y,w,h,r){ ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(x,y,w,h,r); else ctx.rect(x,y,w,h); }
+function text(t,x,y,{font=`500 12px ${FM}`,color=T.fg,align='center',base='middle'}={}){ ctx.font=font; ctx.fillStyle=color; ctx.textAlign=align; ctx.textBaseline=base; ctx.fillText(t,x,y); }
+function pill(t,x,y,fg,bg,border){ ctx.font=`500 11px ${FM}`; const w=ctx.measureText(t).width+10,h=17; rr(x-w/2,y-h/2,w,h,8); ctx.fillStyle=bg; ctx.fill(); if(border){ctx.strokeStyle=border;ctx.lineWidth=1;ctx.stroke();} text(t,x,y+.5,{font:`500 11px ${FM}`,color:fg}); }
+
+/* ---------------- runs & player ---------------- */
+const runs={array:{frames:null,fi:0},graph:{frames:null,fi:0},grid:{frames:null,fi:0},custom:{frames:null,fi:0,logs:[]}};
+const cur=()=>runs[S.mode];
+const curFrame=()=>{ const R=cur(); return R.frames?R.frames[R.fi]:null; };
+let playing=false, raf=0, lastT=0, acc=0;
+function startPlay(){ const R=cur(); if(!R.frames||R.frames.length<2) return; if(R.fi>=R.frames.length-1) R.fi=0;
+  playing=true; lastT=performance.now(); acc=1; setPlayIcon(); raf=requestAnimationFrame(tick); }
+function stopPlay(){ playing=false; cancelAnimationFrame(raf); setPlayIcon(); }
+function tick(t){ if(!playing) return; const R=cur(); acc+=(t-lastT)/1000*SPEEDS[S.speed]; lastT=t; let moved=false;
+  while(acc>=1){ acc-=1; if(R.frames && R.fi<R.frames.length-1){R.fi++;moved=true;} else {stopPlay();break;} }
+  if(moved) refresh(); if(playing) raf=requestAnimationFrame(tick); }
+function go(i){ const R=cur(); if(!R.frames) return; R.fi=clamp(i,0,R.frames.length-1); refresh(); }
+function setPlayIcon(){ $('#playIco').innerHTML = playing ? '<path d="M4 2h3v12H4zM9 2h3v12H9z" fill="currentColor"/>' : '<path d="M4 2l10 6-10 6z" fill="currentColor"/>';
+  $('#pPlay').setAttribute('aria-label', playing?'Pause':'Play'); }
+function updatePlayer(){ const R=cur(), n=R.frames?R.frames.length:0;
+  const sc=$('#pScrub'); sc.max=Math.max(0,n-1); sc.value=R.fi; sc.disabled=n<2;
+  $('#pCount').textContent = n? `${R.fi+1} / ${n}` : '0 / 0';
+  $('#pFirst').disabled=$('#pPrev').disabled=!n||R.fi===0; $('#pNext').disabled=$('#pLast').disabled=!n||R.fi>=n-1; $('#pPlay').disabled=n<2;
+  $('#pSpeed').value=S.speed; $('#pSpeedLbl').textContent=SPEEDS[S.speed]+'/s'; }
+function refresh(){ updatePlayer(); renderSide(); draw(); }
+
+/* ---------------- ARRAY algorithms ---------------- */
+function mk(a0){
+  const x={a:a0.slice(),frames:[],sorted:new Set(),c:{cmp:0,wr:0}};
+  x.rec=(line,msg,o={})=>x.frames.push({arr:x.a.slice(),line,msg,hl:o.hl||{},ptr:o.ptr||{},sorted:[...x.sorted],range:o.range||null,tline:o.tline??null,
+    vars:Object.assign({comparisons:x.c.cmp,writes:x.c.wr},o.vars||{})});
+  x.all=()=>{for(let k=0;k<x.a.length;k++)x.sorted.add(k);};
+  x.swap=(i,j)=>{const a=x.a;[a[i],a[j]]=[a[j],a[i]];x.c.wr+=2;};
+  return x;
+}
+const ARR={
+ bubble:{pc:['for i ← 0 to n−2','  swapped ← false','  for j ← 0 to n−2−i','    if a[j] > a[j+1]','      swap a[j], a[j+1]; swapped ← true','  if not swapped: stop'],
+  run(a0){ const x=mk(a0),a=x.a,n=a.length; x.rec(0,`Start with ${n} items`);
+   for(let i=0;i<n-1;i++){ let sw=false; x.rec(1,`Pass ${i+1}: bubble the largest remaining item to the right`,{ptr:{i}});
+    for(let j=0;j<n-1-i;j++){ x.c.cmp++; x.rec(4,`Compare a[${j}]=${a[j]} and a[${j+1}]=${a[j+1]}`,{hl:{[j]:'cmp',[j+1]:'cmp'},ptr:{j}});
+     if(a[j]>a[j+1]){ x.swap(j,j+1); sw=true; x.rec(5,`${a[j+1]} > ${a[j]}, swap them`,{hl:{[j]:'swap',[j+1]:'swap'},ptr:{j}}); } }
+    x.sorted.add(n-1-i);
+    if(!sw){ x.all(); x.rec(6,'No swaps in this pass, so the array is sorted'); return x.frames; } }
+   x.all(); x.rec(0,'Sorted'); return x.frames; }},
+ insertion:{pc:['for i ← 1 to n−1','  j ← i','  while j > 0 and a[j−1] > a[j]','    swap a[j−1], a[j]','    j ← j − 1'],
+  run(a0){ const x=mk(a0),a=x.a,n=a.length; x.sorted.add(0); x.rec(0,'The first item alone counts as sorted');
+   for(let i=1;i<n;i++){ let j=i; x.rec(2,`Take a[${i}]=${a[i]} and slide it left until it fits`,{hl:{[i]:'key'},ptr:{i,j}});
+    while(j>0){ x.c.cmp++; x.rec(3,`Is ${a[j-1]} > ${a[j]}?`,{hl:{[j-1]:'cmp',[j]:'key'},ptr:{i,j}});
+     if(a[j-1]>a[j]){ x.swap(j-1,j); j--; x.rec(4,`Yes, swap. ${a[j]} moves to index ${j}`,{hl:{[j]:'swap',[j+1]:'swap'},ptr:{i,j}}); }
+     else { x.rec(3,`No, ${a[j]} stays at index ${j}`,{hl:{[j]:'key'},ptr:{i,j}}); break; } }
+    for(let k=0;k<=i;k++) x.sorted.add(k); }
+   x.all(); x.rec(0,'Sorted'); return x.frames; }},
+ selection:{pc:['for i ← 0 to n−2','  min ← i','  for j ← i+1 to n−1','    if a[j] < a[min]','      min ← j','  swap a[i], a[min]'],
+  run(a0){ const x=mk(a0),a=x.a,n=a.length; x.rec(0,`Start with ${n} items`);
+   for(let i=0;i<n-1;i++){ let m=i; x.rec(2,`Find the smallest item from index ${i} on`,{hl:{[i]:'pivot'},ptr:{i,min:m}});
+    for(let j=i+1;j<n;j++){ x.c.cmp++; x.rec(4,`Is a[${j}]=${a[j]} < current min ${a[m]}?`,{hl:{[j]:'cmp',[m]:'pivot'},ptr:{i,j,min:m}});
+     if(a[j]<a[m]){ m=j; x.rec(5,`Yes, new min is ${a[m]} at index ${m}`,{hl:{[m]:'pivot'},ptr:{i,j,min:m}}); } }
+    if(m!==i){ x.swap(i,m); } x.sorted.add(i);
+    x.rec(6, m!==i?`Swap ${a[m]} and ${a[i]}: index ${i} is final`:`${a[i]} is already in place`,{hl:{[i]:'swap',[m]:'swap'},ptr:{i,min:m}}); }
+   x.all(); x.rec(0,'Sorted'); return x.frames; }},
+ quick:{pc:['quicksort(lo, hi):','  if lo ≥ hi: return','  pivot ← a[hi]; i ← lo','  for j ← lo to hi−1','    if a[j] < pivot','      swap a[i], a[j]; i ← i+1','  swap a[i], a[hi]   // pivot lands at i','  quicksort(lo, i−1); quicksort(i+1, hi)'],
+  run(a0){ const x=mk(a0),a=x.a; x.rec(0,'Start');
+   const qs=(lo,hi)=>{ if(lo>hi) return; if(lo===hi){ x.sorted.add(lo); x.rec(2,`a[${lo}] alone is sorted`,{range:[lo,hi],ptr:{lo}}); return; }
+    const p=a[hi]; let i=lo; x.rec(3,`Partition ${lo}..${hi} around pivot ${p}`,{hl:{[hi]:'pivot'},ptr:{i,j:lo},range:[lo,hi],vars:{pivot:p}});
+    for(let j=lo;j<hi;j++){ x.c.cmp++; x.rec(5,`Is ${a[j]} < ${p}?`,{hl:{[j]:'cmp',[hi]:'pivot'},ptr:{i,j},range:[lo,hi],vars:{pivot:p}});
+     if(a[j]<p){ if(i!==j) x.swap(i,j); x.rec(6,i!==j?`Yes, swap it to the left side at ${i}`:`Yes, it's already on the left side`,{hl:{[i]:'swap',[j]:'swap',[hi]:'pivot'},ptr:{i,j},range:[lo,hi],vars:{pivot:p}}); i++; } }
+    if(i!==hi) x.swap(i,hi); x.sorted.add(i);
+    x.rec(7,`Pivot ${p} goes to index ${i}, its final spot`,{hl:{[i]:'found'},ptr:{i},range:[lo,hi],vars:{pivot:p}});
+    x.rec(8,`Recurse on ${lo}..${i-1} and ${i+1}..${hi}`,{ptr:{i},range:[lo,hi]});
+    qs(lo,i-1); qs(i+1,hi); };
+   qs(0,a.length-1); x.all(); x.rec(0,'Sorted'); return x.frames; }},
+ merge:{pc:['mergesort(lo, hi):','  if lo ≥ hi: return','  mid ← ⌊(lo+hi)/2⌋','  mergesort(lo, mid); mergesort(mid+1, hi)','  i ← lo; j ← mid+1        // merge the halves','  while i ≤ mid and j ≤ hi','    if a[i] ≤ a[j]: i ← i+1','    else: move a[j] in front of a[i]','          i, mid, j ← i+1, mid+1, j+1'],
+  run(a0){ const x=mk(a0),a=x.a; x.rec(0,'Start');
+   const ms=(lo,hi)=>{ if(lo>=hi) return; let mid=(lo+hi)>>1;
+    x.rec(3,`Split ${lo}..${hi} into ${lo}..${mid} and ${mid+1}..${hi}`,{range:[lo,hi],ptr:{lo,mid,hi}});
+    ms(lo,mid); ms(mid+1,hi);
+    let i=lo,j=mid+1; x.rec(5,`Merge ${lo}..${mid} with ${mid+1}..${hi}`,{range:[lo,hi],ptr:{i,j}});
+    while(i<=mid&&j<=hi){ x.c.cmp++; x.rec(6,`Compare ${a[i]} and ${a[j]}`,{hl:{[i]:'cmp',[j]:'cmp'},range:[lo,hi],ptr:{i,j}});
+     if(a[i]<=a[j]){ i++; x.rec(7,`${a[i-1]} ≤ ${a[j]}: it stays, move i on`,{hl:{[i-1]:'found'},range:[lo,hi],ptr:{i,j}}); }
+     else { const v=a[j]; for(let k=j;k>i;k--) a[k]=a[k-1]; a[i]=v; x.c.wr+=j-i+1;
+      x.rec(8,`${v} is smaller: move it in front`,{hl:{[i]:'swap'},range:[lo,hi],ptr:{i,j}}); i++;mid++;j++; } }
+    x.rec(5,`${lo}..${hi} is merged`,{range:[lo,hi]}); };
+   ms(0,a.length-1); x.all(); x.rec(0,'Sorted'); return x.frames; }},
+ binary:{target:'Target', pc:['lo ← 0; hi ← n−1','while lo ≤ hi','  mid ← ⌊(lo+hi)/2⌋','  if a[mid] = target: return mid','  if a[mid] < target: lo ← mid+1','  else: hi ← mid−1','return "not found"'],
+  run(a0,t){ const unsorted=a0.some((v,i)=>i&&a0[i-1]>v); const x=mk(a0.slice().sort((p,q)=>p-q)),a=x.a; let lo=0,hi=a.length-1; const V=()=>({target:t});
+   x.rec(1,`Look for ${t}`+(unsorted?' (binary search needs sorted input, so this is a sorted copy)':''),{ptr:{lo,hi},range:[lo,hi],tline:t,vars:V()});
+   while(lo<=hi){ const mid=(lo+hi)>>1; x.c.cmp++;
+    x.rec(3,`mid = ⌊(${lo}+${hi})/2⌋ = ${mid}, a[mid] = ${a[mid]}`,{ptr:{lo,mid,hi},hl:{[mid]:'cmp'},range:[lo,hi],tline:t,vars:V()});
+    if(a[mid]===t){ x.rec(4,`Found ${t} at index ${mid}`,{ptr:{mid},hl:{[mid]:'found'},range:[lo,hi],tline:t,vars:Object.assign(V(),{result:mid})}); return x.frames; }
+    if(a[mid]<t){ lo=mid+1; x.rec(5,`${a[mid]} < ${t}: discard the left half`,{ptr:{lo,hi},range:[lo,hi],tline:t,vars:V()}); }
+    else { hi=mid-1; x.rec(6,`${a[mid]} > ${t}: discard the right half`,{ptr:{lo,hi},range:[lo,hi],tline:t,vars:V()}); } }
+   x.rec(7,`${t} is not in the array`,{range:[lo,hi],tline:t,vars:Object.assign(V(),{result:'not found'})}); return x.frames; }},
+ twosum:{target:'Target sum', pc:['sort a; l ← 0; r ← n−1','while l < r','  s ← a[l] + a[r]','  if s = target: return (l, r)','  if s < target: l ← l+1   // need bigger','  else: r ← r−1            // need smaller','return "no pair"'],
+  run(a0,t){ const x=mk(a0.slice().sort((p,q)=>p-q)),a=x.a; let l=0,r=a.length-1;
+   x.rec(1,`Find two numbers that add up to ${t}`,{ptr:{l,r},vars:{target:t}});
+   while(l<r){ const s=a[l]+a[r]; x.c.cmp++; x.rec(3,`${a[l]} + ${a[r]} = ${s}`,{ptr:{l,r},hl:{[l]:'cmp',[r]:'cmp'},vars:{target:t,sum:s}});
+    if(s===t){ x.rec(4,`Found it: a[${l}] + a[${r}] = ${t}`,{ptr:{l,r},hl:{[l]:'found',[r]:'found'},vars:{target:t,sum:s}}); return x.frames; }
+    if(s<t){ l++; x.rec(5,`${s} < ${t}: move l right for a bigger sum`,{ptr:{l,r},vars:{target:t,sum:s}}); }
+    else { r--; x.rec(6,`${s} > ${t}: move r left for a smaller sum`,{ptr:{l,r},vars:{target:t,sum:s}}); } }
+   x.rec(7,`No pair adds up to ${t}`,{vars:{target:t}}); return x.frames; }}
+};
+
+/* ---------------- GRAPH algorithms ---------------- */
+const GPC={
+ bfs:['queue ← [start]; seen ← {start}','while queue is not empty','  u ← queue.popFront()','  if u = target: stop','  for each neighbor v of u','    if v not in seen','      seen.add(v); parent[v] ← u','      queue.push(v)'],
+ dfs:['dfs(u):','  visited.add(u)','  if u = target: stop','  for each neighbor v of u','    if v not in visited','      parent[v] ← u','      dfs(v)','  u is finished, return'],
+ dijkstra:['dist[all] ← ∞; dist[start] ← 0','pq ← {(0, start)}','while pq is not empty','  u ← pop smallest dist from pq','  if u is finished: skip it','  finish u; if u = target: stop','  for each edge (u, v, w)','    if dist[u] + w < dist[v]','      dist[v] ← dist[u] + w; parent[v] ← u','      pq.push((dist[v], v))'],
+ prim:['tree ← {start}','pq ← edges leaving start','while pq is not empty','  (u, v, w) ← pop the lightest edge','  if v is in tree: skip it   // cycle','  tree.add(v); keep edge (u, v)','  push edges leaving v'],
+ topo:['indeg[v] ← number of edges into v','queue ← nodes with indeg 0','while queue is not empty','  u ← queue.popFront(); output u','  for each edge u → v','    indeg[v] ← indeg[v] − 1','    if indeg[v] = 0: queue.push(v)','if output misses nodes: there is a cycle']
+};
+function graphRun(){
+  const G=S.graph, byId=new Map(G.nodes.map(n=>[n.id,n])), N=G.nodes.length;
+  const L=id=>byId.get(id)?.label ?? '?';
+  const frames=[], ns={}, es={}, badge={};
+  const rec=(line,msg,ds,vars)=>frames.push({ns:{...ns},es:{...es},badge:{...badge},ds:ds?{name:ds[0],items:ds[1].map(String)}:null,line,msg,vars:vars||{}});
+  if(!N){ rec(0,'Click the canvas to add nodes, then connect them.'); return frames; }
+  const algo=G.algo, directed= algo==='topo'?true: algo==='prim'?false: G.directed;
+  const adj=new Map(G.nodes.map(n=>[n.id,[]]));
+  G.edges.forEach((e,i)=>{ if(!adj.has(e.a)||!adj.has(e.b)) return; const w=Number(e.w)||0;
+    adj.get(e.a).push({v:e.b,w,e:i}); if(!directed) adj.get(e.b).push({v:e.a,w,e:i}); });
+  const byLbl=(p,q)=>L(p).localeCompare(L(q),undefined,{numeric:true});
+  for(const l of adj.values()) l.sort((p,q)=>byLbl(p.v,q.v));
+  const s=byId.has(G.start)?G.start:G.nodes[0].id, t=byId.has(G.target)?G.target:null;
+  const parent=new Map(), pe=new Map();
+  const showPath=()=>{ const p=[]; for(let v=t; v!==undefined; v=parent.get(v)){ p.push(v); if(v===s) break; } p.reverse();
+    for(const v of p){ ns[v]='path'; if(pe.has(v)) es[pe.get(v)]='path'; } return p; };
+  const arrow=p=>p.map(L).join(' → ');
+
+  if(algo==='bfs'){
+    const seen=new Set([s]), q=[s], lvl=new Map([[s,0]]); ns[s]='frontier'; badge[s]='0';
+    rec(1,`Start at ${L(s)}: put it in the queue`,['Queue',q.map(L)]);
+    while(q.length){
+      const u=q.shift(); ns[u]='current';
+      rec(3,`Take ${L(u)} from the front of the queue (distance ${lvl.get(u)})`,['Queue',q.map(L)],{seen:seen.size});
+      if(u===t){ const p=showPath(); rec(4,`Reached ${L(t)}. Fewest edges: ${arrow(p)}`,['Queue',q.map(L)],{edges:p.length-1}); return frames; }
+      for(const {v,e} of adj.get(u)){
+        const prev=es[e]; es[e]='active';
+        if(!seen.has(v)){ seen.add(v); parent.set(v,u); pe.set(v,e); lvl.set(v,lvl.get(u)+1); badge[v]=String(lvl.get(v)); q.push(v); ns[v]='frontier'; es[e]='tree';
+          rec(8,`${L(v)} is new: parent is ${L(u)}, add it to the queue`,['Queue',q.map(L)],{seen:seen.size}); }
+        else { rec(6,`${L(v)} was already seen, skip it`,['Queue',q.map(L)],{seen:seen.size}); es[e]=prev; }
+      }
+      ns[u]='visited';
+    }
+    rec(0, t!=null?`Queue is empty. ${L(t)} can't be reached from ${L(s)}.`:`Queue is empty. Reached ${seen.size} of ${N} nodes. Badges show the distance in edges.`,['Queue',[]],{seen:seen.size});
+    return frames;
+  }
+  if(algo==='dfs'){
+    const vis=new Set(), stack=[], order=[]; let found=false;
+    const dfs=u=>{
+      stack.push(L(u)); vis.add(u); order.push(L(u)); ns[u]='current'; badge[u]='#'+order.length;
+      rec(2,`Visit ${L(u)} (number ${order.length})`,['Call stack',stack]);
+      if(u===t){ found=true; return; }
+      for(const {v,e} of adj.get(u)){
+        const prev=es[e]; es[e]='active';
+        if(!vis.has(v)){ parent.set(v,u); pe.set(v,e); es[e]='tree'; ns[u]='visited'; rec(7,`${L(v)} is not visited yet: go deeper`,['Call stack',stack]);
+          dfs(v); if(found) return; ns[u]='current'; rec(4,`Back at ${L(u)}`,['Call stack',stack]); }
+        else { rec(5,`${L(v)} is already visited, skip it`,['Call stack',stack]); es[e]=prev; }
+      }
+      ns[u]='done'; stack.pop(); rec(8,`${L(u)} is finished, return`,['Call stack',stack]);
+    };
+    dfs(s);
+    if(found){ const p=showPath(); rec(3,`Found ${L(t)}: ${arrow(p)} (DFS paths are not always shortest)`,['Call stack',stack]); }
+    else rec(0, t!=null?`${L(t)} can't be reached from ${L(s)}.`:`Done. Visit order: ${order.join(', ')}`,['Call stack',[]]);
+    return frames;
+  }
+  if(algo==='dijkstra'){
+    const dist=new Map(G.nodes.map(n=>[n.id,Infinity])); dist.set(s,0);
+    for(const n of G.nodes) badge[n.id]='∞'; badge[s]='0';
+    const neg=G.edges.some(e=>Number(e.w)<0);
+    let pq=[[0,s]]; const fin=new Set(); ns[s]='frontier';
+    const srt=()=>pq.sort((a,b)=>a[0]-b[0]||byLbl(a[1],b[1]));
+    const show=()=>(srt(),pq.map(([d,v])=>`${L(v)}:${d}`));
+    rec(1,`Every distance starts at ∞, except ${L(s)} = 0`+(neg?'. Warning: Dijkstra is wrong with negative weights.':''),['Priority queue',show()]);
+    while(pq.length){
+      srt(); const [d,u]=pq.shift();
+      if(fin.has(u)){ rec(5,`${L(u)}:${d} is an old entry (${L(u)} is finished), skip it`,['Priority queue',show()],{finished:fin.size}); continue; }
+      fin.add(u); ns[u]='current';
+      rec(6,`Finish ${L(u)}: its shortest distance is ${d}`,['Priority queue',show()],{finished:fin.size});
+      if(u===t){ const p=showPath(); rec(6,`Shortest path to ${L(t)}: ${arrow(p)}, total ${d}`,['Priority queue',show()],{finished:fin.size,total:d}); return frames; }
+      for(const {v,w,e} of adj.get(u)){
+        if(fin.has(v)) continue;
+        const prev=es[e]; es[e]='active'; const nd=d+w, old=dist.get(v);
+        if(nd<old){ dist.set(v,nd); badge[v]=String(nd); if(pe.has(v)) delete es[pe.get(v)]; parent.set(v,u); pe.set(v,e); es[e]='tree'; ns[v]='frontier'; pq.push([nd,v]);
+          rec(9,`${d} + ${w} = ${nd} beats ${old===Infinity?'∞':old}: update ${L(v)}`,['Priority queue',show()],{finished:fin.size}); }
+        else { rec(8,`${d} + ${w} = ${nd} doesn't beat ${old}, keep ${L(v)} as is`,['Priority queue',show()],{finished:fin.size}); es[e]=prev; }
+      }
+      ns[u]='visited';
+    }
+    rec(0, t!=null?`${L(t)} can't be reached from ${L(s)}.`:`Done. Badges show the shortest distance from ${L(s)}; blue edges form the shortest-path tree.`,['Priority queue',[]],{finished:fin.size});
+    return frames;
+  }
+  if(algo==='prim'){
+    const inT=new Set([s]); ns[s]='visited'; let total=0, pq=[];
+    const pushE=u=>{ for(const {v,w,e} of adj.get(u)) if(!inT.has(v)) pq.push([w,u,v,e]); };
+    const srt=()=>pq.sort((a,b)=>a[0]-b[0]||byLbl(a[2],b[2]));
+    const show=()=>(srt(),pq.map(([w,u,v])=>`${L(u)}–${L(v)}:${w}`));
+    pushE(s);
+    rec(2,`Start the tree at ${L(s)}${G.directed?' (Prim ignores edge direction)':''}`,['Edge queue',show()],{'tree weight':total});
+    while(pq.length){
+      srt(); const [w,u,v,e]=pq.shift(); const prev=es[e]; es[e]='active';
+      if(inT.has(v)){ rec(5,`${L(u)}–${L(v)} (${w}) would close a cycle, skip it`,['Edge queue',show()],{'tree weight':total}); es[e]=prev==='tree'?'tree':'skip'; continue; }
+      rec(4,`Lightest edge leaving the tree: ${L(u)}–${L(v)} (${w})`,['Edge queue',show()],{'tree weight':total});
+      inT.add(v); total+=w; es[e]='tree'; ns[v]='visited'; pushE(v);
+      rec(7,`Add ${L(v)}. Tree weight is now ${total}`,['Edge queue',show()],{'tree weight':total,nodes:inT.size});
+    }
+    rec(0, inT.size<N?`Done. Only ${inT.size} of ${N} nodes connect to ${L(s)}; weight ${total}.`:`Minimum spanning tree found, total weight ${total}`,['Edge queue',[]],{'tree weight':total,nodes:inT.size});
+    return frames;
+  }
+  if(algo==='topo'){
+    const indeg=new Map(G.nodes.map(n=>[n.id,0]));
+    for(const e of G.edges) if(indeg.has(e.a)&&indeg.has(e.b)) indeg.set(e.b,indeg.get(e.b)+1);
+    for(const [k,v] of indeg) badge[k]='in '+v;
+    rec(1,'Count the edges pointing into each node'+(G.directed?'':' (edges point the way you drew them)'),null);
+    const q=G.nodes.map(n=>n.id).filter(id=>indeg.get(id)===0).sort(byLbl); q.forEach(v=>ns[v]='frontier');
+    rec(2,`Nothing points at: ${q.map(L).join(', ')||'nobody'}`,['Queue',q.map(L)]);
+    const order=[];
+    while(q.length){
+      const u=q.shift(); order.push(u); ns[u]='current';
+      rec(4,`Output ${L(u)}`,['Queue',q.map(L)],{order:order.map(L).join(' ')});
+      for(const {v,e} of adj.get(u)){
+        es[e]='active'; indeg.set(v,indeg.get(v)-1); badge[v]='in '+indeg.get(v);
+        if(indeg.get(v)===0){ q.push(v); ns[v]='frontier'; rec(7,`${L(v)} has nothing left pointing at it: queue it`,['Queue',q.map(L)],{order:order.map(L).join(' ')}); }
+        else rec(6,`${L(u)} → ${L(v)} removed, ${L(v)} still has ${indeg.get(v)} incoming`,['Queue',q.map(L)],{order:order.map(L).join(' ')});
+        es[e]='tree';
+      }
+      ns[u]='visited';
+    }
+    if(order.length<N){ for(const n of G.nodes) if(!order.includes(n.id)) ns[n.id]='stuck';
+      rec(8,`Only ${order.length} of ${N} nodes came out. The red ones are on a cycle.`,['Queue',[]],{order:order.map(L).join(' ')}); }
+    else rec(0,`Topological order: ${arrow(order)}`,['Queue',[]],{order:order.map(L).join(' ')});
+    return frames;
+  }
+  return frames;
+}
+
+/* ---------------- GRID algorithms ---------------- */
+class Heap{ constructor(){this.a=[];} get size(){return this.a.length;}
+  lt(x,y){return x[0]<y[0]||(x[0]===y[0]&&x[1]<y[1]);}
+  push(v){const a=this.a;a.push(v);let i=a.length-1;while(i>0){const p=(i-1)>>1;if(this.lt(a[i],a[p])){[a[i],a[p]]=[a[p],a[i]];i=p;}else break;}}
+  pop(){const a=this.a,top=a[0],last=a.pop();if(a.length){a[0]=last;let i=0;for(;;){const l=2*i+1,r=l+1;let m=i;if(l<a.length&&this.lt(a[l],a[m]))m=l;if(r<a.length&&this.lt(a[r],a[m]))m=r;if(m===i)break;[a[i],a[m]]=[a[m],a[i]];i=m;}}return top;} }
+function gridPC(algo){
+  if(algo==='bfs') return ['frontier ← queue [start]; seen ← {start}','while frontier is not empty','  cell ← frontier.popFront()','  if cell = goal: walk came_from back','  for each open neighbor n of cell','    if n not in seen','      seen.add(n); came_from[n] ← cell','      frontier.push(n)'];
+  if(algo==='dfs') return ['stack ← [start]','while stack is not empty','  cell ← stack.pop()','  if cell = goal: walk came_from back','  if cell is visited: skip; else visit it','  for each open neighbor n of cell','    if n not visited: came_from[n] ← cell','      stack.push(n)'];
+  const f= algo==='dijkstra'?'g(n)': algo==='astar'?'g(n) + h(n)':'h(n)';
+  return ['open ← priority queue [start]; g[start] ← 0','while open is not empty',`  cell ← pop lowest f   // f = ${f}`,'  if cell = goal: walk came_from back','  if cell is closed: skip; else close it','  for each open neighbor n of cell','    cost ← g[cell] + step(n)   // mud = 5','    if cost < g[n]: g[n] ← cost; came_from[n] ← cell',`      open.push(n, ${f})`];
+}
+function gridRun(){
+  const g=S.grid, Wd=g.w, Hd=g.h, N=Wd*Hd, cells=g.cells, algo=g.algo;
+  const s=g.start[0]*Wd+g.start[1], t=g.end[0]*Wd+g.end[1];
+  const st=new Uint8Array(N), parent=new Int32Array(N).fill(-1), frames=[]; let pend=[], visited=0;
+  const set=(i,v)=>{ if(st[i]!==v){ st[i]=v; pend.push(i,v); } };
+  const rec=(line,msg,cur,vars,path)=>{ frames.push({ch:pend,cur,line,msg,vars,path:path||null}); pend=[]; };
+  const rc=i=>[Math.floor(i/Wd),i%Wd], fmt=i=>{const [r,c]=rc(i);return `(${r}, ${c})`;};
+  const D4=[[-1,0],[0,1],[1,0],[0,-1]], DD=[[-1,1],[1,1],[1,-1],[-1,-1]];
+  const nbrs=i=>{ const [r,c]=rc(i), out=[];
+    for(const [dr,dc] of D4){ const rr=r+dr,cc=c+dc; if(rr<0||cc<0||rr>=Hd||cc>=Wd) continue; const j=rr*Wd+cc; if(cells[j]!==1) out.push([j,1]); }
+    if(g.diag) for(const [dr,dc] of DD){ const rr=r+dr,cc=c+dc; if(rr<0||cc<0||rr>=Hd||cc>=Wd) continue; const j=rr*Wd+cc;
+      if(cells[j]===1||cells[r*Wd+cc]===1||cells[rr*Wd+c]===1) continue; out.push([j,Math.SQRT2]); }
+    return out; };
+  const stepCost=(j,m)=>m*(cells[j]===2?5:1);
+  const [tr,tc]=rc(t);
+  const hfn=i=>{ const [r,c]=rc(i),dr=Math.abs(r-tr),dc=Math.abs(c-tc); return g.diag?(dr+dc)+(Math.SQRT2-2)*Math.min(dr,dc):dr+dc; };
+  const r1=n=>Math.round(n*10)/10;
+  const finish=()=>{
+    const path=[]; for(let i=t;i!==-1;i=parent[i]){ path.push(i); if(i===s) break; }   // goal → start
+    let cost=0; for(let k=0;k<path.length-1;k++){ const [a1,b1]=rc(path[k]),[a2,b2]=rc(path[k+1]); cost+=stepCost(path[k],(a1!==a2&&b1!==b2)?Math.SQRT2:1); }
+    const V={expanded:visited,'path steps':path.length-1,'path cost':r1(cost)};
+    const chunk=Math.max(1,Math.ceil(path.length/30));
+    for(let k=0;k<path.length;k+=chunk){ const e=Math.min(path.length,k+chunk); for(let q=k;q<e;q++) set(path[q],3);
+      rec(4,`Walk back along came_from: ${e} of ${path.length} cells`,path[e-1],V,path.slice(0,e)); }
+    rec(0,`Path found: ${path.length-1} steps, cost ${r1(cost)}, after expanding ${visited} cells`,-1,V,path);
+  };
+  const noPath=()=>rec(0,'The frontier ran out before reaching the goal: there is no path.',-1,{expanded:visited});
+  if(cells[s]===1||cells[t]===1){ rec(0,'Start or end is inside a wall.',-1,{}); return frames; }
+
+  if(algo==='bfs'){
+    const q=[s]; let head=0; set(s,1); rec(1,'Put the start in the queue',-1,{frontier:1,expanded:0});
+    while(head<q.length){ const u=q[head++]; set(u,2); visited++;
+      if(u===t){ rec(4,`Reached the goal at ${fmt(u)}`,u,{expanded:visited}); finish(); return frames; }
+      let added=0; for(const [v] of nbrs(u)) if(st[v]===0){ set(v,1); parent[v]=u; q.push(v); added++; }
+      rec(5,`Expand ${fmt(u)}: ${added} new neighbor${added===1?'':'s'} join the queue`,u,{frontier:q.length-head,expanded:visited}); }
+    noPath(); return frames;
+  }
+  if(algo==='dfs'){
+    const stack=[s]; set(s,1); rec(1,'Push the start on the stack',-1,{stack:1,expanded:0});
+    while(stack.length){ const u=stack.pop(); if(st[u]===2) continue; set(u,2); visited++;
+      if(u===t){ rec(4,`Reached the goal at ${fmt(u)}`,u,{expanded:visited}); finish(); return frames; }
+      const nb=nbrs(u); let added=0;
+      for(let k=nb.length-1;k>=0;k--){ const v=nb[k][0]; if(st[v]!==2){ parent[v]=u; set(v,1); stack.push(v); added++; } }
+      rec(6,`Visit ${fmt(u)}, push ${added} neighbor${added===1?'':'s'}`,u,{stack:stack.length,expanded:visited}); }
+    noPath(); return frames;
+  }
+  const gS=new Float64Array(N).fill(Infinity), closed=new Uint8Array(N), Hp=new Heap(); let tie=0; gS[s]=0;
+  const pri=i=> algo==='dijkstra'?gS[i]: algo==='astar'?gS[i]+hfn(i): hfn(i);
+  const fl= algo==='dijkstra'?'g': algo==='astar'?'f':'h';
+  Hp.push([pri(s),tie++,s]); set(s,1); rec(1,'Put the start in the open set with g = 0',-1,{open:1,closed:0});
+  while(Hp.size){ const [p,,u]=Hp.pop(); if(closed[u]) continue; closed[u]=1; set(u,2); visited++;
+    if(u===t){ rec(4,`Reached the goal at ${fmt(u)} with cost ${r1(gS[u])}`,u,{g:r1(gS[u]),closed:visited}); finish(); return frames; }
+    let upd=0; for(const [v,m] of nbrs(u)){ if(closed[v]) continue; const cost=gS[u]+stepCost(v,m); if(cost<gS[v]){ gS[v]=cost; parent[v]=u; Hp.push([pri(v),tie++,v]); set(v,1); upd++; } }
+    rec(3,`Expand ${fmt(u)} (${fl} = ${r1(p)}), improve ${upd} neighbor${upd===1?'':'s'}`,u,{g:r1(gS[u]),h:r1(hfn(u)),open:Hp.size,closed:visited}); }
+  noPath(); return frames;
+}
+let gridCache={frames:null,fi:-1,st:null};
+function gridStateAt(frames,fi){
+  const N=S.grid.w*S.grid.h;
+  if(gridCache.frames!==frames||gridCache.fi>fi||!gridCache.st||gridCache.st.length!==N) gridCache={frames,fi:-1,st:new Uint8Array(N)};
+  for(let k=gridCache.fi+1;k<=fi;k++){ const ch=frames[k].ch; for(let q=0;q<ch.length;q+=2) gridCache.st[ch[q]]=ch[q+1]; }
+  gridCache.fi=fi; return gridCache.st;
+}
+
+/* ---------------- rebuild ---------------- */
+function rebuild(){
+  const m=S.mode; let fr;
+  if(m==='array'){ const A=ARR[S.array.algo]||ARR.bubble; fr=A.run(S.array.values, Number(S.array.target)||0); }
+  else if(m==='graph') fr=graphRun();
+  else if(m==='grid') fr=gridRun();
+  else return;
+  runs[m]={frames:fr,fi:0}; stopPlay(); refresh(); save();
+}
+
+/* ---------------- DRAW ---------------- */
+function draw(){
+  if(!W) return;
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=T.surface; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=T.line; for(let x=12;x<W;x+=24) for(let y=12;y<H;y+=24) ctx.fillRect(x,y,1.2,1.2);
+  const f=curFrame();
+  if(S.mode==='array') drawArray(f);
+  else if(S.mode==='graph') drawGraph(f);
+  else if(S.mode==='grid') drawGrid(f);
+  else drawCustom(f);
+  drawInk();
+}
+const KC=()=>({cmp:T.cmp,swap:T.swap,pivot:T.accent,key:T.accent,found:T.done});
+let arrGeom=null;
+function drawBars(vals,R,o={}){
+  const n=vals.length; if(!n){ text('[ ]',R.x+R.w/2,R.y+R.h/2,{color:T.muted}); return null; }
+  const hasPtr=o.ptr&&Object.keys(o.ptr).length>0, ptrRows=hasPtr?Math.max(1,...Object.values(groupPtr(o.ptr,n)).map(a=>a.length)):0;
+  const reserve=20+(o.reservePtr?Math.max(ptrRows,2)*15+12:ptrRows*15+(hasPtr?12:0));
+  const padX=Math.max(10,Math.min(32,R.w*.03)), slot=(R.w-2*padX)/n, x0=R.x+padX;
+  let lo=Math.min(0,...vals), hi=Math.max(0,...vals); if(o.tline!=null){lo=Math.min(lo,o.tline);hi=Math.max(hi,o.tline);} if(hi===lo) hi=lo+1;
+  const yTop=R.y+20, yBot=R.y+R.h-reserve, y=v=>yTop+(hi-v)/(hi-lo)*(yBot-yTop), base=y(0);
+  const kc=KC(), bw=Math.max(1,slot*(slot>26?.72:.82)), showV=slot>=17;
+  ctx.strokeStyle=T.line; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(R.x+4,base+.5); ctx.lineTo(R.x+R.w-4,base+.5); ctx.stroke();
+  for(let i=0;i<n;i++){
+    const v=vals[i], cx=x0+i*slot+slot/2, bx=cx-bw/2, hk=o.hl&&o.hl[i];
+    const dim=o.range&&(i<o.range[0]||i>o.range[1]); const sorted=o.sorted&&o.sorted.has(i);
+    ctx.globalAlpha=dim?.22:1;
+    const top=Math.min(y(v),base), h=Math.max(2,Math.abs(y(v)-base)), r=Math.min(5,bw/3);
+    rr(bx,top,bw,h, v>=0?[r,r,0,0]:[0,0,r,r]); ctx.fillStyle=hk?kc[hk]||T.accent: sorted?T.done:T.bar; ctx.fill();
+    if(showV) text(String(v),cx, v>=0?top-8:top+h+9,{font:`${hk?600:500} ${slot>34?12:10.5}px ${FM}`,color:hk?T.fg:T.muted});
+    ctx.globalAlpha=1;
+    if(slot>=12) text(String(i),cx,yBot+12,{font:`400 ${slot>30?11:9.5}px ${FM}`,color:T.muted});
+  }
+  if(o.tline!=null){ const ty=y(o.tline); ctx.setLineDash([5,4]); ctx.strokeStyle=T.done; ctx.lineWidth=1.3; ctx.beginPath(); ctx.moveTo(R.x+4,ty); ctx.lineTo(R.x+R.w-4,ty); ctx.stroke(); ctx.setLineDash([]);
+    text('target '+o.tline,R.x+R.w-6,ty-8,{font:`500 11px ${FM}`,color:T.done,align:'right'}); }
+  if(hasPtr) drawPtrs(o.ptr,n,i=>x0+i*slot+slot/2,yBot+24);
+  return {x0,slot,n,yTop,yBot,lo,hi};
+}
+function groupPtr(ptr,n){ const g={}; for(const [k,v] of Object.entries(ptr)){ if(!Number.isInteger(v)||v<-1||v>n) continue; (g[v]=g[v]||[]).push(k); } return g; }
+function drawPtrs(ptr,n,xOf,y0){
+  const g=groupPtr(ptr,n);
+  for(const [i,names] of Object.entries(g)){ const x=xOf(+i);
+    ctx.fillStyle=T.accent; ctx.beginPath(); ctx.moveTo(x,y0-6); ctx.lineTo(x-5,y0+1); ctx.lineTo(x+5,y0+1); ctx.closePath(); ctx.fill();
+    names.forEach((nm,k)=>text(nm,x,y0+10+k*14,{font:`600 11.5px ${FM}`,color:T.accent})); }
+}
+function drawArray(f){
+  const R={x:8,y:8,w:W-16,h:H-16};
+  if(f) arrGeom=drawBars(f.arr,R,{hl:f.hl,ptr:f.ptr,sorted:new Set(f.sorted),range:f.range,tline:f.tline,reservePtr:true});
+  else arrGeom=drawBars(S.array.values,R,{reservePtr:true});
+}
+
+/* graph */
+const nodeR=()=>S.graph.nodes.length>24?13:Math.max(14,Math.min(20,Math.min(W,H)/26));
+const gpos=n=>({x:clamp(n.x,0,1)*W, y:clamp(n.y,0,1)*H});
+let linkDrag=null;
+function drawGraph(f){
+  const G=S.graph, R=nodeR(), byId=new Map(G.nodes.map(n=>[n.id,n]));
+  if(!G.nodes.length){ text('Click anywhere to add a node',W/2,H/2,{font:`500 14px ${FU}`,color:T.muted}); return; }
+  const keyset=new Set(G.edges.map(e=>e.a+'>'+e.b));
+  G.edges.forEach((e,i)=>{
+    const A=byId.get(e.a),B=byId.get(e.b); if(!A||!B) return;
+    let p=gpos(A),q=gpos(B); const dx=q.x-p.x,dy=q.y-p.y,len=Math.hypot(dx,dy)||1,ux=dx/len,uy=dy/len;
+    if(G.directed&&keyset.has(e.b+'>'+e.a)){ p={x:p.x-uy*7,y:p.y+ux*7}; q={x:q.x-uy*7,y:q.y+ux*7}; }
+    const st=f&&f.es[i];
+    const col= st==='tree'?T.accent: st==='active'?T.cmp: st==='path'?T.done: T.muted;
+    const lw= st==='path'?4.5: st==='tree'||st==='active'?3:1.6;
+    ctx.globalAlpha= st==='skip'?.35: (!st&&f&&f.line!==undefined&&anyState(f))?.55:1;
+    if(st==='skip') ctx.setLineDash([4,4]);
+    const sx=p.x+ux*R, sy=p.y+uy*R, ex=q.x-ux*(R+(G.directed?2:0)), ey=q.y-uy*(R+(G.directed?2:0));
+    ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(ex,ey); ctx.stroke(); ctx.setLineDash([]);
+    if(G.directed){ const ah=9+lw; ctx.fillStyle=col; ctx.beginPath(); ctx.moveTo(ex,ey); ctx.lineTo(ex-ux*ah-uy*ah*.5,ey-uy*ah+ux*ah*.5); ctx.lineTo(ex-ux*ah+uy*ah*.5,ey-uy*ah-ux*ah*.5); ctx.closePath(); ctx.fill(); }
+    ctx.globalAlpha=1;
+    if(G.weights){ const mx=(p.x+q.x)/2, my=(p.y+q.y)/2; pill(String(e.w),mx,my,st?T.fg:T.muted,T.surface,st?col:T.line); }
+  });
+  if(linkDrag){ const A=byId.get(linkDrag.from); if(A){ const p=gpos(A); ctx.setLineDash([6,5]); ctx.strokeStyle=T.accent; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(linkDrag.p.x,linkDrag.p.y); ctx.stroke(); ctx.setLineDash([]); } }
+  const fs=Math.round(R*.72);
+  for(const n of G.nodes){
+    const {x,y}=gpos(n), st=f&&f.ns[n.id];
+    let fill=T.surface, stroke=T.fg, tc=T.fg, lw=1.6;
+    if(st==='frontier'){fill=T['cmp-soft'];stroke=T.cmp;lw=2.2;}
+    else if(st==='current'){fill=T.accent;stroke=T.accent;tc=T['on-accent'];}
+    else if(st==='visited'){fill=T['accent-soft'];stroke=T.accent;}
+    else if(st==='done'){fill=T['done-soft'];stroke=T.done;}
+    else if(st==='path'){fill=T.done;stroke=T.done;tc=T['on-accent'];}
+    else if(st==='stuck'){fill=T.surface;stroke=T.swap;lw=2.4;}
+    if(n.id===G.start&&G.algo!=='topo'){ ctx.strokeStyle=T.accent; ctx.lineWidth=1.6; ctx.beginPath(); ctx.arc(x,y,R+5,0,Math.PI*2); ctx.stroke(); }
+    if(n.id===G.target&&['bfs','dfs','dijkstra'].includes(G.algo)){ ctx.strokeStyle=T.done; ctx.lineWidth=1.6; ctx.setLineDash([4,3]); ctx.beginPath(); ctx.arc(x,y,R+5,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]); }
+    ctx.beginPath(); ctx.arc(x,y,R,0,Math.PI*2); ctx.fillStyle=fill; ctx.fill(); ctx.strokeStyle=stroke; ctx.lineWidth=lw; ctx.stroke();
+    const lbl=n.label.length>4?n.label.slice(0,3)+'…':n.label;
+    if(n.label.length>4){ text(n.label,x,y+R+12,{font:`500 11px ${FU}`,color:T.muted}); text(lbl,x,y+.5,{font:`600 ${Math.max(9,fs-3)}px ${FU}`,color:tc}); }
+    else text(lbl,x,y+.5,{font:`600 ${fs}px ${FU}`,color:tc});
+    if(f&&f.badge[n.id]!=null) pill(f.badge[n.id],x+R*.9,y-R-6,T.fg,T['surface-2'],T.line);
+  }
+}
+function anyState(f){ return Object.keys(f.es).length>0; }
+
+/* grid */
+let gridGeom=null;
+function drawGrid(f){
+  const g=S.grid, cs=Math.max(4,Math.floor(Math.min((W-20)/g.w,(H-20)/g.h))), ox=Math.floor((W-cs*g.w)/2), oy=Math.floor((H-cs*g.h)/2);
+  gridGeom={cs,ox,oy};
+  ctx.fillStyle=T['surface-2']; ctx.fillRect(ox,oy,cs*g.w,cs*g.h);
+  const st=f?gridStateAt(cur().frames,cur().fi):null;
+  for(let r=0;r<g.h;r++) for(let c=0;c<g.w;c++){ const i=r*g.w+c, x=ox+c*cs, y=oy+r*cs, v=g.cells[i];
+    if(v===1){ ctx.fillStyle=T.wall; ctx.fillRect(x,y,cs,cs); continue; }
+    if(v===2){ ctx.fillStyle=T.mud; ctx.globalAlpha=.55; ctx.fillRect(x,y,cs,cs); ctx.globalAlpha=1; }
+    if(st&&st[i]){ const s=st[i];
+      if(s===1){ ctx.fillStyle=T['cmp-soft']; ctx.fillRect(x+1,y+1,cs-2,cs-2); ctx.strokeStyle=T.cmp; ctx.lineWidth=1; ctx.strokeRect(x+1.5,y+1.5,cs-3,cs-3); }
+      else if(s===2){ ctx.fillStyle=T['accent-soft']; ctx.globalAlpha=v===2?.7:1; ctx.fillRect(x,y,cs,cs); ctx.globalAlpha=1; }
+      else if(s===3){ ctx.fillStyle=T['done-soft']; ctx.fillRect(x,y,cs,cs); } } }
+  if(cs>=8){ ctx.strokeStyle=T.line; ctx.lineWidth=1; ctx.globalAlpha=.6; ctx.beginPath();
+    for(let c=0;c<=g.w;c++){ ctx.moveTo(ox+c*cs+.5,oy); ctx.lineTo(ox+c*cs+.5,oy+g.h*cs); }
+    for(let r=0;r<=g.h;r++){ ctx.moveTo(ox,oy+r*cs+.5); ctx.lineTo(ox+g.w*cs,oy+r*cs+.5); } ctx.stroke(); ctx.globalAlpha=1; }
+  const ctr=i=>[ox+(i%g.w)*cs+cs/2, oy+Math.floor(i/g.w)*cs+cs/2];
+  if(f&&f.path&&f.path.length>1){ ctx.strokeStyle=T.done; ctx.lineWidth=Math.max(2,cs*.28); ctx.lineCap='round'; ctx.lineJoin='round'; ctx.beginPath();
+    f.path.forEach((i,k)=>{ const [x,y]=ctr(i); k?ctx.lineTo(x,y):ctx.moveTo(x,y); }); ctx.stroke(); }
+  if(f&&f.cur>=0){ const [x,y]=ctr(f.cur); ctx.strokeStyle=T.accent; ctx.lineWidth=Math.max(2,cs*.14); ctx.strokeRect(x-cs/2+1,y-cs/2+1,cs-2,cs-2); }
+  const mark=(rc,lbl,col)=>{ const [x,y]=ctr(rc[0]*g.w+rc[1]), rad=Math.max(5,cs*.42); ctx.beginPath(); ctx.arc(x,y,rad,0,Math.PI*2); ctx.fillStyle=col; ctx.fill();
+    if(cs>=12) text(lbl,x,y+.5,{font:`700 ${Math.round(rad*1.1)}px ${FU}`,color:T['on-accent']}); };
+  mark(g.start,'S',T.accent); mark(g.end,'E',T.swap);
+}
+
+/* custom */
+const isObj=v=>v&&typeof v==='object'&&!Array.isArray(v);
+function kindOf(v){
+  if(Array.isArray(v)){ if(v.length&&v.every(r=>Array.isArray(r))) return 'matrix'; if(v.length&&v.every(x=>typeof x==='number'&&isFinite(x))) return 'bars'; return 'boxes'; }
+  if(typeof v==='string') return v.length<=64?'boxes':'scalar';
+  if(isObj(v)) return 'object'; return 'scalar';
+}
+const short=v=>{ let s= typeof v==='string'?v: v===null?'null': v===undefined?'undefined': typeof v==='number'&&!isFinite(v)?String(v): JSON.stringify(v); return s.length>14?s.slice(0,13)+'…':s; };
+function drawBoxes(vals,R,o={}){
+  const n=vals.length; if(!n){ text('[ ] empty',R.x+12,R.y+20,{color:T.muted,align:'left'}); return; }
+  const hasPtr=o.ptr&&Object.keys(o.ptr).length; const bw=Math.min(64,(R.w-8)/n), bh=Math.min(40,R.h-(hasPtr?50:20)), y=R.y+4;
+  const x0=R.x+Math.max(4,(R.w-bw*n)/2), hl=new Set(o.hl||[]);
+  for(let i=0;i<n;i++){ const x=x0+i*bw; rr(x+1,y,bw-2,bh,5); ctx.fillStyle=hl.has(i)?T['cmp-soft']:T['surface-2']; ctx.fill(); ctx.strokeStyle=hl.has(i)?T.cmp:T.line; ctx.lineWidth=1.2; ctx.stroke();
+    if(bw>=12) text(short(vals[i]),x+bw/2,y+bh/2+.5,{font:`500 ${bw>30?13:10}px ${FM}`});
+    if(bw>=14) text(String(i),x+bw/2,y+bh+10,{font:`400 10px ${FM}`,color:T.muted}); }
+  if(hasPtr) drawPtrs(o.ptr,n,i=>x0+i*bw+bw/2,y+bh+26);
+}
+function drawMatrix(m,R,o={}){
+  const rows=m.length, cols=Math.max(1,...m.map(r=>r.length)), lab=16;
+  const cs=Math.max(8,Math.min(46,(R.w-lab-8)/cols,(R.h-lab-4)/rows)), x0=R.x+lab+Math.max(0,(R.w-lab-cs*cols)/2), y0=R.y+lab;
+  const hl=new Set((o.hl||[]).map(p=>p+'')); const cellPtr={}; for(const [k,[r,c]] of (o.cells||[])) (cellPtr[r+','+c]=cellPtr[r+','+c]||[]).push(k);
+  for(let c=0;c<cols;c++) if(cs>=14) text(String(c),x0+c*cs+cs/2,y0-8,{font:`400 9.5px ${FM}`,color:T.muted});
+  for(let r=0;r<rows;r++){ if(cs>=14) text(String(r),x0-9,y0+r*cs+cs/2,{font:`400 9.5px ${FM}`,color:T.muted});
+    for(let c=0;c<m[r].length;c++){ const x=x0+c*cs,y=y0+r*cs, k=r+','+c, on=hl.has(k), p=cellPtr[k];
+      ctx.fillStyle=p?T.accent:on?T['cmp-soft']:T['surface-2']; ctx.fillRect(x,y,cs,cs); ctx.strokeStyle=T.line; ctx.lineWidth=1; ctx.strokeRect(x+.5,y+.5,cs-1,cs-1);
+      if(cs>=14) text(short(m[r][c]),x+cs/2,y+cs/2+.5,{font:`${p?600:500} ${Math.round(clamp(cs*.36,8,13))}px ${FM}`,color:p?T['on-accent']:T.fg}); } }
+}
+function drawChips(obj,R){
+  let x=R.x+4,y=R.y+4; ctx.font=`500 12px ${FM}`;
+  for(const [k,v] of Object.entries(obj)){ const s=k+': '+short(v), w=ctx.measureText(s).width+14; if(x+w>R.x+R.w&&x>R.x+4){x=R.x+4;y+=26;}
+    rr(x,y,w,21,5); ctx.fillStyle=T['surface-2']; ctx.fill(); ctx.strokeStyle=T.line; ctx.lineWidth=1; ctx.stroke(); text(s,x+w/2,y+11,{font:`500 12px ${FM}`}); x+=w+6; }
+}
+function drawCustom(f){
+  if(!f){ text('Press Run to step through your code',W/2,H/2,{font:`500 14px ${FU}`,color:T.muted}); return; }
+  const d=f.data, P=f.ptr||{}, ptr1={}, cells=[]; let hl1=[], hl2=[];
+  for(const [k,v] of Object.entries(P)){
+    if(k==='hl'){ if(Array.isArray(v)){ if(v.length&&Array.isArray(v[0])) hl2=v; else hl1=v; } else if(Number.isInteger(v)) hl1=[v]; continue; }
+    if(Number.isInteger(v)) ptr1[k]=v; else if(Array.isArray(v)&&v.length===2&&v.every(Number.isInteger)) cells.push([k,v]); }
+  const fields= isObj(d)? Object.entries(d): [[null,d]];
+  let u1=false,u2=false;
+  const items=fields.map(([k,v])=>{ const kind=kindOf(v); let o={};
+    if((kind==='bars'||kind==='boxes')&&!u1){u1=true;o={ptr:ptr1,hl:hl1};}
+    if(kind==='matrix'&&!u2){u2=true;o={cells,hl:hl2};}
+    const wt= kind==='bars'?3: kind==='matrix'?Math.max(2,Math.min(v.length,12)*.45): kind==='boxes'?(Object.keys(o.ptr||{}).length?1.6:1.1): kind==='object'?.9:.5;
+    return {k,v,kind,o,wt}; });
+  const tot=items.reduce((a,b)=>a+b.wt,0); let y=10; const avail=H-20;
+  for(const it of items){
+    const h=avail*it.wt/tot; let R={x:14,y,w:W-28,h};
+    if(it.k!==null){ text(it.k,R.x,R.y+8,{font:`600 11.5px ${FM}`,color:T.muted,align:'left'}); R={x:R.x,y:R.y+18,w:R.w,h:R.h-18}; }
+    if(it.kind==='bars') drawBars(it.v,R,{ptr:it.o.ptr,hl:Object.fromEntries((it.o.hl||[]).map(i=>[i,'cmp']))});
+    else if(it.kind==='boxes') drawBoxes(typeof it.v==='string'?Array.from(it.v):it.v,R,it.o);
+    else if(it.kind==='matrix') drawMatrix(it.v,R,it.o);
+    else if(it.kind==='object') drawChips(it.v,R);
+    else text(typeof it.v==='string'?it.v:JSON.stringify(it.v)??String(it.v),R.x,R.y+12,{font:`500 14px ${FM}`,align:'left'});
+    y+=h;
+  }
+}
+
+/* ink */
+function drawInk(){
+  const strokes=S.ink[S.mode]||[]; ctx.strokeStyle=T.ink; ctx.lineWidth=2.6; ctx.lineCap='round'; ctx.lineJoin='round';
+  for(const s of strokes){ if(!s.length) continue; ctx.beginPath(); s.forEach(([x,y],k)=>{ const X=x*W,Y=y*H; k?ctx.lineTo(X,Y):ctx.moveTo(X,Y); }); if(s.length===1) ctx.lineTo(s[0][0]*W+.1,s[0][1]*H); ctx.stroke(); }
+}
+
+/* ---------------- side panel ---------------- */
+let pcKey='';
+function pcLines(){ if(S.mode==='array') return (ARR[S.array.algo]||ARR.bubble).pc; if(S.mode==='graph') return GPC[S.graph.algo]; if(S.mode==='grid') return gridPC(S.grid.algo); return []; }
+function fmtVal(v){ if(typeof v==='number') return isFinite(v)?String(Math.round(v*1000)/1000):(v>0?'∞':'−∞'); if(typeof v==='string') return v; const s=JSON.stringify(v); return s&&s.length>120?s.slice(0,118)+'…':String(s); }
+function renderSide(){
+  const R=cur(), f=curFrame();
+  $('#msg').textContent = f? f.msg : (S.mode==='custom'?'Not run yet.':'Editing…');
+  $('#stepno').textContent = f? `step ${R.fi+1}` : '';
+  const key=S.mode+':'+(S.mode==='array'?S.array.algo:S.mode==='graph'?S.graph.algo:S.mode==='grid'?S.grid.algo:'');
+  if(key!==pcKey){ pcKey=key; $('#pc').innerHTML=pcLines().map(l=>`<li>${esc(l)}</li>`).join(''); }
+  $$('#pc li').forEach((li,i)=>li.classList.toggle('on', !!f && f.line===i+1));
+  let h='';
+  if(f){
+    if(f.ds) h+=`<div class="ds"><div class="ds-name">${esc(f.ds.name)}</div><div class="chips">${f.ds.items.length?f.ds.items.map(x=>`<span class="chip">${esc(x)}</span>`).join(''):'<span class="muted small">empty</span>'}</div></div>`;
+    const v=Object.assign({}, S.mode==='custom'?f.ptr:{}, f.vars||{}); if(S.mode==='custom') delete v.hl;
+    const ks=Object.keys(v); if(ks.length) h+='<dl class="vars">'+ks.map(k=>`<dt>${esc(k)}</dt><dd>${esc(fmtVal(v[k]))}</dd>`).join('')+'</dl>';
+    if(S.mode==='custom'&&R.logs&&R.logs.length){ const ls=R.logs.filter(l=>l.at<=R.fi); if(ls.length) h+=`<div class="ds-name">log</div><div class="logs">${ls.map(l=>esc(l.text)).join('\n')}</div>`; }
+    if(!h) h='<p class="muted small" style="margin:0">No variables at this step.</p>';
+  } else h='<p class="muted small" style="margin:0">Nothing has run yet.</p>';
+  $('#state').innerHTML=h;
+  if(S.mode==='custom') placeHl();
+}
+function placeHl(){ const f=curFrame(), hl=$('#cHl'), ta=$('#cCode'); const ln=f&&f.line>0?f.line:0;
+  if(!ln||S.mode!=='custom'){ hl.hidden=true; return; } hl.hidden=false; hl.style.top=(10+(ln-1)*20-ta.scrollTop)+'px'; }
+
+/* ---------------- interaction ---------------- */
+let penOn=false, drag=null;
+const pt=e=>{ const r=cv.getBoundingClientRect(); return {x:e.clientX-r.left,y:e.clientY-r.top}; };
+function hitNode(p){ const R=nodeR()+3; let best=null,bd=1e9; for(const n of S.graph.nodes){ const q=gpos(n),d=Math.hypot(q.x-p.x,q.y-p.y); if(d<=R&&d<bd){bd=d;best=n;} } return best; }
+function hitEdge(p){ const byId=new Map(S.graph.nodes.map(n=>[n.id,n])); let best=-1,bd=8;
+  S.graph.edges.forEach((e,i)=>{ const A=byId.get(e.a),B=byId.get(e.b); if(!A||!B) return; const a=gpos(A),b=gpos(B);
+    const dx=b.x-a.x,dy=b.y-a.y,L2=dx*dx+dy*dy||1,t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/L2,0,1),d=Math.hypot(a.x+t*dx-p.x,a.y+t*dy-p.y); if(d<bd){bd=d;best=i;} }); return best; }
+function hitCell(p){ const g=S.grid,G=gridGeom; if(!G) return -1; const c=Math.floor((p.x-G.ox)/G.cs), r=Math.floor((p.y-G.oy)/G.cs); if(r<0||c<0||r>=g.h||c>=g.w) return -1; return r*g.w+c; }
+function nextLabel(){ const used=new Set(S.graph.nodes.map(n=>n.label)); for(let i=0;;i++){ const l=String.fromCharCode(65+i%26)+(i>=26?Math.floor(i/26):''); if(!used.has(l)) return l; } }
+function graphChanged(){ syncGraphSelects(); rebuild(); }
+
+cv.addEventListener('pointerdown',e=>{
+  if(e.button!==0) return; const p=pt(e); hideInline();
+  cv.setPointerCapture(e.pointerId);
+  if(penOn){ const s=[[p.x/W,p.y/H]]; S.ink[S.mode].push(s); drag={type:'ink',s}; draw(); return; }
+  if(S.mode==='array'){ const G=arrGeom; if(!G) return; const i=Math.floor((p.x-G.x0)/G.slot); if(i<0||i>=G.n) return;
+    stopPlay(); drag={type:'bar',k:i,sx:p.x,sy:p.y,v0:S.array.values[i],vpp:(G.hi-G.lo)/(G.yBot-G.yTop),mode:null}; return; }
+  if(S.mode==='graph'){ const n=hitNode(p), ei=n?-1:hitEdge(p), tool=S.ui.gtool;
+    if(tool==='erase'){ if(n){ S.graph.nodes=S.graph.nodes.filter(m=>m!==n); S.graph.edges=S.graph.edges.filter(x=>x.a!==n.id&&x.b!==n.id); graphChanged(); }
+      else if(ei>=0){ S.graph.edges.splice(ei,1); graphChanged(); } return; }
+    if(n&&(tool==='connect'||e.shiftKey)){ linkDrag={from:n.id,p}; drag={type:'link'}; draw(); return; }
+    if(tool==='move'||tool==='connect'){ if(n){ const q=gpos(n); drag={type:'node',n,dx:q.x-p.x,dy:q.y-p.y}; return; }
+      if(ei<0&&tool==='move'){ S.graph.nodes.push({id:S.graph.nextId++,label:nextLabel(),x:p.x/W,y:p.y/H}); graphChanged(); } }
+    return; }
+  if(S.mode==='grid'){ const i=hitCell(p); if(i<0) return; const g=S.grid, si=g.start[0]*g.w+g.start[1], ti=g.end[0]*g.w+g.end[1];
+    stopPlay(); runs.grid.frames=null;
+    if(i===si){ drag={type:'mark',which:'start'}; } else if(i===ti){ drag={type:'mark',which:'end'}; }
+    else { const b=S.ui.brush; drag={type:'paint',v:(b!==0&&g.cells[i]===b)?0:b}; paint(i); }
+    refresh(); return; }
+});
+cv.addEventListener('pointermove',e=>{
+  const p=pt(e);
+  if(!drag){ setCursor(p); return; }
+  if(drag.type==='ink'){ drag.s.push([p.x/W,p.y/H]); draw(); return; }
+  if(drag.type==='bar'){ const d=drag, vals=S.array.values;
+    if(!d.mode){ if(Math.hypot(p.x-d.sx,p.y-d.sy)<4) return; d.mode=Math.abs(p.x-d.sx)>Math.abs(p.y-d.sy)?'move':'value'; runs.array.frames=null; }
+    if(d.mode==='value'){ vals[d.k]=clamp(Math.round(d.v0+(d.sy-p.y)*d.vpp),-999,999); }
+    else { const G=arrGeom, j=clamp(Math.floor((p.x-G.x0)/G.slot),0,vals.length-1); if(j!==d.k){ const v=vals.splice(d.k,1)[0]; vals.splice(j,0,v); d.k=j; } }
+    syncArrayField(); refresh(); return; }
+  if(drag.type==='link'){ linkDrag.p=p; draw(); return; }
+  if(drag.type==='node'){ drag.n.x=clamp((p.x+drag.dx)/W,.02,.98); drag.n.y=clamp((p.y+drag.dy)/H,.03,.97); draw(); return; }
+  if(drag.type==='paint'){ const i=hitCell(p); if(i>=0) paint(i); return; }
+  if(drag.type==='mark'){ const i=hitCell(p); if(i<0) return; const g=S.grid, other=drag.which==='start'?g.end:g.start; if(other[0]*g.w+other[1]===i) return;
+    g.cells[i]=0; g[drag.which]=[Math.floor(i/g.w),i%g.w]; draw(); }
+});
+function endDrag(e){
+  if(!drag) return; const d=drag; drag=null;
+  if(d.type==='ink'){ save(); return; }
+  if(d.type==='bar'){ if(d.mode) rebuild(); return; }
+  if(d.type==='link'){ const p=pt(e), n=hitNode(p), from=linkDrag.from; linkDrag=null;
+    if(n&&n.id!==from){ const G=S.graph; const dup=G.edges.some(x=>(x.a===from&&x.b===n.id)||(!G.directed&&x.a===n.id&&x.b===from));
+      if(dup) toast('Those nodes are already connected');
+      else { const A=G.nodes.find(m=>m.id===from), a=gpos(A), b=gpos(n); G.edges.push({a:from,b:n.id,w:Math.max(1,Math.round(Math.hypot(a.x-b.x,a.y-b.y)/60))}); graphChanged(); return; } }
+    draw(); return; }
+  if(d.type==='node'){ save(); return; }
+  if(d.type==='paint'||d.type==='mark'){ rebuild(); }
+}
+cv.addEventListener('pointerup',endDrag); cv.addEventListener('pointercancel',endDrag);
+function paint(i){ const g=S.grid; if(i===g.start[0]*g.w+g.start[1]||i===g.end[0]*g.w+g.end[1]) return; if(g.cells[i]!==drag.v){ g.cells[i]=drag.v; draw(); } }
+function setCursor(p){ let c='default';
+  if(penOn) c='crosshair';
+  else if(S.mode==='array'){ const G=arrGeom; if(G){ const i=Math.floor((p.x-G.x0)/G.slot); if(i>=0&&i<G.n) c='grab'; } }
+  else if(S.mode==='graph'){ const n=hitNode(p), t=S.ui.gtool; c= t==='erase'?(n||hitEdge(p)>=0?'pointer':'default'): n?(t==='connect'?'crosshair':'grab'): t==='move'?'copy':'default'; }
+  else if(S.mode==='grid'){ const i=hitCell(p), g=S.grid; c= i<0?'default': (i===g.start[0]*g.w+g.start[1]||i===g.end[0]*g.w+g.end[1])?'grab':'crosshair'; }
+  cv.style.cursor=c; }
+
+/* inline edit for node labels / edge weights */
+const ie=$('#inlineEdit'); let ieTarget=null;
+cv.addEventListener('dblclick',e=>{
+  if(S.mode!=='graph'||penOn) return; const p=pt(e), n=hitNode(p);
+  if(n){ const q=gpos(n); openInline(q.x,q.y,n.label,{kind:'node',n}); return; }
+  const ei=hitEdge(p); if(ei>=0){ const ed=S.graph.edges[ei], byId=new Map(S.graph.nodes.map(m=>[m.id,m])), a=gpos(byId.get(ed.a)), b=gpos(byId.get(ed.b));
+    openInline((a.x+b.x)/2,(a.y+b.y)/2,String(ed.w),{kind:'edge',ed}); }
+});
+function openInline(x,y,val,t){ ieTarget=t; ie.hidden=false; ie.style.left=x+'px'; ie.style.top=y+'px'; ie.value=val; ie.focus(); ie.select(); }
+function hideInline(){ if(!ie.hidden){ commitInline(); } }
+function commitInline(){ if(!ieTarget){ ie.hidden=true; return; } const t=ieTarget; ieTarget=null; ie.hidden=true; const v=ie.value.trim();
+  if(t.kind==='node'&&v){ t.n.label=v.slice(0,12); graphChanged(); }
+  if(t.kind==='edge'){ const w=Number(v); if(v!==''&&isFinite(w)){ t.ed.w=w; graphChanged(); } else toast('Weights must be numbers'); } }
+ie.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();commitInline();} if(e.key==='Escape'){ieTarget=null;ie.hidden=true;} e.stopPropagation(); });
+ie.addEventListener('blur',()=>commitInline());
+
+/* ---------------- controls wiring ---------------- */
+function setMode(m){
+  stopPlay(); hideInline(); S.mode=m;
+  $$('.modes button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.mode===m)));
+  $$('[data-for]').forEach(el=>el.hidden=el.dataset.for!==m);
+  $('#pcCard').hidden= m==='custom';
+  resize();
+  if(m==='custom'){ if(!runs.custom.frames) runCustom(); }
+  else if(!runs[m].frames) rebuild();
+  refresh(); save();
+}
+$$('.modes button').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+
+function setPen(v){ penOn=v; $('#penBtn').setAttribute('aria-pressed',String(v)); cv.style.cursor=v?'crosshair':'default'; }
+$('#penBtn').addEventListener('click',()=>setPen(!penOn));
+$('#inkClear').addEventListener('click',()=>{ S.ink[S.mode]=[]; draw(); save(); toast('Notes cleared'); });
+
+$('#pPlay').addEventListener('click',()=>playing?stopPlay():startPlay());
+$('#pPrev').addEventListener('click',()=>{stopPlay();go(cur().fi-1);});
+$('#pNext').addEventListener('click',()=>{stopPlay();go(cur().fi+1);});
+$('#pFirst').addEventListener('click',()=>{stopPlay();go(0);});
+$('#pLast').addEventListener('click',()=>{stopPlay();go(1e9);});
+$('#pScrub').addEventListener('input',e=>{stopPlay();go(+e.target.value);});
+$('#pSpeed').addEventListener('input',e=>{S.speed=+e.target.value; updatePlayer(); save();});
+
+/* array */
+function syncArrayField(){ $('#aData').value=S.array.values.join(', '); $('#aSize').value=S.array.values.length; $('#aSizeOut').textContent=S.array.values.length; }
+function syncArrayAlgo(){ const A=ARR[S.array.algo]; $('#aAlgo').value=S.array.algo; $('#aTargetWrap').hidden=!A.target; $('#aTargetLbl').textContent=A.target||''; $('#aTarget').value=S.array.target; }
+$('#aAlgo').addEventListener('change',e=>{ S.array.algo=e.target.value; syncArrayAlgo(); rebuild(); });
+$('#aTarget').addEventListener('input',e=>{ S.array.target=Number(e.target.value)||0; rebuild(); });
+let aT=0;
+$('#aData').addEventListener('input',e=>{ clearTimeout(aT); aT=setTimeout(()=>{ const nums=(e.target.value.match(/-?\d+(?:\.\d+)?/g)||[]).map(Number).slice(0,80);
+  if(nums.length){ S.array.values=nums; $('#aSize').value=nums.length; $('#aSizeOut').textContent=nums.length; rebuild(); } },250); });
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+function genArray(kind,n){ let v;
+  if(kind==='few') v=Array.from({length:n},()=>[15,40,65,90][rnd(0,3)]);
+  else v=Array.from({length:n},()=>rnd(5,99));
+  if(kind==='sorted') v.sort((a,b)=>a-b); if(kind==='reversed') v.sort((a,b)=>b-a);
+  S.array.values=v; syncArrayField(); rebuild(); }
+$$('[data-gen]').forEach(b=>b.addEventListener('click',()=>genArray(b.dataset.gen,S.array.values.length)));
+$('#aSize').addEventListener('input',e=>{ $('#aSizeOut').textContent=e.target.value; genArray('random',+e.target.value); });
+$('#aCopy').addEventListener('click',()=>copy(JSON.stringify(S.array.values)));
+
+/* graph */
+function syncGraphSelects(){ const G=S.graph, opts=G.nodes.slice().sort((a,b)=>a.label.localeCompare(b.label,undefined,{numeric:true}));
+  if(!G.nodes.some(n=>n.id===G.start)) G.start=opts.length?opts[0].id:-1;
+  if(!G.nodes.some(n=>n.id===G.target)) G.target=-1;
+  $('#gStart').innerHTML=opts.map(n=>`<option value="${n.id}">${esc(n.label)}</option>`).join('');
+  $('#gTarget').innerHTML='<option value="-1">none (explore all)</option>'+opts.map(n=>`<option value="${n.id}">${esc(n.label)}</option>`).join('');
+  $('#gStart').value=G.start; $('#gTarget').value=G.target;
+  $('#gAlgo').value=G.algo; $('#gDirected').checked=G.directed; $('#gWeights').checked=G.weights;
+  const a=G.algo; $('#gTarget').disabled= a==='prim'||a==='topo'; $('#gStart').disabled= a==='topo'; }
+function syncGTool(){ $$('#gTool button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===S.ui.gtool)));
+  $('#gHint').innerHTML= S.ui.gtool==='move'?'<b>Click</b> empty space to add a node, <b>drag</b> to move, <b>Shift-drag</b> to connect, <b>double-click</b> a node or weight to edit it.'
+    : S.ui.gtool==='connect'?'<b>Drag</b> from one node to another to connect them.' : '<b>Click</b> a node or an edge to delete it.'; }
+$$('#gTool button').forEach(b=>b.addEventListener('click',()=>{ S.ui.gtool=b.dataset.v; syncGTool(); save(); }));
+$('#gAlgo').addEventListener('change',e=>{ S.graph.algo=e.target.value; syncGraphSelects(); rebuild(); });
+$('#gStart').addEventListener('change',e=>{ S.graph.start=+e.target.value; rebuild(); });
+$('#gTarget').addEventListener('change',e=>{ S.graph.target=+e.target.value; rebuild(); });
+$('#gDirected').addEventListener('change',e=>{ S.graph.directed=e.target.checked; rebuild(); });
+$('#gWeights').addEventListener('change',e=>{ S.graph.weights=e.target.checked; draw(); save(); });
+$$('[data-preset]').forEach(b=>b.addEventListener('click',()=>{ const k=b.dataset.preset, G=S.graph;
+  const src= k==='sample'?sampleGraph(): k==='tree'?treeGraph(): k==='dag'?dagGraph(): {nodes:[],edges:[],nextId:0};
+  Object.assign(G,src); G.start=0; G.target= k==='sample'?7:-1;
+  if(k==='dag'){ G.directed=true; G.algo='topo'; } else if(k==='tree'){ G.directed=false; if(G.algo==='topo') G.algo='bfs'; } else if(k==='sample'){ G.directed=false; G.weights=true; }
+  graphChanged(); }));
+function parseGraph(txt){
+  txt=txt.trim(); if(!txt) return null; const labels=[], E=[]; let directed=false; const add=l=>{ l=String(l).trim(); if(l&&!labels.includes(l)) labels.push(l); return l; };
+  if(txt[0]==='{'||txt[0]==='['){ const o=JSON.parse(txt);
+    if(Array.isArray(o)){ o.forEach((nb,i)=>{ add(String(i)); (nb||[]).forEach(v=>{ if(Array.isArray(v)) E.push([String(i),add(String(v[0])),Number(v[1])||1]); else E.push([String(i),add(String(v)),1]); }); }); directed=true; }
+    else for(const [k,v] of Object.entries(o)){ add(k); if(Array.isArray(v)) v.forEach(x=>E.push([k,add(String(x)),1])); else if(isObj(v)) for(const [x,w] of Object.entries(v)) E.push([k,add(x),Number(w)||1]); directed=true; }
+  } else for(const raw of txt.split(/\n/)){ const line=raw.replace(/#.*/,'').trim(); if(!line) continue; if(line.includes('->')) directed=true;
+    const tk=line.split(/\s*->\s*|[\s,;:]+/).filter(Boolean); if(tk.length===1){ add(tk[0]); continue; }
+    E.push([add(tk[0]),add(tk[1]),tk[2]!==undefined&&isFinite(+tk[2])?+tk[2]:1]); }
+  if(!labels.length) return null;
+  if(labels.length>60) throw new Error('That is more than 60 nodes; trim it down a little.');
+  const n=labels.length, nodes=labels.map((label,id)=>({id,label,x:.5+.38*Math.cos(-Math.PI/2+id*2*Math.PI/n),y:.5+.4*Math.sin(-Math.PI/2+id*2*Math.PI/n)}));
+  const ix=new Map(labels.map((l,i)=>[l,i]));
+  return {nodes,edges:E.map(([a,b,w])=>({a:ix.get(a),b:ix.get(b),w})),nextId:n,directed};
+}
+$('#gApply').addEventListener('click',()=>{ try{ const r=parseGraph($('#gImport').value); if(!r){ toast('Paste some edges first, like "A B 4"'); return; }
+  Object.assign(S.graph,{nodes:r.nodes,edges:r.edges,nextId:r.nextId,start:0,target:-1}); if(r.directed) S.graph.directed=true; graphChanged(); toast(`Loaded ${r.nodes.length} nodes and ${r.edges.length} edges`); }
+  catch(err){ toast("Couldn't read that: "+err.message); } });
+$('#gCopy').addEventListener('click',()=>{ const G=S.graph, byId=new Map(G.nodes.map(n=>[n.id,n.label]));
+  const lines=G.edges.map(e=>`${byId.get(e.a)} ${G.directed?'-> ':''}${byId.get(e.b)} ${e.w}`); const iso=G.nodes.filter(n=>!G.edges.some(e=>e.a===n.id||e.b===n.id)).map(n=>n.label);
+  copy(lines.concat(iso).join('\n')); });
+
+/* grid */
+function syncGrid(){ const g=S.grid; $('#rAlgo').value=g.algo; $('#rDiag').checked=g.diag; const sz=g.w+'x'+g.h; $('#rSize').value=[...$('#rSize').options].some(o=>o.value===sz)?sz:'';
+  $$('#brush button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.v===S.ui.brush))); }
+$$('#brush button').forEach(b=>b.addEventListener('click',()=>{ S.ui.brush=+b.dataset.v; syncGrid(); save(); }));
+$('#rAlgo').addEventListener('change',e=>{ S.grid.algo=e.target.value; rebuild(); });
+$('#rDiag').addEventListener('change',e=>{ S.grid.diag=e.target.checked; rebuild(); });
+function resetGrid(w,h){ const g=S.grid; g.w=w; g.h=h; g.cells=new Array(w*h).fill(0); const r=(h>>1)|1; g.start=[Math.min(r,h-1),1]; g.end=[Math.min(r,h-1),w-2]; }
+$('#rSize').addEventListener('change',e=>{ const [w,h]=e.target.value.split('x').map(Number); resetGrid(w,h); rebuild(); });
+$('#rClear').addEventListener('click',()=>{ S.grid.cells.fill(0); rebuild(); });
+$('#rRandom').addEventListener('click',()=>{ const g=S.grid; for(let i=0;i<g.cells.length;i++) g.cells[i]=Math.random()<.28?1:Math.random()<.06?2:0;
+  g.cells[g.start[0]*g.w+g.start[1]]=0; g.cells[g.end[0]*g.w+g.end[1]]=0; rebuild(); });
+$('#rMaze').addEventListener('click',()=>{ const g=S.grid; let w=g.w|1, h=g.h|1; if(w!==g.w||h!==g.h) resetGrid(w,h);
+  const c=g.cells; c.fill(1); const vis=new Uint8Array(w*h), st=[[1,1]]; vis[w+1]=1; c[w+1]=0;
+  while(st.length){ const [r,q]=st[st.length-1]; const nb=[[0,2],[2,0],[0,-2],[-2,0]].map(([dr,dc])=>[r+dr,q+dc,r+dr/2,q+dc/2]).filter(([a,b])=>a>0&&b>0&&a<h-1&&b<w-1&&!vis[a*w+b]);
+    if(!nb.length){ st.pop(); continue; } const [a,b,mr,mc]=nb[Math.floor(Math.random()*nb.length)]; vis[a*w+b]=1; c[a*w+b]=0; c[mr*w+mc]=0; st.push([a,b]); }
+  for(let k=0;k<w*h*.03;k++){ const r=1+Math.floor(Math.random()*(h-2)), q=1+Math.floor(Math.random()*(w-2)); if((r+q)%2===1) c[r*w+q]=0; }
+  const r=(h>>1)|1; g.start=[r,1]; g.end=[r,w-2]; c[r*w+1]=0; c[r*w+w-2]=0; rebuild(); });
+$('#rApply').addEventListener('click',()=>{ const lines=$('#rImport').value.replace(/\r/g,'').split('\n').filter(l=>l.length); if(!lines.length){ toast('Paste a map first'); return; }
+  const h=lines.length, w=Math.max(...lines.map(l=>l.length)); if(w*h>100*70){ toast('Maps up to 100 × 70 cells fit here'); return; }
+  if(w<2||h<2){ toast('The map needs at least 2 rows and 2 columns'); return; }
+  const cells=new Array(w*h).fill(0); let s=null,t=null;
+  lines.forEach((l,r)=>{ for(let c=0;c<w;c++){ const ch=l[c]||' '; if(ch==='#') cells[r*w+c]=1; else if(ch==='~') cells[r*w+c]=2; else if(ch==='S') s=[r,c]; else if(ch==='E') t=[r,c]; } });
+  const open=cells.map((v,i)=>v!==1?i:-1).filter(i=>i>=0); if(open.length<2){ toast('The map needs at least two open cells'); return; }
+  if(!s){ s=[Math.floor(open[0]/w),open[0]%w]; } if(!t){ const i=open[open.length-1]; t=[Math.floor(i/w),i%w]; }
+  Object.assign(S.grid,{w,h,cells,start:s,end:t}); syncGrid(); rebuild(); toast(`Loaded a ${w} × ${h} map`); });
+$('#rCopy').addEventListener('click',()=>{ const g=S.grid; let out=[]; for(let r=0;r<g.h;r++){ let l=''; for(let c=0;c<g.w;c++){ const i=r*g.w+c;
+  l+= (r===g.start[0]&&c===g.start[1])?'S':(r===g.end[0]&&c===g.end[1])?'E':g.cells[i]===1?'#':g.cells[i]===2?'~':'.'; } out.push(l); } copy(out.join('\n')); });
+
+/* custom code */
+const ta=$('#cCode'), ci=$('#cInput');
+ta.value=S.custom.code; ci.value=S.custom.input;
+ta.addEventListener('input',()=>{ S.custom.code=ta.value; save(); });
+ci.addEventListener('input',()=>{ S.custom.input=ci.value; save(); });
+ta.addEventListener('scroll',placeHl);
+ta.addEventListener('keydown',e=>{ if(e.key==='Tab'&&!e.shiftKey){ e.preventDefault(); const s=ta.selectionStart; ta.setRangeText('  ',s,ta.selectionEnd,'end'); S.custom.code=ta.value; save(); } });
+$('#cTpl').addEventListener('change',e=>{ const t=TPL[e.target.value]; if(t){ ta.value=S.custom.code=t.code; ci.value=S.custom.input=t.input; save(); runCustom(); } e.target.value=''; });
+$('#cRun').addEventListener('click',runCustom);
+function workerMain(){
+  const lineFrom=st=>{ for(const l of String(st||'').split('\n')){ const m=l.match(/(?:<anonymous>|Function):(\d+):\d+/); if(m) return (+m[1])-2; } return 0; };
+  self.onmessage=e=>{
+    const {code,input}=e.data; let data;
+    try{ data=JSON.parse(input); }catch(err){ self.postMessage({error:'The input is not valid JSON: '+err.message}); return; }
+    const cp=v=>{ try{ return structuredClone(v); }catch(_){ return JSON.parse(JSON.stringify(v)); } };
+    const frames=[{data:cp(data),msg:'Input',ptr:{},vars:{},line:0}], logs=[];
+    const step=(msg,ptr,vars)=>{ if(frames.length>5000) throw new Error('Stopped after 5000 steps. Is there a loop that never ends?');
+      frames.push({data:cp(data),msg:msg==null?'':String(msg),ptr:ptr?cp(ptr):{},vars:vars?cp(vars):{},line:lineFrom(new Error().stack)}); };
+    const log=(...a)=>logs.push({at:frames.length-1,text:a.map(v=>typeof v==='string'?v:JSON.stringify(v)).join(' ')});
+    let fn;
+    try{ fn=new Function('data','step','log',code+'\nreturn typeof run==="function" ? run(data, step, log) : undefined;'); }
+    catch(err){ self.postMessage({error:(err&&err.name==='EvalError')?'This browser blocked running code on this page.':'Syntax error: '+err.message}); return; }
+    try{ const ret=fn(data,step,log); frames.push({data:cp(data),msg:'Finished'+(ret!==undefined?', returned '+JSON.stringify(ret):''),ptr:{},vars:ret!==undefined?{returned:ret}:{},line:0}); self.postMessage({frames,logs}); }
+    catch(err){ const ln=lineFrom(err&&err.stack); frames.push({data:cp(data),msg:'Error: '+(err&&err.message),ptr:{},vars:{},line:ln}); self.postMessage({error:(err&&err.message)+(ln>0?` (line ${ln})`:''),frames,logs}); }
+  };
+}
+let worker=null;
+function showErr(m){ const el=$('#cErr'); el.hidden=!m; el.textContent=m||''; }
+function runCustom(){
+  showErr(''); if(worker){ worker.terminate(); worker=null; }
+  let url; try{ url=URL.createObjectURL(new Blob(['('+workerMain.toString()+')()'],{type:'text/javascript'})); worker=new Worker(url); }
+  catch(err){ showErr('Could not start the code runner: '+err.message); return; }
+  const w=worker; const to=setTimeout(()=>{ w.terminate(); if(worker===w) worker=null; showErr('Stopped after 3 seconds. Is there a loop that never calls step()?'); },3000);
+  w.onmessage=e=>{ clearTimeout(to); w.terminate(); if(worker===w) worker=null; URL.revokeObjectURL(url);
+    const {frames,logs,error}=e.data; if(error) showErr(error);
+    if(frames&&frames.length){ runs.custom={frames,fi:error?frames.length-1:0,logs:logs||[]}; if(S.mode==='custom'){ stopPlay(); refresh(); } } };
+  w.onerror=e=>{ clearTimeout(to); e.preventDefault(); showErr(e.message||'The code runner stopped unexpectedly.'); };
+  w.postMessage({code:S.custom.code,input:S.custom.input});
+}
+
+/* keyboard */
+document.addEventListener('keydown',e=>{
+  const tag=e.target.tagName;
+  if((e.metaKey||e.ctrlKey)&&e.key==='Enter'&&S.mode==='custom'){ e.preventDefault(); runCustom(); return; }
+  if(['INPUT','TEXTAREA','SELECT'].includes(tag)) return;
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  if(e.key===' '){ if(tag==='BUTTON') return; e.preventDefault(); playing?stopPlay():startPlay(); }
+  else if(e.key==='ArrowRight'){ e.preventDefault(); stopPlay(); go(cur().fi+1); }
+  else if(e.key==='ArrowLeft'){ e.preventDefault(); stopPlay(); go(cur().fi-1); }
+  else if(e.key==='Home'){ e.preventDefault(); stopPlay(); go(0); }
+  else if(e.key==='End'){ e.preventDefault(); stopPlay(); go(1e9); }
+  else if(e.key==='p'||e.key==='P'){ setPen(!penOn); }
+  else if(e.key==='Escape'&&penOn){ setPen(false); }
+  else if(['1','2','3','4'].includes(e.key)){ setMode(['array','graph','grid','custom'][+e.key-1]); }
+});
+
+/* utils */
+let toastT=0;
+function toast(m){ const t=$('#toast'); t.textContent=m; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,1800); }
+function copy(s){
+  const done=()=>toast('Copied to clipboard');
+  const fallback=()=>{ const t=document.createElement('textarea'); t.value=s; t.style.position='fixed'; t.style.opacity='0'; document.body.appendChild(t); t.select();
+    let ok=false; try{ ok=document.execCommand('copy'); }catch(e){} t.remove(); ok?done():toast("Couldn't copy here. Select the text in the box instead."); };
+  try{ navigator.clipboard.writeText(s).then(done,fallback); }catch(e){ fallback(); }
+}
+
+/* boot */
+readTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ readTheme(); draw(); });
+new MutationObserver(()=>{ readTheme(); draw(); }).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+new ResizeObserver(()=>resize()).observe(stage);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>draw());
+syncArrayField(); syncArrayAlgo(); syncGraphSelects(); syncGTool(); syncGrid();
+setMode(S.mode);
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+let deferredInstall = null;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; document.getElementById('installBtn').hidden = false; });
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if (!deferredInstall) return; deferredInstall.prompt(); await deferredInstall.userChoice; deferredInstall = null;
+  document.getElementById('installBtn').hidden = true;
+});
+addEventListener('appinstalled', () => { document.getElementById('installBtn').hidden = true; });
+</script>
+</body>
+</html>
