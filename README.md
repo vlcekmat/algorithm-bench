@@ -12,3 +12,7 @@ A scratchpad for wrapping your head around algorithms while you code. Drag data 
 Works offline and installs as an app (Chrome/Edge: install icon in the address bar; iPhone: Share → Add to Home Screen; Android: menu → Install app).
 
 No build step: it is plain HTML, CSS and JS. Bump `VERSION` in `sw.js` after changing any file so installed copies pick up the update.
+
+## Run it locally
+
+`./algbench.sh` serves this folder on `http://localhost:8765/` and opens it in a Chrome app window (or your default browser). `./algbench.sh stop` stops the server, `./algbench.sh status` shows whether it is running. Set `ALGBENCH_PORT` to use another port.
