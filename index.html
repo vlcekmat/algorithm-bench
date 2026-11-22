@@ -1456,6 +1456,12 @@ const SK=(()=>{
     const tip={x:it.x,y:it.y}; return {tip,dir:'up',lx:tip.x,ly:tip.y+28,rank:0};
   }
   function ptrLabel(it,G){ G=G||ptrGeom(it); const w=measure(it.name||'',`700 13px ${FM}`)+10; return {x:G.lx-w/2,y:G.ly-9,w,h:18}; }
+  /* table headers: a custom name, or the index when none is set */
+  const hdrName=(it,key,n)=>{ const v=it[key]&&it[key][n]; return v!=null&&String(v)!==''?String(v):null; };
+  const HDR_NAME=`600 12px ${FM}`, HDR_IDX=`400 10px ${FM}`;
+  function rowHdrW(it){ let w=14; it.rows.forEach((_,i)=>{ const nm=hdrName(it,'rowNames',i); w=Math.max(w,nm!=null?measure(nm,HDR_NAME):measure(String(i),HDR_IDX)); }); return Math.ceil(w); }
+  const colHdrRect=(it,j)=>({x:it.x+j*it.cw,y:it.y-19,w:it.cw,h:18});
+  const rowHdrRect=(it,i,rw)=>{ rw=rw??rowHdrW(it); return {x:it.x-8-rw,y:it.y+i*it.ch,w:rw,h:it.ch}; };
   /* UML geometry */
   const lines=s=>s?String(s).split('\n'):[];
   function classGeom(it){
@@ -1472,7 +1478,7 @@ const SK=(()=>{
     case 'lifeline': return {x:it.x,y:it.y,w:lifeGeom(it).w,h:it.h};
     case 'actor': return actorBox(it);
     case 'note': return {x:it.x,y:it.y,w:it.w,h:it.h};
-    case 'matrix': { const c=Math.max(1,...it.rows.map(x=>x.length)); return union({x:it.x-16,y:it.y-14,w:c*it.cw+16,h:it.rows.length*it.ch+14},gripRect(it)); }
+    case 'matrix': { const c=Math.max(1,...it.rows.map(x=>x.length)), rw=rowHdrW(it); return union({x:it.x-rw-10,y:it.y-20,w:c*it.cw+rw+10,h:it.rows.length*it.ch+20},gripRect(it)); }
     case 'node': return {x:it.x,y:it.y,w:96,h:40};
     case 'var': { const P=varParts(it); return union(P.name,P.box); }
     case 'ptr': { const G=ptrGeom(it); return union(ptrLabel(it,G),{x:G.tip.x-1,y:G.tip.y-1,w:2,h:2}); }
@@ -1529,6 +1535,9 @@ const SK=(()=>{
       case 'array': { for(let k=0;k<it.cells.length;k++) if(inR(p,cellRect(it,k))) return {it,k};
         return (inR(p,gripRect(it))||(!it.cells.length&&inR(p,arrBody(it))))?{it,grip:true}:null; }
       case 'matrix': { for(let i=0;i<it.rows.length;i++) for(let j=0;j<it.rows[i].length;j++) if(inR(p,mCell(it,i,j))) return {it,i,j};
+        const cols=Math.max(0,...it.rows.map(r=>r.length)), rw=rowHdrW(it);
+        for(let j=0;j<cols;j++) if(inR(p,colHdrRect(it,j))) return {it,hc:j};
+        for(let i=0;i<it.rows.length;i++) if(inR(p,rowHdrRect(it,i,rw))) return {it,hr:i};
         return inR(p,gripRect(it))?{it,grip:true}:null; }
       case 'node': return inR(p,bb(it))?{it,port:p.x>it.x+64?'next':null}:null;
       case 'var': { const P=varParts(it); return inR(p,P.box)?{it,f:'v'}:inR(p,P.name)?{it,f:'name'}:null; }
@@ -1601,9 +1610,15 @@ const SK=(()=>{
           if(it.idx){ if(it.vertical) txt(k,r.x-8,r.y+r.h/2,`400 10px ${FM}`,T.muted,'right'); else txt(k,r.x+r.w/2,r.y+r.h+9,`400 10px ${FM}`,T.muted); } }
         break; }
       case 'matrix': { grip(it);
-        it.rows.forEach((row,i)=>{ txt(i,it.x-8,it.y+i*it.ch+it.ch/2,`400 10px ${FM}`,T.muted,'right');
+        it.rows.forEach((row,i)=>{ const nm=hdrName(it,'rowNames',i), cy=it.y+i*it.ch+it.ch/2;
+          if(nm!=null) txt(nm,it.x-8,cy,HDR_NAME,T.fg,'right'); else txt(i,it.x-8,cy,HDR_IDX,T.muted,'right');
           row.forEach((cell,j)=>{ const r=mCell(it,i,j), on=live&&selCell&&selCell.id===it.id&&selCell.i===i&&selCell.j===j; cellBox(r,cell.m,c,on); fitText(cell.v,r,15); }); });
-        const cols=Math.max(0,...it.rows.map(r=>r.length)); for(let j=0;j<cols;j++) txt(j,it.x+j*it.cw+it.cw/2,it.y-8,`400 10px ${FM}`,T.muted); break; }
+        const cols=Math.max(0,...it.rows.map(r=>r.length));
+        for(let j=0;j<cols;j++){ const nm=hdrName(it,'colNames',j), cx=it.x+j*it.cw+it.cw/2;
+          if(nm==null){ txt(j,cx,it.y-10,HDR_IDX,T.muted); continue; }
+          let s=12; while(s>9&&measure(nm,`600 ${s}px ${FM}`)>it.cw-4) s--;   // long names shrink to fit their column
+          txt(nm,cx,it.y-10,`600 ${s}px ${FM}`,T.fg); }
+        break; }
       case 'node': { const vr={x:it.x,y:it.y,w:64,h:40}, nx=it.x+64;
         ctx.fillStyle=markFill(it.m)||T.surface; ctx.fillRect(vr.x,vr.y,64,40); ctx.fillStyle=T['surface-2']; ctx.fillRect(nx,it.y,32,40);
         ctx.strokeStyle=c; ctx.lineWidth=1.5; ctx.strokeRect(it.x,it.y,96,40); ctx.beginPath(); ctx.moveTo(nx,it.y); ctx.lineTo(nx,it.y+40); ctx.stroke();
@@ -1665,12 +1680,18 @@ const SK=(()=>{
   }
 
   /* value slots (cells, node values, variables, labels) */
-  function slotGet(t){ const it=ITEM(t.id); if(!it) return ''; if(t.k!=null) return it.cells[t.k]?it.cells[t.k].v:''; if(t.i!=null) return it.rows[t.i]?.[t.j]?.v??''; return it[t.f||'v']??''; }
-  function slotSet(t,v){ const it=ITEM(t.id); if(!it) return; if(t.k!=null){ if(it.cells[t.k]) it.cells[t.k].v=v; return; } if(t.i!=null){ const c=it.rows[t.i]?.[t.j]; if(c) c.v=v; return; } it[t.f||'v']=v; }
-  function slotOf(h){ if(!h) return null; const it=h.it; if(h.k!=null) return {id:it.id,k:h.k}; if(h.i!=null) return {id:it.id,i:h.i,j:h.j};
+  const isHdr=t=>t&&(t.f==='colName'||t.f==='rowName');
+  function slotGet(t){ const it=ITEM(t.id); if(!it) return ''; if(isHdr(t)) return hdrName(it,t.f+'s',t.n)??String(t.n);
+    if(t.k!=null) return it.cells[t.k]?it.cells[t.k].v:''; if(t.i!=null) return it.rows[t.i]?.[t.j]?.v??''; return it[t.f||'v']??''; }
+  function slotSet(t,v){ const it=ITEM(t.id); if(!it) return;
+    if(isHdr(t)){ const a=(it[t.f+'s']||[]).slice(); while(a.length<=t.n) a.push(null); v=String(v).trim(); a[t.n]=v===''||v===String(t.n)?null:v; it[t.f+'s']=a; return; }
+    if(t.k!=null){ if(it.cells[t.k]) it.cells[t.k].v=v; return; } if(t.i!=null){ const c=it.rows[t.i]?.[t.j]; if(c) c.v=v; return; } it[t.f||'v']=v; }
+  function slotOf(h){ if(!h) return null; const it=h.it; if(h.hc!=null) return {id:it.id,f:'colName',n:h.hc}; if(h.hr!=null) return {id:it.id,f:'rowName',n:h.hr};
+    if(h.k!=null) return {id:it.id,k:h.k}; if(h.i!=null) return {id:it.id,i:h.i,j:h.j};
     if(it.type==='node'||it.type==='var') return {id:it.id,f:'v'}; if(TEXTY.has(it.type)) return {id:it.id,f:'text'};
     if(it.type==='class') return {id:it.id,f:h.f||'name'}; if(it.type==='arrow') return {id:it.id,f:'label'}; return null; }
-  function slotRect(t){ const it=ITEM(t.id); if(t.k!=null) return cellRect(it,t.k); if(t.i!=null) return mCell(it,t.i,t.j);
+  function slotRect(t){ const it=ITEM(t.id); if(t.f==='colName') return colHdrRect(it,t.n); if(t.f==='rowName') return rowHdrRect(it,t.n);
+    if(t.k!=null) return cellRect(it,t.k); if(t.i!=null) return mCell(it,t.i,t.j);
     switch(it.type){ case 'node': return {x:it.x,y:it.y,w:64,h:40}; case 'var': { const P=varParts(it); return t.f==='name'?P.name:P.box; }
       case 'class': { const G=classGeom(it); return t.f==='attrs'?G.attrs:t.f==='ops'?G.ops:{x:it.x,y:it.y+(G.st?23:6),w:G.w,h:20}; }
       case 'actor': { const w=Math.max(120,measure(it.text||'',`600 14px ${FU}`)+24); return {x:it.x+30-w/2,y:it.y+62,w,h:20}; }
@@ -1686,6 +1707,7 @@ const SK=(()=>{
   let edT=null, edG=null;
   /* The editor copies how the canvas draws each slot: same font, weight, size, line height and text position. */
   function editGeom(t){ const it=ITEM(t.id), r=slotRect(t);
+    if(isHdr(t)) return {r,fs:12,ff:FM,fw:600,al:t.f==='rowName'?'right':'center'};
     if(t.k!=null||t.i!=null) return {r,fs:16,ff:FM,fw:600,al:'center'};
     switch(it.type){
       case 'text': { const s=it.size||18; return {r,fs:s,ff:FU,fw:500,al:'left',lh:s*1.3,top:true,color:col(it.color)}; }
@@ -1705,12 +1727,14 @@ const SK=(()=>{
     Object.assign(ed.style,{fontFamily:G.ff,fontWeight:String(G.fw),fontStyle:G.italic?'italic':'normal',fontSize:Math.max(coarse?16:1,fs)+'px',lineHeight:lh+'px',textAlign:G.al,color:G.color||''});
     let left,width,pl,pr;
     if(G.al==='left'){ const ix=(G.ix||0)*z; left=s.x+ix-B-P; pl=pr=P; width=Math.max(W0-ix,40)+2*B+2*P; }
+    else if(G.al==='right'){ width=Math.max(W0,60)+2*B; left=s.x+W0+B-width; pl=pr=0; }   // keep the right edge where the canvas text ends
     else { left=s.x-B; pl=pr=0; width=Math.max(W0,60)+2*B; }
     let top,height,pt;
     if(G.top){ const iy=(G.iy||0)*z; top=s.y+iy-B; pt=0; height=Math.max(H0-iy,n*lh)+2*B; }
     else { const H=Math.max(H0,n*lh); top=s.y-B-(H-H0)/2; pt=(H-n*lh)/2; height=H+2*B; }
     Object.assign(ed.style,{left:left+'px',top:top+'px',width:width+'px',height:height+'px',padding:`${pt}px ${pr}px 0 ${pl}px`});
-    if(ed.scrollWidth>ed.clientWidth+1){ const extra=ed.scrollWidth-ed.clientWidth+8; ed.style.width=(width+extra)+'px'; if(G.al!=='left') ed.style.left=(left-extra/2)+'px'; } }
+    if(ed.scrollWidth>ed.clientWidth+1){ const extra=ed.scrollWidth-ed.clientWidth+8; ed.style.width=(width+extra)+'px';
+      if(G.al==='center') ed.style.left=(left-extra/2)+'px'; else if(G.al==='right') ed.style.left=(left-extra)+'px'; } }
   function openEdit(t,init){ if(!isLive()||!t) return; const it=ITEM(t.id); if(!it) return; edT=t; edG=editGeom(t);
     ed.value=init!=null?init:String(slotGet(t)); ed.hidden=false; layoutEdit(); ed.focus({preventScroll:true});
     if(init==null) ed.select(); else ed.setSelectionRange(ed.value.length,ed.value.length); }
@@ -1830,7 +1854,7 @@ const SK=(()=>{
         props(); render(); break; }
       case 'move': if(a.moved){ for(const id of sel){ const it=ITEM(id); if(it&&it.type==='ptr') snapPtr(it); if(it&&it.type==='arrow') pinEnds(it); } changed(); } break;
       case 'val': { if(!a.moved){ render(); break; } const t=slotOf(hit(p,x=>['array','matrix','node','var'].includes(x.type)));
-        if(t&&!sameSlot(t,a.from)){ commit(); const v=slotGet(a.from);
+        if(t&&!isHdr(t)&&!sameSlot(t,a.from)){ commit(); const v=slotGet(a.from);
           if(t.id===a.from.id){ slotSet(a.from,slotGet(t)); slotSet(t,v); } else slotSet(t,v);
           if(t.k!=null||t.i!=null){ selCell=t; sel=new Set([t.id]); } changed(); } else render(); break; }
       case 'aend': a.it[a.end]=attachAt(p,a.end==='a'); changed(); break;
@@ -1936,6 +1960,10 @@ const SK=(()=>{
       if(k!=null) h+=markRow(it.cells[k]&&it.cells[k].m);
     } else if(it.type==='matrix'){ const sc=selCell&&selCell.id===it.id?selCell:null;
       h+=field('Name','label',it.label||'')+'<div class="row"><button class="btn" data-act="addRow">+ Row</button><button class="btn" data-act="delRow">− Row</button><button class="btn" data-act="addCol">+ Column</button><button class="btn" data-act="delCol">− Column</button></div>';
+      const nCols=Math.max(0,...it.rows.map(r=>r.length)), hdrList=(key,n)=>Array.from({length:n},(_,k)=>hdrName(it,key,k)??'').join(', ').replace(/(,\s*)+$/,'');
+      h+=`<label class="field"><span>Columns</span><input type="text" class="mono" data-prop="colNames" value="${esc(hdrList('colNames',nCols))}" placeholder="${esc(Array.from({length:nCols},(_,k)=>k).join(', '))}"><span></span></label>`;
+      h+=`<label class="field"><span>Rows</span><input type="text" class="mono" data-prop="rowNames" value="${esc(hdrList('rowNames',it.rows.length))}" placeholder="${esc(it.rows.map((_,k)=>k).join(', '))}"><span></span></label>`;
+      h+='<p class="small muted" style="margin:0">Header names, separated by commas. Leave a name empty to show its number. You can also double-click a header on the board. For a DP table, try <code>ε, A, B, C</code>.</p>';
       if(sc) h+=markRow(it.rows[sc.i]?.[sc.j]?.m);
     } else if(it.type==='node'){ h+=markRow(it.m)+'<div class="row"><button class="btn" data-act="nextNode">Insert node after</button></div>';
     } else if(it.type==='var'||BOXY.has(it.type)){ h+=markRow(it.m);
@@ -1980,6 +2008,7 @@ const SK=(()=>{
   function propChange(el){ const ids=[...sel], it=ids.length===1?ITEM(ids[0]):null; if(!it) return; const p=el.dataset.prop; commit();
     if(['label','name','stereo','attrs','ops','text','ta','tb'].includes(p)) it[p]=el.value.replace(/\s+$/,'');
     else if(p==='abstract') it.abstract=el.checked;
+    else if(p==='colNames'||p==='rowNames'){ const v=el.value.trim(); if(!v) delete it[p]; else it[p]=el.value.split(',').map(s=>s.trim()||null); }
     else if(p==='preset'||p==='line'||p==='head'||p==='tail'){ if(p==='preset'){ const m=APRE.find(x=>x[0]===el.value); if(m) Object.assign(it,m[2]); } else it[p]=el.value;
       astyle=styleOf(it); save(); render(); props(); return; }
     else if(p==='values'){ const vals=el.value.trim()===''?[]:el.value.split(',').map(s=>s.trim()); it.cells=vals.map((v,i)=>({v,m:it.cells[i]?it.cells[i].m:null})); clean(); }
