@@ -82,6 +82,8 @@ section.sub > p{margin:4px 0 0;max-width:72ch}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:12px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0;display:flex;flex-direction:column;gap:6px}
 .card.wide{grid-column:1/-1}
+#design-patterns .cards,#templates .cards{grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));grid-auto-flow:dense}
+#design-patterns .card:has(pre),#templates .card:has(pre){grid-column:1/-1}
 .card h4{font:600 15px/1.3 var(--f-display);margin:0;display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
 .card p{margin:0;font-size:14px}
 .card .meta{display:flex;gap:6px;flex-wrap:wrap}
@@ -111,6 +113,46 @@ ol.rules li::before{content:counter(r);font:600 13px var(--f-mono);color:var(--a
 .callout{margin-top:14px;background:var(--accent-soft);border-radius:12px;padding:12px 16px;font-size:14px}
 .callout b{font-weight:600}
 .empty{display:none;margin-top:40px;color:var(--muted);text-align:center}
+.card .pick,.card .skip{font-size:13.5px}
+.card .pick b{color:var(--done);font-weight:600}
+.card .skip b{color:var(--swap);font-weight:600}
+.try.ext::after{content:" ↗"}
+.muted{color:var(--muted)}
+.picker{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.pk-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.pk-step{font:600 11px var(--f-ui);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);white-space:nowrap}
+.pk-bar{flex:1;height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.pk-bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.pk-crumbs{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;margin-bottom:8px;color:var(--muted);font-size:12px}
+.pk-crumb{font:500 12px var(--f-ui);border:1px solid var(--line);background:var(--surface-2);color:var(--fg);border-radius:999px;padding:2px 10px;cursor:pointer}
+.pk-crumb:hover{border-color:var(--accent)}
+.pk-q{font:600 19px/1.3 var(--f-display);margin:6px 0 4px;outline:none}
+.pk-help{margin:0 0 6px;color:var(--muted);font-size:13.5px}
+.pk-opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin-top:10px}
+.pk-opt{position:relative;text-align:left;font:14px/1.4 var(--f-ui);color:var(--fg);background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px 10px 40px;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-height:44px}
+.pk-opt:hover{border-color:var(--accent)}
+.pk-opt b{font-weight:600}
+.pk-opt span:not(.pk-k){font-size:12.5px;color:var(--muted)}
+.pk-k{position:absolute;left:10px;top:10px;font:600 11px var(--f-mono);color:var(--muted);border:1px solid var(--line);border-radius:5px;width:20px;height:20px;display:grid;place-items:center;background:var(--surface)}
+.pk-nav{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.pk-nav:empty{display:none}
+.pk-result{background:var(--accent-soft);border-radius:12px;padding:14px 16px;margin-top:6px}
+.pk-label{font:600 11px var(--f-ui);text-transform:uppercase;letter-spacing:.08em;color:var(--accent)}
+.pk-result .pk-q{font-size:22px}
+.pk-why{margin:8px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.pk-why li{padding-left:22px;position:relative}
+.pk-why li.pro::before{content:"✓";position:absolute;left:2px;color:var(--done);font-weight:700}
+.pk-why li.con::before{content:"!";position:absolute;left:6px;color:var(--cmp);font-weight:700}
+.pk-result .try{display:inline-block;margin-top:10px}
+.pk-sub{font:600 11px var(--f-ui);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:16px 0 6px}
+.pk-alts{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.pk-alt{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;font-size:13px}
+.pk-alt b{font:600 14px var(--f-display)}
+.pk-alt span{color:var(--muted)}
+.pk-alt span.con::before{content:"! ";color:var(--cmp);font-weight:700}
+.pk-pair{margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.pk-note{font-size:12.5px;color:var(--muted);margin:12px 0 0}
+
 mark{background:var(--cmp-soft);color:inherit;border-radius:3px}
 
 @media (max-width:960px){
@@ -127,6 +169,8 @@ mark{background:var(--cmp-soft);color:inherit;border-radius:3px}
   .intro{padding:16px}
   .intro h1{font-size:23px}
   .cards{grid-template-columns:minmax(0,1fr)}
+  .picker{padding:14px}
+  .pk-opts,.pk-alts{grid-template-columns:minmax(0,1fr)}
   input{font-size:16px!important}
 }
 </style>
@@ -150,12 +194,14 @@ mark{background:var(--cmp-soft);color:inherit;border-radius:3px}
 
     <div class="intro" id="top">
       <h1>The guide</h1>
-      <p>A field manual to keep next to the bench: the algorithms that keep showing up, how to recognize which one a problem wants, what the popular tools are actually for, and how to use AI so you get faster <em>and</em> keep learning and shipping good code. Anything marked <b>Try it</b> opens in the bench so you can step through it.</p>
+      <p>A field manual to keep next to the bench: the algorithms that keep showing up, the data structures and design patterns worth knowing, how to recognize which approach a problem wants, what the popular tools are for (with a picker to choose between them), and how to use AI so you get faster <em>and</em> keep learning and shipping good code. Anything marked <b>Try it</b> opens in the bench so you can step through it.</p>
       <div class="parts">
         <a href="#algorithms"><b>1 · Algorithms</b><span>Sorting, searching, graphs, DP and more, with costs</span></a>
-        <a href="#patterns"><b>2 · Solving problems</b><span>A process, signals to patterns, code templates</span></a>
-        <a href="#tech"><b>3 · Technologies</b><span>What popular tools are for, and when to pick them</span></a>
-        <a href="#ai"><b>4 · Working with AI</b><span>Rules for speed without giving up quality</span></a>
+        <a href="#data-structures"><b>2 · Data structures</b><span>What to store data in, and when</span></a>
+        <a href="#patterns"><b>3 · Solving problems</b><span>A process, signals to patterns, code templates</span></a>
+        <a href="#design-patterns"><b>4 · Design patterns</b><span>Principles, the classic patterns, architecture</span></a>
+        <a href="#tech"><b>5 · Technologies</b><span>When to pick what, plus an interactive picker</span></a>
+        <a href="#ai"><b>6 · Working with AI</b><span>Rules for speed without giving up quality</span></a>
       </div>
     </div>
 
@@ -395,9 +441,157 @@ mark{background:var(--cmp-soft);color:inherit;border-radius:3px}
       </section>
     </section>
 
-    <!-- ===================================================== 2. PATTERNS -->
+    <!-- ===================================================== 2. DATA STRUCTURES -->
+    <section class="part" id="data-structures" data-title="Data structures">
+      <h2><span class="num">02</span>Data structures</h2>
+      <p class="lead">Picking the data structure is usually the biggest performance decision you make, more than any clever loop. Pick by the operation your program does most often. <b>Draw it</b> links drop the structure onto the Sketch board.</p>
+
+      <section class="sub" id="ds-choose" data-title="Choose by operation">
+        <h3>Choose by the operation you need</h3>
+        <div class="tbl"><table>
+          <tr><th>You mostly need to…</th><th>Use</th><th>Instead of</th></tr>
+          <tr><td>read by position, append at the end, loop in order</td><td>dynamic array</td><td>linked list (slower in practice)</td></tr>
+          <tr><td>ask "is x in here?" or count things</td><td>hash set / hash map</td><td>searching an array (O(n) each time)</td></tr>
+          <tr><td>keep items sorted while inserting, ask "next bigger than x"</td><td>balanced tree (sorted map/set)</td><td>re-sorting an array after every insert</td></tr>
+          <tr><td>always take the smallest / largest / most urgent</td><td>heap (priority queue)</td><td>sorting everything to read one item</td></tr>
+          <tr><td>undo, matching brackets, DFS, "most recent first"</td><td>stack</td><td>—</td></tr>
+          <tr><td>process in arrival order, BFS, buffers</td><td>queue / deque / ring buffer</td><td><code>array.shift()</code>, which is O(n) in many languages</td></tr>
+          <tr><td>insert/remove in the middle at a known spot, splice lists</td><td>linked list</td><td>array (moves every later item)</td></tr>
+          <tr><td>look up by prefix, autocomplete</td><td>trie</td><td>scanning every word</td></tr>
+          <tr><td>model connections (routes, friends, dependencies)</td><td>graph (adjacency list)</td><td>matrix when the graph is sparse</td></tr>
+          <tr><td>merge groups and ask "same group?"</td><td>union-find</td><td>BFS on every question</td></tr>
+          <tr><td>sum/min over ranges while values change</td><td>Fenwick or segment tree</td><td>recomputing the range each time</td></tr>
+          <tr><td>"definitely not seen" checks for huge sets with little memory</td><td>Bloom filter</td><td>a hash set that doesn't fit in memory</td></tr>
+        </table></div>
+      </section>
+
+      <section class="sub" id="ds-linear" data-title="Linear structures">
+        <h3>Linear structures</h3>
+        <div class="cards">
+          <div class="card"><h4>Array &amp; dynamic array <a class="try" href="index.html#sketch:array">Draw it</a></h4>
+            <div class="meta"><span class="tag t">O(1) index</span><span class="tag t">O(1)* append</span><span class="tag w">O(n) insert in middle</span></div>
+            <p>Items side by side in memory. A dynamic array (JS array, Python list, Java ArrayList, C++ vector) doubles its capacity when full, so appends are cheap on average.</p>
+            <p class="pick"><b>Pick it when</b> you read by index or loop in order. It's the right default for almost every list: contiguous memory makes it very fast in practice.</p>
+            <p class="skip"><b>Pick something else when</b> you constantly insert or delete at the front or middle (deque, linked list) or search by value (hash set).</p></div>
+          <div class="card"><h4>Linked list <a class="try" href="index.html#sketch:list">Draw it</a></h4>
+            <div class="meta"><span class="tag t">O(1) insert at a known node</span><span class="tag w">O(n) find</span></div>
+            <p>Nodes that point to the next (and in a doubly linked list, the previous) node.</p>
+            <p class="pick"><b>Pick it when</b> you splice at positions you already hold a pointer to: LRU caches, free lists, merging sorted lists, undo histories.</p>
+            <p class="skip"><b>Pick something else when</b> you need indexing or fast iteration: an array is usually faster even for inserts on small lists.</p>
+            <p class="gotcha">Draw the pointers before you change them. Most linked-list bugs are lost <code>next</code> references.</p></div>
+          <div class="card"><h4>Stack <a class="try" href="index.html#sketch:stack">Draw it</a></h4>
+            <div class="meta"><span class="tag t">O(1) push / pop</span><span class="tag s">LIFO</span></div>
+            <p>Last in, first out. The call stack works this way.</p>
+            <p class="pick"><b>Pick it when</b> the most recent item matters first: undo, bracket matching, DFS, expression evaluation, monotonic-stack problems.</p>
+            <p class="skip"><b>Pick something else when</b> you need the oldest item first (queue).</p></div>
+          <div class="card"><h4>Queue, deque &amp; ring buffer <a class="try" href="index.html#sketch:queue">Draw it</a></h4>
+            <div class="meta"><span class="tag t">O(1) both ends</span><span class="tag s">FIFO</span></div>
+            <p>A queue serves in arrival order. A deque adds and removes at both ends. A ring buffer is a fixed-size array whose ends wrap around.</p>
+            <p class="pick"><b>Pick it when</b> you process in order: BFS, task queues, streaming buffers, sliding-window maximum (deque), last-N logs (ring buffer).</p>
+            <p class="skip"><b>Pick something else when</b> order depends on priority, not arrival (heap).</p>
+            <p class="gotcha">In JS, <code>arr.shift()</code> is O(n). For big queues, keep a head index instead.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="ds-hash" data-title="Hashing">
+        <h3>Hashing</h3>
+        <div class="cards">
+          <div class="card"><h4>Hash map &amp; hash set <a class="try" href="index.html#sketch:hash">Draw it</a></h4>
+            <div class="meta"><span class="tag t">O(1) avg get/put</span><span class="tag w">O(n) worst</span><span class="tag w">unordered</span></div>
+            <p>A hash function turns a key into a bucket index, so lookups jump straight to the right place. Collisions are handled with chains or probing.</p>
+            <p class="pick"><b>Pick it when</b> you look things up by key: counting, deduplication, caching, memoization, grouping, two-sum.</p>
+            <p class="skip"><b>Pick something else when</b> you need keys in sorted order or range queries (balanced tree), or memory is very tight.</p>
+            <p class="gotcha">Don't mutate an object while it's a key. In JS, plain objects turn keys into strings; use <code>Map</code> for real keys.</p></div>
+          <div class="card"><h4>LRU cache</h4>
+            <div class="meta"><span class="tag t">O(1) get/put</span></div>
+            <p>A hash map from key to node, plus a doubly linked list ordered by recent use. On access, move the node to the front; when full, drop the tail.</p>
+            <p class="pick"><b>Pick it when</b> you cache results with a size limit. A classic interview question that combines two structures.</p>
+            <p class="use">In JS, a <code>Map</code> keeps insertion order, so delete-and-reinsert gives you a tiny LRU.</p></div>
+          <div class="card"><h4>Bloom filter</h4>
+            <div class="meta"><span class="tag t">O(k) check</span><span class="tag s">tiny memory</span><span class="tag w">false positives</span></div>
+            <p>A bit array plus k hash functions. It can say "definitely not present" or "probably present".</p>
+            <p class="pick"><b>Pick it when</b> a cheap pre-check saves an expensive lookup: databases skipping disk reads, crawlers skipping seen URLs.</p>
+            <p class="skip"><b>Pick something else when</b> you need exact answers or deletions (use a hash set, or a counting Bloom filter).</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="ds-trees" data-title="Trees">
+        <h3>Trees</h3>
+        <div class="cards">
+          <div class="card"><h4>Binary search tree &amp; balanced trees <a class="try" href="index.html#sketch:tree">Draw it</a></h4>
+            <div class="meta"><span class="tag t">O(log n) balanced</span><span class="tag w">O(n) if degenerate</span><span class="tag s">ordered</span></div>
+            <p>Smaller keys go left, larger right. Red-black and AVL trees rebalance themselves; that's what Java's TreeMap and C++'s <code>std::map</code> use.</p>
+            <p class="pick"><b>Pick it when</b> you need sorted order while inserting, or "floor/ceiling/next larger", or range queries.</p>
+            <p class="skip"><b>Pick something else when</b> you only need lookups by exact key (hash map, faster) or only the min/max (heap).</p></div>
+          <div class="card"><h4>B-tree</h4>
+            <div class="meta"><span class="tag t">O(log n)</span><span class="tag s">disk-friendly</span></div>
+            <p>A wide, shallow tree whose nodes hold many keys, so each disk or page read covers a lot of data.</p>
+            <p class="pick"><b>Know it because</b> nearly every database index (PostgreSQL, MySQL, SQLite) is a B-tree. It's why an index makes <code>WHERE</code> and <code>ORDER BY</code> fast.</p></div>
+          <div class="card"><h4>Heap / priority queue</h4>
+            <div class="meta"><span class="tag t">O(1) peek</span><span class="tag t">O(log n) push/pop</span><span class="tag t">O(n) build</span></div>
+            <p>A complete binary tree stored in an array where every parent is ≤ its children (min-heap). Children of i are 2i+1 and 2i+2.</p>
+            <p class="pick"><b>Pick it when</b> you repeatedly need the smallest or largest: Dijkstra, schedulers, top-k, merging k sorted lists, running median.</p>
+            <p class="skip"><b>Pick something else when</b> you need to search for arbitrary items or iterate in order (balanced tree).</p></div>
+          <div class="card"><h4>Trie (prefix tree)</h4>
+            <div class="meta"><span class="tag t">O(L) per word</span><span class="tag w">memory-hungry</span></div>
+            <p>Each edge is a character; each path from the root spells a prefix.</p>
+            <p class="pick"><b>Pick it when</b> you query by prefix: autocomplete, spell checkers, word games, routing tables.</p>
+            <p class="skip"><b>Pick something else when</b> you only check whole words (hash set) or memory matters (sorted array + binary search).</p></div>
+          <div class="card"><h4>Fenwick &amp; segment trees</h4>
+            <div class="meta"><span class="tag t">O(log n) query &amp; update</span></div>
+            <p>Trees over array ranges. Fenwick (binary indexed) trees are tiny and do prefix sums; segment trees handle any associative operation (min, max, gcd…).</p>
+            <p class="pick"><b>Pick it when</b> range queries and point updates are interleaved, e.g. live leaderboards and competitive programming.</p>
+            <p class="skip"><b>Pick something else when</b> data never changes (plain prefix sums, O(1) per query).</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="ds-graphs" data-title="Graphs & sets">
+        <h3>Graphs &amp; sets</h3>
+        <div class="cards">
+          <div class="card"><h4>Adjacency list <a class="try" href="index.html#graph:bfs">See it</a></h4>
+            <div class="meta"><span class="tag t">O(V + E) memory</span></div>
+            <p>For each node, the list of its neighbors (often a map from node to array).</p>
+            <p class="pick"><b>Pick it when</b> the graph is sparse, which real graphs (roads, social networks, dependencies) almost always are. BFS, DFS and Dijkstra all want this.</p></div>
+          <div class="card"><h4>Adjacency matrix <a class="try" href="index.html#sketch:matrix">Draw it</a></h4>
+            <div class="meta"><span class="tag t">O(1) edge check</span><span class="tag w">O(V²) memory</span></div>
+            <p>A V×V table where cell [u][v] holds the edge (or its weight).</p>
+            <p class="pick"><b>Pick it when</b> the graph is small or dense, or you run Floyd–Warshall.</p>
+            <p class="skip"><b>Pick something else when</b> V is large: 100 000 nodes would need 10 billion cells.</p></div>
+          <div class="card"><h4>Edge list</h4>
+            <div class="meta"><span class="tag t">O(E) memory</span></div>
+            <p>Just a list of (u, v, weight). The format you'd paste into the Graph tab.</p>
+            <p class="pick"><b>Pick it when</b> you sort edges by weight (Kruskal) or read input; convert to an adjacency list for traversal.</p></div>
+          <div class="card"><h4>Union-find (disjoint set)</h4>
+            <div class="meta"><span class="tag t">≈ O(1) find &amp; union</span></div>
+            <p>Each item points toward a group representative; path compression and union by size keep the trees flat.</p>
+            <p class="pick"><b>Pick it when</b> groups only merge, never split: Kruskal's MST, connected components, "are these accounts the same person?". See the template in <a href="#templates">Code templates</a>.</p></div>
+          <div class="card"><h4>Bitset</h4>
+            <div class="meta"><span class="tag t">O(1) per bit</span><span class="tag s">1 bit per item</span></div>
+            <p>An integer or array of integers used as a set of flags.</p>
+            <p class="pick"><b>Pick it when</b> items are small integers: subsets in bitmask DP, permission flags, sieve of primes.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="ds-builtins" data-title="Built-ins by language">
+        <h3>Built-ins by language</h3>
+        <div class="tbl"><table>
+          <tr><th>Structure</th><th>JavaScript / TS</th><th>Python</th><th>Java</th><th>C++</th></tr>
+          <tr><td>dynamic array</td><td class="m">Array</td><td class="m">list</td><td class="m">ArrayList</td><td class="m">std::vector</td></tr>
+          <tr><td>hash map</td><td class="m">Map</td><td class="m">dict</td><td class="m">HashMap</td><td class="m">std::unordered_map</td></tr>
+          <tr><td>hash set</td><td class="m">Set</td><td class="m">set</td><td class="m">HashSet</td><td class="m">std::unordered_set</td></tr>
+          <tr><td>sorted map / set</td><td>none built in (library)</td><td>none built in (<code>sortedcontainers</code>)</td><td class="m">TreeMap / TreeSet</td><td class="m">std::map / std::set</td></tr>
+          <tr><td>heap</td><td>none built in (write one or use a library)</td><td class="m">heapq</td><td class="m">PriorityQueue</td><td class="m">std::priority_queue</td></tr>
+          <tr><td>deque / queue</td><td>none built in (array + head index)</td><td class="m">collections.deque</td><td class="m">ArrayDeque</td><td class="m">std::deque</td></tr>
+          <tr><td>stack</td><td class="m">Array push/pop</td><td class="m">list append/pop</td><td class="m">ArrayDeque</td><td class="m">std::stack</td></tr>
+          <tr><td>linked list</td><td>none built in</td><td>none (use deque)</td><td class="m">LinkedList</td><td class="m">std::list</td></tr>
+          <tr><td>counter</td><td class="m">Map + get/set</td><td class="m">collections.Counter</td><td class="m">HashMap.merge</td><td class="m">unordered_map[k]++</td></tr>
+        </table></div>
+      </section>
+    </section>
+
+    <!-- ===================================================== 3. PATTERNS -->
     <section class="part" id="patterns" data-title="Solving problems">
-      <h2><span class="num">02</span>Solving problems</h2>
+      <h2><span class="num">03</span>Solving problems</h2>
       <p class="lead">Most problems are a known pattern in a costume. The process below gets you from "no idea" to working code without skipping the steps where bugs hide.</p>
 
       <section class="sub" id="process" data-title="A process that works">
@@ -572,7 +766,7 @@ function coins(cs, amount) {
         </div>
       </section>
 
-      <section class="sub" id="design" data-title="Designing real programs">
+      <section class="sub" id="real-programs" data-title="Designing real programs">
         <h3>Designing real programs</h3>
         <p>Algorithms are a small part of most software. These habits matter more day to day:</p>
         <ul class="rules">
@@ -580,115 +774,663 @@ function coins(cs, amount) {
           <li><b>Small functions with one job</b>, and keep side effects (I/O, network, database) at the edges so the core is easy to test.</li>
           <li><b>Make illegal states unrepresentable:</b> enums instead of magic strings, required fields instead of "maybe null".</li>
           <li><b>Validate at the boundary</b> (user input, API responses, files) and trust your types inside.</li>
-          <li><b>Draw it.</b> A class or sequence diagram (UML section of the Sketch tab) exposes coupling and missing steps before you write code.</li>
+          <li><b>Draw it.</b> A class or sequence diagram (UML section of the Sketch tab) exposes coupling and missing steps before you write code. See also <a href="#design-patterns">Design patterns</a>.</li>
           <li><b>Measure before optimizing.</b> Pick the right algorithm up front; micro-optimize only what a profiler shows.</li>
         </ul>
       </section>
     </section>
 
-    <!-- ===================================================== 3. TECH -->
+    <!-- ===================================================== 4. DESIGN PATTERNS -->
+    <section class="part" id="design-patterns" data-title="Design patterns">
+      <h2><span class="num">04</span>Design patterns</h2>
+      <p class="lead">Named, proven answers to problems that keep recurring when you structure code. Learn them to recognize them and to talk about design, not to force them in: the simplest code that works is still the goal. Examples are TypeScript; draw them as class diagrams with the UML tools in <a href="index.html#sketch:umlclass">Sketch</a>. Each classic pattern links to <a href="https://refactoring.guru/design-patterns" target="_blank" rel="noopener">Refactoring Guru</a>, which has diagrams, analogies and code in many languages; its <a href="https://refactoring.guru/refactoring" target="_blank" rel="noopener">refactoring section</a> covers code smells and how to fix them.</p>
+
+      <section class="sub" id="dp-principles" data-title="Principles first">
+        <h3>Principles first</h3>
+        <p>Patterns are applications of a few principles. If you remember these, you can often derive the pattern yourself.</p>
+        <div class="cards">
+          <div class="card"><h4>SOLID</h4>
+            <p><b>S</b>ingle responsibility: one reason to change. <b>O</b>pen/closed: extend behavior without editing working code. <b>L</b>iskov: a subtype must work wherever its parent does. <b>I</b>nterface segregation: small, focused interfaces. <b>D</b>ependency inversion: depend on abstractions, not concrete classes.</p></div>
+          <div class="card"><h4>Composition over inheritance</h4>
+            <p>Build behavior by combining small objects or functions instead of deep class trees. Inheritance couples you to the parent's internals; composition lets you swap parts.</p></div>
+          <div class="card"><h4>KISS, YAGNI, DRY</h4>
+            <p><b>Keep it simple.</b> <b>You aren't gonna need it:</b> don't build for imagined futures. <b>Don't repeat yourself</b>, but wait for the third copy before abstracting: a wrong abstraction costs more than duplication.</p></div>
+          <div class="card"><h4>Separation of concerns</h4>
+            <p>Keep UI, business rules and I/O (database, network, files) apart. The core logic becomes easy to test and the edges easy to replace.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="dp-creational" data-title="Creational patterns">
+        <h3>Creational patterns</h3>
+        <p>How objects get made, so callers don't depend on exactly which class they get.</p>
+        <div class="cards">
+          <div class="card"><h4>Factory Method <a class="try ext" href="https://refactoring.guru/design-patterns/factory-method" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Problem:</b> code is full of <code>new ConcreteThing()</code>, so adding a variant means editing every caller. <b>Idea:</b> one function decides which class to create.</p>
+<pre><code>function createShape(kind: 'circle' | 'square', size: number): Shape {
+  switch (kind) {
+    case 'circle': return new Circle(size);
+    case 'square': return new Square(size);
+  }
+}</code></pre>
+            <p class="pick"><b>Use it when</b> the concrete type depends on input or config (file parsers, payment providers, UI themes).</p>
+            <p class="skip"><b>Skip it when</b> there's only one implementation: just call the constructor.</p></div>
+          <div class="card"><h4>Abstract Factory <a class="try ext" href="https://refactoring.guru/design-patterns/abstract-factory" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Idea:</b> one factory object creates a whole family of related objects that must match, e.g. <code>lightTheme.button()</code> and <code>lightTheme.dialog()</code>.</p>
+            <p class="pick"><b>Use it when</b> products come in consistent families (UI themes, database drivers, platform widgets).</p>
+            <p class="skip"><b>Skip it when</b> there is only one family or one product: a plain factory function is enough.</p></div>
+          <div class="card"><h4>Builder <a class="try ext" href="https://refactoring.guru/design-patterns/builder" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Problem:</b> constructors with many optional parameters. <b>Idea:</b> set parts step by step, then <code>build()</code>.</p>
+<pre><code>const req = new RequestBuilder('/api/users')
+  .method('POST')
+  .header('Authorization', token)
+  .json({ name: 'Ada' })
+  .build();</code></pre>
+            <p class="pick"><b>Use it when</b> objects have many optional parts or must be validated before use (queries, HTTP requests, test data).</p>
+            <p class="skip"><b>Skip it when</b> an options object <code>{ ... }</code> with defaults is enough, which in JS/TS it usually is.</p></div>
+          <div class="card"><h4>Singleton <a class="try ext" href="https://refactoring.guru/design-patterns/singleton" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Idea:</b> exactly one instance, reachable from anywhere (a config, a logger, a connection pool).</p>
+            <p class="skip"><b>Be careful:</b> it's hidden global state that makes testing hard. Prefer creating one instance at startup and passing it in (dependency injection). A module-level <code>export const db = …</code> is the JS equivalent.</p></div>
+          <div class="card"><h4>Prototype <a class="try ext" href="https://refactoring.guru/design-patterns/prototype" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Idea:</b> create new objects by copying an existing one (<code>structuredClone</code>, <code>{...obj}</code>, <code>copy()</code>).</p>
+            <p class="pick"><b>Use it when</b> setting up an object is expensive and copies differ only a little (game entities, document templates).</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="dp-structural" data-title="Structural patterns">
+        <h3>Structural patterns</h3>
+        <p>How objects fit together into bigger structures.</p>
+        <div class="cards">
+          <div class="card"><h4>Adapter <a class="try ext" href="https://refactoring.guru/design-patterns/adapter" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Problem:</b> a library's interface doesn't match the one your code expects. <b>Idea:</b> a thin wrapper that translates.</p>
+<pre><code>interface PaymentGateway { pay(eur: number): Promise&lt;void&gt; }
+
+class LegacyPayAdapter implements PaymentGateway {
+  constructor(private legacy: LegacyPayClient) {}
+  pay(eur: number) {
+    return this.legacy.sendPayment({ cents: Math.round(eur * 100) });
+  }
+}</code></pre>
+            <p class="pick"><b>Use it when</b> integrating third-party code or replacing a vendor: the rest of your app never sees the vendor's API.</p></div>
+          <div class="card"><h4>Bridge <a class="try ext" href="https://refactoring.guru/design-patterns/bridge" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Problem:</b> two independent dimensions multiply subclasses (<code>RedCircle</code>, <code>BlueSquare</code>…). <b>Idea:</b> split them into two hierarchies and connect them with a reference: a <code>Shape</code> holds a <code>Renderer</code>.</p>
+            <p class="pick"><b>Use it when</b> abstraction and implementation should vary separately (remote controls and devices, shapes and rendering backends).</p></div>
+          <div class="card"><h4>Decorator <a class="try ext" href="https://refactoring.guru/design-patterns/decorator" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Idea:</b> wrap an object or function to add behavior (logging, caching, retries) without changing it.</p>
+<pre><code>const withLogging = &lt;A extends unknown[], R&gt;(fn: (...a: A) =&gt; R) =&gt;
+  (...args: A): R =&gt; {
+    console.log('calling', fn.name, args);
+    return fn(...args);
+  };
+const loggedFetchUser = withLogging(fetchUser);</code></pre>
+            <p class="pick"><b>Use it when</b> you want to stack optional behaviors. Middleware in Express/Hono is this pattern.</p></div>
+          <div class="card"><h4>Facade <a class="try ext" href="https://refactoring.guru/design-patterns/facade" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Idea:</b> one simple interface in front of a complicated subsystem, e.g. <code>video.convert(file, 'mp4')</code> hiding codecs, buffers and muxers.</p>
+            <p class="pick"><b>Use it when</b> callers only need a few common operations of a big library.</p></div>
+          <div class="card"><h4>Composite <a class="try ext" href="https://refactoring.guru/design-patterns/composite" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Idea:</b> treat a group the same as a single item: a folder and a file both have <code>size()</code>; a folder sums its children.</p>
+            <p class="pick"><b>Use it when</b> you have trees: file systems, UI component trees, menus, organization charts.</p></div>
+          <div class="card"><h4>Proxy <a class="try ext" href="https://refactoring.guru/design-patterns/proxy" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Idea:</b> a stand-in with the same interface that controls access: lazy loading, caching, permission checks, remote calls.</p>
+            <p class="use">JS has a built-in <code>Proxy</code>; Vue's reactivity is built on it.</p></div>
+          <div class="card"><h4>Flyweight <a class="try ext" href="https://refactoring.guru/design-patterns/flyweight" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Idea:</b> share the heavy, unchanging part of many similar objects (a tree's mesh and texture) and store only the small per-object state (position) separately.</p>
+            <p class="pick"><b>Use it when</b> you have huge numbers of similar objects and memory runs out: particles, map tiles, characters in a text editor.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="dp-behavioral" data-title="Behavioral patterns">
+        <h3>Behavioral patterns</h3>
+        <p>How objects share work and talk to each other.</p>
+        <div class="cards">
+          <div class="card"><h4>Strategy <a class="try ext" href="https://refactoring.guru/design-patterns/strategy" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Problem:</b> a growing <code>if/else</code> over ways of doing one thing. <b>Idea:</b> make each way a separate function or object and pass in the one you want.</p>
+<pre><code>type Pricing = (total: number) =&gt; number;
+const regular: Pricing = t =&gt; t;
+const student: Pricing = t =&gt; t * 0.8;
+
+function checkout(total: number, pricing: Pricing) {
+  return pricing(total);
+}</code></pre>
+            <p class="pick"><b>Use it when</b> behavior varies by user choice or config: sorting orders, pricing rules, compression, route finding. The bench's algorithm dropdowns are strategies.</p></div>
+          <div class="card"><h4>Observer (pub/sub) <a class="try ext" href="https://refactoring.guru/design-patterns/observer" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Idea:</b> subscribers register with a subject and get notified on changes; the subject doesn't know who they are.</p>
+<pre><code>class Emitter&lt;T&gt; {
+  private fns = new Set&lt;(v: T) =&gt; void&gt;();
+  on(fn: (v: T) =&gt; void) {
+    this.fns.add(fn);
+    return () =&gt; this.fns.delete(fn);   // unsubscribe
+  }
+  emit(v: T) { this.fns.forEach(fn =&gt; fn(v)); }
+}</code></pre>
+            <p class="pick"><b>Use it when</b> several parts react to one event: DOM events, UI state stores, WebSocket messages.</p>
+            <p class="gotcha">Always unsubscribe, or listeners leak memory and fire on dead components.</p></div>
+          <div class="card"><h4>Command <a class="try ext" href="https://refactoring.guru/design-patterns/command" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Idea:</b> wrap an action as an object with <code>do()</code> and <code>undo()</code> so you can queue, log, replay or undo it.</p>
+<pre><code>interface Command { do(): void; undo(): void }
+const history: Command[] = [];
+function run(cmd: Command) { cmd.do(); history.push(cmd); }
+function undo() { history.pop()?.undo(); }</code></pre>
+            <p class="pick"><b>Use it when</b> you need undo/redo, job queues or macros.</p></div>
+          <div class="card"><h4>Memento <a class="try ext" href="https://refactoring.guru/design-patterns/memento" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Idea:</b> save snapshots of state to restore later, without exposing internals.</p>
+            <p class="use">The Sketch tab's undo and its captured steps are mementos: each one is a saved copy of the board.</p></div>
+          <div class="card"><h4>State (state machine) <a class="try ext" href="https://refactoring.guru/design-patterns/state" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Idea:</b> list the states and the allowed transitions explicitly, instead of juggling boolean flags.</p>
+<pre><code>const next = {
+  idle:    { fetch: 'loading' },
+  loading: { ok: 'done', fail: 'error' },
+  error:   { retry: 'loading' },
+  done:    {},
+} as const;</code></pre>
+            <p class="pick"><b>Use it when</b> something has modes with rules: orders, network requests, game characters, form wizards. Draw it first!</p></div>
+          <div class="card"><h4>Iterator <a class="try ext" href="https://refactoring.guru/design-patterns/iterator" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Idea:</b> walk through a collection without knowing how it's stored. Built into most languages: <code>for…of</code> plus generators in JS, <code>__iter__</code> in Python.</p></div>
+          <div class="card"><h4>Template Method <a class="try ext" href="https://refactoring.guru/design-patterns/template-method" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Idea:</b> a base routine fixes the steps; subclasses (or passed-in functions) fill in specific steps, e.g. <code>export() = header() + rows() + footer()</code>.</p>
+            <p class="skip"><b>Often better:</b> pass the varying steps as functions (strategy) instead of subclassing.</p></div>
+          <div class="card"><h4>Chain of Responsibility <a class="try ext" href="https://refactoring.guru/design-patterns/chain-of-responsibility" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Idea:</b> pass a request along a chain of handlers until one deals with it. HTTP middleware, event bubbling and validation pipelines work this way.</p></div>
+          <div class="card"><h4>Mediator <a class="try ext" href="https://refactoring.guru/design-patterns/mediator" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Idea:</b> components stop talking to each other directly and talk through one mediator, e.g. form fields notify the form, which decides what to enable.</p>
+            <p class="pick"><b>Use it when</b> many objects interact in tangled ways (dialogs, chat rooms, air-traffic-control style coordination).</p>
+            <p class="gotcha">Don't let the mediator grow into a god object.</p></div>
+          <div class="card"><h4>Visitor <a class="try ext" href="https://refactoring.guru/design-patterns/visitor" target="_blank" rel="noopener">Refactoring Guru</a></h4>
+            <p><b>Idea:</b> add new operations over a fixed set of node types without editing those types: each node calls <code>visitor.visitX(this)</code>.</p>
+            <p class="pick"><b>Use it when</b> the types rarely change but operations keep being added: compilers walking syntax trees, exporters, linters.</p>
+            <p class="skip"><b>Skip it when</b> types change often. In TS, a discriminated union with a <code>switch</code> is usually simpler.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="dp-architecture" data-title="Architecture patterns">
+        <h3>Architecture patterns</h3>
+        <p>Patterns at the scale of a whole app.</p>
+        <div class="cards">
+          <div class="card"><h4>Dependency injection</h4>
+            <p><b>Idea:</b> pass collaborators in instead of creating them inside. Production gets real ones, tests get fakes.</p>
+<pre><code>class SignupService {
+  constructor(private users: UserRepo, private mail: Mailer) {}
+}
+new SignupService(new PgUserRepo(db), new SmtpMailer(cfg)); // app
+new SignupService(new MemoryUserRepo(), new FakeMailer());  // test</code></pre>
+            <p class="use">Spring, ASP.NET, NestJS and Angular have DI containers; plain constructor parameters work fine too.</p></div>
+          <div class="card"><h4>Repository</h4>
+            <p><b>Idea:</b> hide data access behind an interface like <code>users.byId(id)</code> / <code>users.save(u)</code>, so business logic doesn't contain SQL.</p>
+            <p class="pick"><b>Use it when</b> logic is non-trivial and you want to test it without a database.</p>
+            <p class="skip"><b>Skip it when</b> the app is simple CRUD: the ORM already is your repository.</p></div>
+          <div class="card"><h4>MVC, MVVM &amp; components</h4>
+            <p><b>Model</b> (data and rules), <b>View</b> (what's shown), and a <b>Controller</b> or <b>ViewModel</b> connecting them. Rails, Django, Laravel and Spring MVC use MVC; modern frontends use components with state stores, which is the same separation at a smaller scale.</p></div>
+          <div class="card"><h4>Layered, clean &amp; hexagonal</h4>
+            <p>Business rules in the center; the database, web framework and external APIs are plug-ins at the edges, connected through interfaces (ports and adapters).</p>
+            <p class="pick"><b>Use it when</b> the domain is complex and long-lived.</p>
+            <p class="skip"><b>Skip it when</b> it's a small app: the layers become ceremony.</p></div>
+          <div class="card"><h4>Event-driven</h4>
+            <p>Parts communicate by publishing events ("OrderPlaced") rather than calling each other. Built with queues or logs (RabbitMQ, Kafka).</p>
+            <p class="pick"><b>Use it when</b> work is slow or should happen independently (emails, analytics, notifications).</p>
+            <p class="gotcha">Harder to trace and debug; events can arrive twice or out of order, so make handlers idempotent.</p></div>
+          <div class="card"><h4>Modular monolith vs microservices</h4>
+            <p><b>Start with a modular monolith:</b> one deployable app with clear internal modules. Split out services only when a part needs to scale, deploy or be owned separately. Microservices trade code complexity for network and operations complexity.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="dp-anti" data-title="Anti-patterns">
+        <h3>Anti-patterns to recognize</h3>
+        <ul class="rules">
+          <li><b>God object:</b> one class that knows and does everything. Split it by responsibility.</li>
+          <li><b>Premature abstraction:</b> interfaces, factories and layers for code that has exactly one use. Wait until a second or third real case shows the shape.</li>
+          <li><b>Pattern-itis:</b> using a pattern because it exists. If a plain function does the job, use the function.</li>
+          <li><b>Shotgun surgery:</b> one small change forces edits in many files. Related logic is scattered; pull it together.</li>
+          <li><b>Primitive obsession:</b> passing raw strings and numbers for things that deserve a type (<code>Email</code>, <code>Money</code>, <code>UserId</code>).</li>
+          <li><b>Singleton everywhere:</b> global state that makes order of initialization and tests fragile.</li>
+        </ul>
+      </section>
+    </section>
+
+    <!-- ===================================================== 5. TECH -->
     <section class="part" id="tech" data-title="Technologies">
-      <h2><span class="num">03</span>Technologies</h2>
-      <p class="lead">What the popular tools are for and when to pick them. Rules of thumb, not rankings: the best choice is usually what your team already knows well, as long as it fits the problem.</p>
+      <h2><span class="num">05</span>Technologies</h2>
+      <p class="lead">What the popular tools are for, when to pick each one, and when something else fits better. Rules of thumb, not rankings: the best choice is usually the one your team knows, as long as it fits the problem. Reviewed November 2026.</p>
+
+      <section class="sub" id="picker" data-title="Technology picker">
+        <h3>Technology picker</h3>
+        <p>Answer a few questions, one at a time, and the picker ranks the technologies that fit your project, explains why, and suggests what to pair them with. You can go back and change any answer.</p>
+        <div class="picker" id="pickerApp" aria-live="polite"><p class="muted">Loading the picker…</p></div>
+      </section>
 
       <section class="sub" id="languages" data-title="Languages">
         <h3>Languages</h3>
         <div class="cards">
-          <div class="card"><h4>Python</h4><p>Readable, huge ecosystem. <b>Strong in</b> data science, ML/AI, scripting, automation, backends (Django, FastAPI).</p><p class="gotcha">Slow for CPU-heavy loops (use NumPy or native extensions); dynamic types need discipline (type hints + mypy/pyright).</p></div>
-          <div class="card"><h4>JavaScript / TypeScript</h4><p>The language of the web; Node, Deno and Bun run it on servers. TypeScript adds static types and is the norm for serious projects.</p><p class="gotcha">Quirky equality and number semantics; npm dependency trees grow fast.</p></div>
-          <div class="card"><h4>Java</h4><p>Mature, fast JVM, strong typing. <b>Strong in</b> enterprise backends (Spring), Android legacy, big systems. Modern Java (records, pattern matching, virtual threads) is much less verbose.</p></div>
-          <div class="card"><h4>Kotlin</h4><p>Concise JVM language, null-safety built in. Default for Android; works anywhere Java does.</p></div>
-          <div class="card"><h4>C#</h4><p>.NET's language: backends (ASP.NET Core), desktop, games (Unity). Excellent tooling, similar niche to Java.</p></div>
-          <div class="card"><h4>Go</h4><p>Simple, fast to compile, great concurrency (goroutines). <b>Strong in</b> cloud services, CLIs, infrastructure (Docker and Kubernetes are written in Go).</p></div>
-          <div class="card"><h4>Rust</h4><p>C-level speed with memory safety checked at compile time. <b>Strong in</b> systems, performance-critical services, WebAssembly, CLIs.</p><p class="gotcha">Steep learning curve (ownership and lifetimes).</p></div>
-          <div class="card"><h4>C / C++</h4><p>Maximum control and speed: operating systems, embedded, game engines, competitive programming (C++ STL).</p><p class="gotcha">Manual memory management: buffer overflows and use-after-free bugs.</p></div>
-          <div class="card"><h4>Swift</h4><p>Apple platforms (iOS, macOS). Modern, safe, fast.</p></div>
-          <div class="card"><h4>SQL</h4><p>Not optional: almost every app stores data in a relational database. Learn joins, indexes, GROUP BY, transactions.</p></div>
+          <div class="card" id="t-python"><h4>Python</h4><p>Readable, batteries included, the lingua franca of data and AI. Modern tooling: <b>uv</b> for packages and environments, <b>Ruff</b> for linting and formatting.</p>
+            <p class="pick"><b>Pick it when</b> you do data analysis, ML/AI, scripting and automation, or quick backends (Django, FastAPI). Great first language.</p>
+            <p class="skip"><b>Pick something else when</b> CPU-heavy loops dominate (Go, Rust, C++), you build mobile apps (Swift, Kotlin) or code runs in the browser (TypeScript).</p></div>
+          <div class="card" id="t-typescript"><h4>JavaScript / TypeScript</h4><p>The only language browsers run natively, and with Node, Bun or Deno a full server language too. TypeScript adds static types and is the norm for anything beyond a script.</p>
+            <p class="pick"><b>Pick it when</b> anything runs in a browser, you want one language across frontend and backend, or you deploy to serverless/edge platforms.</p>
+            <p class="skip"><b>Pick something else when</b> you need raw number crunching (Python with NumPy, Rust) or systems-level control (Rust, C++).</p></div>
+          <div class="card" id="t-java"><h4>Java</h4><p>Fast JVM, strong typing, huge ecosystem. Modern Java (records, pattern matching, virtual threads) is far less verbose than its reputation.</p>
+            <p class="pick"><b>Pick it when</b> you build large, long-lived backends (Spring), work in enterprise or banking, or want a widely hired skill.</p>
+            <p class="skip"><b>Pick something else when</b> you want concise syntax on the JVM (Kotlin), tiny single-binary services (Go), or quick scripts (Python).</p></div>
+          <div class="card" id="t-kotlin"><h4>Kotlin</h4><p>Concise, null-safe JVM language, fully interoperable with Java.</p>
+            <p class="pick"><b>Pick it when</b> you build Android apps (the default), JVM backends with less boilerplate (Spring, Ktor), or want to share logic between Android and iOS (Kotlin Multiplatform).</p>
+            <p class="skip"><b>Pick something else when</b> your team and libraries live outside the JVM world.</p></div>
+          <div class="card" id="t-csharp"><h4>C#</h4><p>.NET's language: excellent tooling, fast runtime, runs on Windows, macOS and Linux.</p>
+            <p class="pick"><b>Pick it when</b> you make Unity games, Windows desktop apps, or ASP.NET Core backends, or join a .NET company.</p>
+            <p class="skip"><b>Pick something else when</b> your team is on the JVM (Java/Kotlin) or JS stack already: they're in the same niche.</p></div>
+          <div class="card" id="t-go"><h4>Go</h4><p>Small language, fast compiles, easy concurrency with goroutines, deploys as one static binary. Docker and Kubernetes are written in it.</p>
+            <p class="pick"><b>Pick it when</b> you write network services, CLIs, DevOps and cloud tooling, or want something simple a team can learn in a week.</p>
+            <p class="skip"><b>Pick something else when</b> you need UIs, data science (Python), or maximum performance without a garbage collector (Rust).</p></div>
+          <div class="card" id="t-rust"><h4>Rust</h4><p>C/C++-level speed with memory safety enforced at compile time. The most admired language in Stack Overflow's survey for years running.</p>
+            <p class="pick"><b>Pick it when</b> performance and correctness both matter: systems code, CLIs, WebAssembly, high-throughput services, replacing C/C++.</p>
+            <p class="skip"><b>Pick something else when</b> you need to prototype quickly or the team is new to it under a deadline: the borrow checker has a real learning curve.</p></div>
+          <div class="card" id="t-cpp"><h4>C / C++</h4><p>Maximum control over memory and hardware; decades of libraries.</p>
+            <p class="pick"><b>Pick it when</b> you do embedded, operating systems, game engines (Unreal), audio/graphics, competitive programming (C++ STL), or extend an existing C/C++ codebase.</p>
+            <p class="skip"><b>Pick something else when</b> you start a new systems project and safety matters (Rust), or build web apps.</p></div>
+          <div class="card" id="t-swift"><h4>Swift</h4><p>Apple's modern, safe language for iOS, macOS, watchOS and visionOS.</p>
+            <p class="pick"><b>Pick it when</b> the app is Apple-only or needs the best platform integration.</p>
+            <p class="skip"><b>Pick something else when</b> you must ship on Android too with one team (Flutter, React Native, Kotlin Multiplatform).</p></div>
+          <div class="card" id="t-dart"><h4>Dart</h4><p>The language of Flutter; easy for anyone who knows Java, C# or TypeScript.</p>
+            <p class="pick"><b>Pick it when</b> you build with Flutter.</p>
+            <p class="skip"><b>Pick something else when</b> you're outside Flutter: its server and tooling ecosystem is small.</p></div>
+          <div class="card" id="t-php"><h4>PHP</h4><p>Powers a large share of the web (WordPress). Modern PHP 8 is typed and fast.</p>
+            <p class="pick"><b>Pick it when</b> you build on WordPress or Laravel, or need cheap shared hosting.</p>
+            <p class="skip"><b>Pick something else when</b> the work isn't web, or you want one language from browser to server (TypeScript).</p></div>
+          <div class="card" id="t-ruby"><h4>Ruby</h4><p>Expressive language, best known for Rails.</p>
+            <p class="pick"><b>Pick it when</b> you want to build a CRUD product very quickly with Rails conventions.</p>
+            <p class="skip"><b>Pick something else when</b> you need a large hiring pool or heavy computation.</p></div>
+          <div class="card" id="t-elixir"><h4>Elixir</h4><p>Functional language on the Erlang VM, built for huge numbers of concurrent, fault-tolerant processes. Its Phoenix framework is the most admired web framework in Stack Overflow's 2025 survey.</p>
+            <p class="pick"><b>Pick it when</b> the app is real-time and connection-heavy: chat, live dashboards, multiplayer, IoT.</p>
+            <p class="skip"><b>Pick something else when</b> you need a big hiring pool or CPU-heavy number crunching.</p></div>
+          <div class="card" id="t-zig"><h4>Zig</h4><p>A small, modern C alternative with explicit memory handling and excellent C interop. Still pre-1.0, so expect breaking changes.</p>
+            <p class="pick"><b>Pick it when</b> you want to learn low-level programming with less complexity than C++, or need a better C toolchain (Zig can compile C).</p>
+            <p class="skip"><b>Pick something else when</b> you need stability and a big library ecosystem today (C, C++, Rust).</p></div>
+          <div class="card" id="t-sql"><h4>SQL</h4><p>Not optional: almost every application stores data in a relational database.</p>
+            <p class="pick"><b>Learn it</b> regardless of stack: SELECT with JOIN, GROUP BY, indexes, transactions, and how to read a query plan (<code>EXPLAIN</code>).</p></div>
         </div>
       </section>
 
-      <section class="sub" id="frontend" data-title="Frontend">
-        <h3>Frontend</h3>
+      <section class="sub" id="frontend" data-title="Frontend & web frameworks">
+        <h3>Frontend &amp; web frameworks</h3>
         <div class="cards">
-          <div class="card"><h4>HTML, CSS, JS first</h4><p>Frameworks change; the platform stays. Semantic HTML, flexbox/grid and the DOM make every framework easier. Small sites (like this one) need no framework.</p></div>
-          <div class="card"><h4>React</h4><p>Component library with the largest ecosystem and job market. Pair with a framework (Next.js, Remix/React Router) for routing, data loading and server rendering.</p></div>
-          <div class="card"><h4>Vue</h4><p>Approachable component framework with single-file components; Nuxt is its full-stack framework.</p></div>
-          <div class="card"><h4>Svelte</h4><p>Compiles components into minimal JS; very little boilerplate. SvelteKit for full apps.</p></div>
-          <div class="card"><h4>Angular</h4><p>Batteries-included and opinionated (DI, forms, router, TypeScript). Common in large enterprise teams.</p></div>
-          <div class="card"><h4>Tailwind CSS</h4><p>Utility classes in markup; fast to build consistent UIs. Pairs well with component libraries.</p></div>
-          <div class="card"><h4>Build tools</h4><p>Vite is the common default dev server and bundler. npm, pnpm or yarn manage packages.</p></div>
-          <div class="card"><h4>Mobile</h4><p>Native (Swift, Kotlin) for the best platform fit; React Native or Flutter (Dart) for one codebase on both platforms.</p></div>
+          <div class="card" id="t-vanilla"><h4>Plain HTML, CSS &amp; JavaScript</h4><p>The platform itself: semantic HTML, flexbox/grid and the DOM. This bench is built without a framework.</p>
+            <p class="pick"><b>Pick it when</b> you build small sites, widgets, prototypes, or learn the fundamentals every framework builds on.</p>
+            <p class="skip"><b>Pick something else when</b> the UI has lots of shared state and many screens (a component framework).</p></div>
+          <div class="card" id="t-react"><h4>React</h4><p>The most used component library, with the biggest ecosystem and job market. Use it through a framework (Next.js, React Router, TanStack Start) or as a single-page app with Vite. The TanStack libraries (Query, Router, Table, Form) are a common companion.</p>
+            <p class="pick"><b>Pick it when</b> you want the safest bet for jobs and libraries, or build complex interactive UIs. A React + Vite SPA is the simplest setup for apps behind a login.</p>
+            <p class="skip"><b>Pick something else when</b> the site is mostly content (Astro), or you want less boilerplate (Svelte, Vue).</p></div>
+          <div class="card" id="t-nextjs"><h4>Next.js</h4><p>The most used full-stack React framework: server rendering, static generation, Server Components, API routes. Smoothest on Vercel.</p>
+            <p class="pick"><b>Pick it when</b> pages must rank in search and stay dynamic (stores, marketplaces, social), or you want the most documented React stack.</p>
+            <p class="skip"><b>Pick something else when</b> it's an app behind a login with no SEO (React + Vite), mostly content (Astro), or you want a simpler data model (React Router, TanStack Start). Satisfaction has dipped as its caching and server/client rules grew complex.</p></div>
+          <div class="card" id="t-rr7"><h4>React Router v7 (formerly Remix)</h4><p>Remix merged into React Router: loaders and actions built on web standards, from a plain SPA up to full server rendering.</p>
+            <p class="pick"><b>Pick it when</b> you want full-stack React with simple, web-standard data loading, or you already use React Router and want to grow into SSR.</p>
+            <p class="skip"><b>Pick something else when</b> you want the largest ecosystem and hosting integrations (Next.js).</p></div>
+          <div class="card" id="t-tanstack"><h4>TanStack Start</h4><p>A newer full-stack React framework on TanStack Router and Vite, focused on end-to-end type-safe routing and data loading. Client-first, with server functions and SSR.</p>
+            <p class="pick"><b>Pick it when</b> you build dashboards and app-like UIs in TypeScript and value type safety and Vite's speed.</p>
+            <p class="skip"><b>Pick something else when</b> you're a beginner relying on tutorials, or need React Server Components today (Next.js). Check its current release status before betting a big project on it.</p></div>
+          <div class="card" id="t-vue"><h4>Vue + Nuxt</h4><p>Approachable component framework with single-file components and excellent docs; Nuxt adds routing, SSR and server routes.</p>
+            <p class="pick"><b>Pick it when</b> you want a gentle learning curve with a mature ecosystem, or join a Vue team (popular in Europe and Asia).</p>
+            <p class="skip"><b>Pick something else when</b> the job market in your area is React-dominated.</p></div>
+          <div class="card" id="t-svelte"><h4>Svelte + SvelteKit</h4><p>Compiles components into small, fast JavaScript with very little boilerplate; SvelteKit is the full-stack framework.</p>
+            <p class="pick"><b>Pick it when</b> you want the most enjoyable, least-code way to build fast apps and sites; consistently near the top in developer satisfaction.</p>
+            <p class="skip"><b>Pick something else when</b> you need the biggest pool of libraries and developers (React).</p></div>
+          <div class="card" id="t-angular"><h4>Angular</h4><p>Batteries-included and opinionated: TypeScript, dependency injection, router, forms and signals built in.</p>
+            <p class="pick"><b>Pick it when</b> large enterprise teams need one consistent way of doing everything.</p>
+            <p class="skip"><b>Pick something else when</b> the project is small, content-focused, or you're just starting out.</p></div>
+          <div class="card" id="t-astro"><h4>Astro</h4><p>Content-first framework that ships zero JavaScript by default and hydrates interactive "islands" only where needed, with components from React, Vue, Svelte or Solid.</p>
+            <p class="pick"><b>Pick it when</b> you build blogs, docs, portfolios and marketing sites that should load instantly and rank well.</p>
+            <p class="skip"><b>Pick something else when</b> the whole page is an interactive app (Next.js, SvelteKit, TanStack Start).</p></div>
+          <div class="card" id="t-htmx"><h4>HTMX (and Hotwire, Livewire)</h4><p>Add interactivity with HTML attributes; the server returns HTML fragments instead of JSON. Pairs with any backend (Django, Rails, Laravel, Go).</p>
+            <p class="pick"><b>Pick it when</b> a server-rendered app needs some dynamic behavior and you'd rather not maintain a separate JS frontend.</p>
+            <p class="skip"><b>Pick something else when</b> the UI has rich client-side state: editors, offline mode, drag-and-drop heavy apps.</p></div>
+          <div class="card" id="t-tailwind"><h4>Tailwind CSS</h4><p>Utility classes in your markup. Often paired with copy-in component kits like shadcn/ui.</p>
+            <p class="pick"><b>Pick it when</b> you want fast, consistent styling in a component-based app.</p>
+            <p class="skip"><b>Pick something else when</b> you prefer semantic CSS or the site is tiny: plain CSS with custom properties is enough.</p></div>
+          <div class="card" id="t-buildtools"><h4>Vite (build tools)</h4><p>The standard dev server and bundler for modern frontends; Vue, Svelte, React SPAs and TanStack Start build on it.</p>
+            <p class="pick"><b>Pick it when</b> you start any new frontend that doesn't come with its own toolchain.</p>
+            <p class="skip"><b>Pick something else when</b> you maintain an existing webpack setup that works: migrate only when it hurts.</p></div>
         </div>
       </section>
 
-      <section class="sub" id="backend" data-title="Backend">
-        <h3>Backend</h3>
+      <section class="sub" id="backend" data-title="Backend & runtimes">
+        <h3>Backend &amp; runtimes</h3>
         <div class="cards">
-          <div class="card"><h4>Node.js (Express, Fastify, NestJS)</h4><p>JavaScript on the server; great for I/O-heavy APIs and sharing types with a TypeScript frontend. NestJS adds structure for big apps.</p></div>
-          <div class="card"><h4>Spring Boot</h4><p>The Java standard: dependency injection, data access, security, huge ecosystem. Heavy but very capable.</p></div>
-          <div class="card"><h4>Django / FastAPI / Flask</h4><p>Python. Django: batteries included (ORM, admin, auth). FastAPI: modern typed APIs with automatic docs. Flask: minimal.</p></div>
-          <div class="card"><h4>ASP.NET Core</h4><p>C# web framework: fast, well documented, strong on Azure.</p></div>
-          <div class="card"><h4>Ruby on Rails, Laravel</h4><p>Convention-over-configuration frameworks (Ruby, PHP) that make CRUD apps very fast to build.</p></div>
-          <div class="card"><h4>Go net/http, Gin, Echo</h4><p>Small, fast services with few dependencies; easy to deploy as a single binary.</p></div>
+          <div class="card" id="t-node"><h4>Node.js</h4><p>The default JavaScript runtime: by far the most used, with the broadest package compatibility.</p>
+            <p class="pick"><b>Pick it when</b> you want the safe, boring JS backend choice, or depend on native npm packages.</p>
+            <p class="skip"><b>Pick something else when</b> you want an all-in-one fast toolchain (Bun) or secure-by-default scripts (Deno).</p></div>
+          <div class="card" id="t-bun"><h4>Bun</h4><p>A fast JS runtime that is also a package manager, bundler and test runner; largely Node-compatible.</p>
+            <p class="pick"><b>Pick it when</b> you start a new TypeScript project and want speed and fewer tools to configure.</p>
+            <p class="skip"><b>Pick something else when</b> you rely on native Node addons or a conservative production environment (Node).</p></div>
+          <div class="card" id="t-deno"><h4>Deno</h4><p>A runtime with TypeScript, formatter, linter and test runner built in, and permissions off by default.</p>
+            <p class="pick"><b>Pick it when</b> you write scripts and small services and like strong security defaults and zero config.</p>
+            <p class="skip"><b>Pick something else when</b> you need maximum npm compatibility (Node).</p></div>
+          <div class="card" id="t-express"><h4>Express &amp; Fastify</h4><p>Minimal Node web frameworks. Express has the most tutorials; Fastify is faster and validates with schemas.</p>
+            <p class="pick"><b>Pick it when</b> you want a straightforward JS API server on Node. Prefer Fastify for new projects.</p>
+            <p class="skip"><b>Pick something else when</b> you deploy to edge/serverless (Hono) or a big team needs enforced structure (NestJS).</p></div>
+          <div class="card" id="t-hono"><h4>Hono</h4><p>A tiny, fast framework built on web standards that runs on Node, Bun, Deno, Cloudflare Workers and other edge platforms.</p>
+            <p class="pick"><b>Pick it when</b> you build APIs for serverless/edge, or want one codebase that runs on any runtime.</p>
+            <p class="skip"><b>Pick something else when</b> a large team wants modules, DI and conventions (NestJS).</p></div>
+          <div class="card" id="t-nestjs"><h4>NestJS</h4><p>Structured TypeScript backend framework with modules, decorators and dependency injection (Angular-like).</p>
+            <p class="pick"><b>Pick it when</b> a larger team builds a long-lived TS backend and wants Spring-style structure.</p>
+            <p class="skip"><b>Pick something else when</b> the service is small: the ceremony isn't worth it (Fastify, Hono).</p></div>
+          <div class="card" id="t-django"><h4>Django</h4><p>Python's batteries-included framework: ORM, migrations, admin panel, auth, forms.</p>
+            <p class="pick"><b>Pick it when</b> you build a database-backed product with an admin and user accounts, fast.</p>
+            <p class="skip"><b>Pick something else when</b> you only need a small typed JSON API or ML endpoint (FastAPI).</p></div>
+          <div class="card" id="t-fastapi"><h4>FastAPI</h4><p>Modern Python API framework built on type hints and Pydantic: validation and OpenAPI docs come for free. Its usage has grown quickly.</p>
+            <p class="pick"><b>Pick it when</b> you build JSON APIs, serve ML/AI models, or want async Python.</p>
+            <p class="skip"><b>Pick something else when</b> you want an admin panel, auth and templates built in (Django).</p></div>
+          <div class="card" id="t-flask"><h4>Flask</h4><p>Minimal Python web framework; you add what you need.</p>
+            <p class="pick"><b>Pick it when</b> it's a tiny service or a learning project.</p>
+            <p class="skip"><b>Pick something else when</b> you start a real API today (FastAPI) or a full app (Django).</p></div>
+          <div class="card" id="t-spring"><h4>Spring Boot</h4><p>The Java/Kotlin standard: dependency injection, data access, security, messaging, observability.</p>
+            <p class="pick"><b>Pick it when</b> you build enterprise systems with large teams, or work where the JVM is the standard.</p>
+            <p class="skip"><b>Pick something else when</b> you want a light, fast-starting tiny service (Go) or quick prototype (Rails, Django).</p></div>
+          <div class="card" id="t-aspnet"><h4>ASP.NET Core</h4><p>Fast, well-documented C# framework for APIs and web apps (Razor Pages, Blazor).</p>
+            <p class="pick"><b>Pick it when</b> your team knows C#, or you build on Azure or Windows-centric infrastructure.</p>
+            <p class="skip"><b>Pick something else when</b> the team is on another stack: it overlaps with Spring.</p></div>
+          <div class="card" id="t-laravel"><h4>Laravel</h4><p>PHP's productive full-stack framework, with first-party tools for queues, auth, payments and Livewire for interactivity.</p>
+            <p class="pick"><b>Pick it when</b> you want to ship a web product quickly in PHP, with cheap hosting.</p>
+            <p class="skip"><b>Pick something else when</b> you want one language with your JS frontend (Node, Next.js).</p></div>
+          <div class="card" id="t-rails"><h4>Ruby on Rails</h4><p>Convention over configuration; Hotwire for interactivity without a JS framework.</p>
+            <p class="pick"><b>Pick it when</b> a small team wants maximum speed building a CRUD/SaaS product.</p>
+            <p class="skip"><b>Pick something else when</b> you need a large hiring pool or very high throughput.</p></div>
+          <div class="card" id="t-phoenix"><h4>Phoenix (Elixir)</h4><p>Web framework on the Erlang VM; LiveView builds real-time UIs rendered from the server.</p>
+            <p class="pick"><b>Pick it when</b> real-time features and many simultaneous connections are central.</p>
+            <p class="skip"><b>Pick something else when</b> you need to hire quickly or reuse a JS/Java ecosystem.</p></div>
+          <div class="card" id="t-gobackend"><h4>Go (net/http, chi, Gin, Echo)</h4><p>Go's standard library alone can serve production HTTP; small routers add convenience.</p>
+            <p class="pick"><b>Pick it when</b> you build high-throughput services or microservices that should be simple to run (one binary, low memory).</p>
+            <p class="skip"><b>Pick something else when</b> you want an admin, ORM and auth out of the box (Django, Rails, Laravel).</p></div>
+          <div class="card" id="t-rustbackend"><h4>Rust (Axum, Actix Web)</h4><p>Very fast, memory-safe web servers.</p>
+            <p class="pick"><b>Pick it when</b> latency, throughput or memory are critical, or the rest of the system is Rust.</p>
+            <p class="skip"><b>Pick something else when</b> you need to iterate quickly on business features (Go, Node, Python).</p></div>
+          <div class="card" id="t-supabase"><h4>Supabase</h4><p>Open-source backend-as-a-service on PostgreSQL: database, auth, storage, realtime, edge functions and pgvector.</p>
+            <p class="pick"><b>Pick it when</b> you want a real Postgres database with auth and APIs without writing a backend; good for MVPs, mobile and side projects.</p>
+            <p class="skip"><b>Pick something else when</b> business logic is complex and belongs in your own server, or you want to avoid platform-specific features.</p></div>
+          <div class="card" id="t-firebase"><h4>Firebase</h4><p>Google's backend-as-a-service: Firestore (NoSQL), auth, push notifications, hosting, strong mobile SDKs.</p>
+            <p class="pick"><b>Pick it when</b> you build mobile apps that need auth, sync and push fast.</p>
+            <p class="skip"><b>Pick something else when</b> data is relational or you need complex queries (Supabase or PostgreSQL).</p></div>
         </div>
       </section>
 
-      <section class="sub" id="data" data-title="Databases & messaging">
-        <h3>Databases &amp; messaging</h3>
+      <section class="sub" id="mobile" data-title="Mobile">
+        <h3>Mobile</h3>
         <div class="cards">
-          <div class="card"><h4>PostgreSQL</h4><p>The safe default relational database: correct, feature-rich (JSON, full-text search, extensions).</p></div>
-          <div class="card"><h4>MySQL / MariaDB</h4><p>Widely hosted relational databases; simpler feature set, very common in web hosting.</p></div>
-          <div class="card"><h4>SQLite</h4><p>A database in a single file, no server. Perfect for apps, tests, prototypes and small sites.</p></div>
-          <div class="card"><h4>MongoDB</h4><p>Document store (JSON-like). Flexible schema; good when data really is document-shaped.</p><p class="gotcha">"No schema" still needs a schema in your code; relations and joins are weaker.</p></div>
-          <div class="card"><h4>Redis / Valkey</h4><p>In-memory key-value store: caching, sessions, rate limits, queues, leaderboards.</p></div>
-          <div class="card"><h4>Elasticsearch / OpenSearch</h4><p>Full-text search and log analytics.</p></div>
-          <div class="card"><h4>Kafka</h4><p>Durable, replayable event log for high-throughput streams between services.</p></div>
-          <div class="card"><h4>RabbitMQ</h4><p>Message broker for job queues and routing between services.</p></div>
-          <div class="card"><h4>ORMs</h4><p>Prisma, Drizzle, TypeORM (JS), Hibernate/JPA (Java), SQLAlchemy (Python), Entity Framework (C#). Fast to start, but learn the SQL they generate.</p></div>
+          <div class="card" id="t-swiftui"><h4>SwiftUI (native iOS)</h4><p>Apple's declarative UI framework.</p>
+            <p class="pick"><b>Pick it when</b> the app is iOS-only, or deep platform features matter most (widgets, Watch, AR, background tasks).</p>
+            <p class="skip"><b>Pick something else when</b> you need Android too and have one team (Flutter, React Native, Kotlin Multiplatform).</p></div>
+          <div class="card" id="t-compose"><h4>Jetpack Compose (native Android)</h4><p>Android's modern declarative UI toolkit, in Kotlin.</p>
+            <p class="pick"><b>Pick it when</b> the app is Android-only or needs the best Android integration.</p>
+            <p class="skip"><b>Pick something else when</b> iOS matters equally and you can't staff two native teams.</p></div>
+          <div class="card" id="t-expo"><h4>React Native + Expo</h4><p>React components rendered with real native views. Expo is now the recommended way to build with React Native (routing, builds, over-the-air updates).</p>
+            <p class="pick"><b>Pick it when</b> a web/React team builds its first mobile app, or you want to share logic and people with a React web app.</p>
+            <p class="skip"><b>Pick something else when</b> the app is graphics- or animation-heavy (Flutter) or leans heavily on platform APIs (native).</p></div>
+          <div class="card" id="t-flutter"><h4>Flutter</h4><p>Google's toolkit, written in Dart, which draws every pixel itself: identical UI on iOS, Android, web and desktop.</p>
+            <p class="pick"><b>Pick it when</b> you want one codebase with a custom, highly polished, animation-rich design, or you're starting fresh with no web background.</p>
+            <p class="skip"><b>Pick something else when</b> you want each platform's exact native look or your team lives in React (Expo).</p></div>
+          <div class="card" id="t-kmp"><h4>Kotlin Multiplatform &amp; Compose Multiplatform</h4><p>Share Kotlin business logic across Android, iOS, desktop and web while keeping native UI, or share the UI too with Compose Multiplatform (stable on Android, iOS and desktop; web in beta).</p>
+            <p class="pick"><b>Pick it when</b> you have Android/Kotlin developers, or want to share logic gradually inside existing native apps.</p>
+            <p class="skip"><b>Pick something else when</b> your team is web-first (Expo) or you want one mature UI toolkit everywhere today (Flutter).</p></div>
+          <div class="card" id="t-pwa"><h4>Progressive Web App</h4><p>A website that installs to the home screen and works offline (this bench is one).</p>
+            <p class="pick"><b>Pick it when</b> the app is content, forms or tools, you want zero app-store friction, and one codebase for every device.</p>
+            <p class="skip"><b>Pick something else when</b> you need deep device features, background work or app-store presence (native or cross-platform).</p></div>
+          <div class="card" id="t-capacitor"><h4>Capacitor (Ionic)</h4><p>Wraps a web app in a native shell with plugins for device APIs.</p>
+            <p class="pick"><b>Pick it when</b> you already have a web app and need it in the app stores with some native features.</p>
+            <p class="skip"><b>Pick something else when</b> smooth native feel and performance matter (Expo, Flutter, native).</p></div>
+          <div class="card" id="t-maui"><h4>.NET MAUI</h4><p>Microsoft's cross-platform UI for C#, successor to Xamarin.</p>
+            <p class="pick"><b>Pick it when</b> a C#/.NET team needs one app across mobile and desktop.</p>
+            <p class="skip"><b>Pick something else when</b> you're not invested in .NET: the communities around Flutter and React Native are much larger.</p></div>
         </div>
       </section>
 
-      <section class="sub" id="infra" data-title="Tooling, infra & cloud">
-        <h3>Tooling, infra &amp; cloud</h3>
+      <section class="sub" id="desktop" data-title="Desktop">
+        <h3>Desktop</h3>
         <div class="cards">
-          <div class="card"><h4>Git &amp; GitHub/GitLab</h4><p>Version control is non-negotiable: small commits, clear messages, branches and pull requests for review.</p></div>
-          <div class="card"><h4>Docker</h4><p>Package an app with its environment so it runs the same everywhere. Docker Compose runs several services locally.</p></div>
-          <div class="card"><h4>Kubernetes</h4><p>Runs and scales containers across many machines. Powerful, complex; most small projects don't need it.</p></div>
-          <div class="card"><h4>CI/CD</h4><p>GitHub Actions, GitLab CI and similar run tests and deploys on every push. Automate checks you'd forget.</p></div>
-          <div class="card"><h4>Terraform / OpenTofu</h4><p>Infrastructure as code: describe servers, databases and networks in files you can review and version.</p></div>
-          <div class="card"><h4>Cloud providers</h4><p>AWS (largest), Azure (strong with Microsoft shops), Google Cloud (data/ML). Learn the basics: compute, storage, managed databases, IAM.</p></div>
-          <div class="card"><h4>Hosting platforms</h4><p>Vercel, Netlify, Cloudflare, GitHub Pages, Render, Fly.io: deploy with a push, little ops work. Great for side projects.</p></div>
-          <div class="card"><h4>Observability</h4><p>Logs, metrics and traces (OpenTelemetry, Prometheus, Grafana, Sentry) tell you what's happening in production.</p></div>
+          <div class="card" id="t-electron"><h4>Electron</h4><p>Chromium plus Node.js: a web app shipped as a desktop app. Behind VS Code, Slack and Discord.</p>
+            <p class="pick"><b>Pick it when</b> you have web skills and need a complex, render-heavy app with a mature ecosystem and consistent rendering everywhere.</p>
+            <p class="skip"><b>Pick something else when</b> download size and memory matter (Tauri): every Electron app bundles its own browser.</p></div>
+          <div class="card" id="t-tauri"><h4>Tauri</h4><p>Web frontend with a Rust backend, using the operating system's own webview. Installers are a few MB instead of 100+; Tauri 2 also targets iOS and Android.</p>
+            <p class="pick"><b>Pick it when</b> you start a new, lean desktop app with web tech, or want desktop and mobile from one codebase.</p>
+            <p class="skip"><b>Pick something else when</b> you need identical rendering on every OS or rely on Node libraries (Electron). Native code is written in Rust.</p></div>
+          <div class="card" id="t-wpf"><h4>WPF / WinUI (.NET)</h4><p>Native Windows UI frameworks for C#.</p>
+            <p class="pick"><b>Pick it when</b> the app is Windows-only (internal business tools, utilities) and the team knows C#.</p>
+            <p class="skip"><b>Pick something else when</b> you need macOS or Linux too (Avalonia, Tauri, Qt).</p></div>
+          <div class="card" id="t-avalonia"><h4>Avalonia</h4><p>Cross-platform XAML UI for .NET (Windows, macOS, Linux, plus mobile and browser).</p>
+            <p class="pick"><b>Pick it when</b> a C# team wants a WPF-like toolkit on every desktop OS.</p>
+            <p class="skip"><b>Pick something else when</b> the team is web-first (Electron, Tauri).</p></div>
+          <div class="card" id="t-qt"><h4>Qt</h4><p>Mature cross-platform toolkit in C++, also usable from Python (PySide).</p>
+            <p class="pick"><b>Pick it when</b> you build performance-sensitive or embedded GUIs, scientific and CAD tools, or Python desktop apps.</p>
+            <p class="skip"><b>Pick something else when</b> licensing for closed-source commercial use is a concern (check Qt's licenses) or the team is web-first.</p></div>
+          <div class="card" id="t-macnative"><h4>SwiftUI / AppKit (macOS)</h4><p>Apple's native frameworks for Mac apps.</p>
+            <p class="pick"><b>Pick it when</b> the app is Mac-only and should feel completely at home on macOS.</p>
+            <p class="skip"><b>Pick something else when</b> Windows users matter.</p></div>
+          <div class="card" id="t-cmpdesktop"><h4>Compose Multiplatform (desktop)</h4><p>Kotlin's declarative UI on Windows, macOS and Linux (JVM).</p>
+            <p class="pick"><b>Pick it when</b> a Kotlin team wants to share UI between Android and desktop.</p>
+            <p class="skip"><b>Pick something else when</b> app size matters: it ships a JVM runtime.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="data" data-title="Databases & data stores">
+        <h3>Databases &amp; data stores</h3>
+        <div class="cards">
+          <div class="card" id="t-postgres"><h4>PostgreSQL</h4><p>The most used and most admired database among developers (Stack Overflow 2025). Relational, strict and correct, with JSON, full-text search and extensions (pgvector, PostGIS, TimescaleDB).</p>
+            <p class="pick"><b>Pick it when</b> you're not sure: it's the safe default for almost any application, and it can cover documents, search and vectors until you outgrow them.</p>
+            <p class="skip"><b>Pick something else when</b> the database should live inside the app (SQLite), you need sub-millisecond caching (Redis), or analytics over billions of rows (ClickHouse).</p></div>
+          <div class="card" id="t-mysql"><h4>MySQL / MariaDB</h4><p>Widely hosted relational databases, simple to operate, common with PHP stacks.</p>
+            <p class="pick"><b>Pick it when</b> your host or team already standardizes on it (WordPress, Laravel, many shared hosts).</p>
+            <p class="skip"><b>Pick something else when</b> you start fresh and want richer features (PostgreSQL).</p></div>
+          <div class="card" id="t-sqlite"><h4>SQLite</h4><p>A full SQL database in a single file, embedded in your app, with no server.</p>
+            <p class="pick"><b>Pick it when</b> data lives on the device (mobile, desktop, CLI), for tests and prototypes, or for small sites with one server.</p>
+            <p class="skip"><b>Pick something else when</b> many servers write at once (PostgreSQL), or you need it replicated at the edge (Turso, D1).</p></div>
+          <div class="card" id="t-turso"><h4>Turso / Cloudflare D1 (edge SQLite)</h4><p>Managed SQLite replicated close to users, one of the fastest-growing database categories.</p>
+            <p class="pick"><b>Pick it when</b> you run on edge platforms and want low-latency reads worldwide, or many small databases (one per user or tenant).</p>
+            <p class="skip"><b>Pick something else when</b> you need heavy concurrent writes or mature extensions (PostgreSQL).</p></div>
+          <div class="card" id="t-neon"><h4>Managed Postgres: Neon, Supabase and cloud offerings</h4><p>PostgreSQL without running servers. Neon is serverless (scales to zero, database branches for every pull request); Supabase adds auth, storage and APIs; AWS, Google and Azure have their own.</p>
+            <p class="pick"><b>Pick it when</b> you want Postgres and don't want to manage backups, upgrades and scaling.</p>
+            <p class="skip"><b>Pick something else when</b> cost at large steady load favors your own servers.</p></div>
+          <div class="card" id="t-mongodb"><h4>MongoDB</h4><p>Document database storing JSON-like records; flexible schema, scales horizontally.</p>
+            <p class="pick"><b>Pick it when</b> data is naturally document-shaped (catalogs, content, event payloads) and rarely joined.</p>
+            <p class="skip"><b>Pick something else when</b> data has many relationships or needs strict consistency across records (PostgreSQL). "Schemaless" still needs a schema in your code.</p></div>
+          <div class="card" id="t-redis"><h4>Redis / Valkey</h4><p>In-memory key-value store with rich data types. Valkey is the open-source fork maintained under the Linux Foundation.</p>
+            <p class="pick"><b>Pick it when</b> you need caching, sessions, rate limiting, queues, pub/sub or leaderboards.</p>
+            <p class="skip"><b>Pick something else when</b> it would be your main source of truth: use a durable database and Redis beside it.</p></div>
+          <div class="card" id="t-dynamodb"><h4>DynamoDB / Firestore</h4><p>Fully managed NoSQL databases from AWS and Google that scale automatically.</p>
+            <p class="pick"><b>Pick it when</b> access patterns are known up front and you want zero operations at any scale, inside that cloud.</p>
+            <p class="skip"><b>Pick something else when</b> queries are ad hoc or relational, or you want to stay portable (PostgreSQL).</p></div>
+          <div class="card" id="t-search"><h4>Elasticsearch / OpenSearch</h4><p>Distributed full-text search and log analytics engines.</p>
+            <p class="pick"><b>Pick it when</b> you need powerful search over large data, or log/observability analytics.</p>
+            <p class="skip"><b>Pick something else when</b> search is simple (PostgreSQL full-text) or you want easy instant search for an app (Meilisearch, Typesense).</p></div>
+          <div class="card" id="t-meili"><h4>Meilisearch / Typesense</h4><p>Lightweight search engines with typo tolerance and instant results, easy to run.</p>
+            <p class="pick"><b>Pick it when</b> you add search-as-you-type to a product or documentation site.</p>
+            <p class="skip"><b>Pick something else when</b> you need heavy analytics or petabyte scale (Elasticsearch/OpenSearch).</p></div>
+          <div class="card" id="t-clickhouse"><h4>ClickHouse</h4><p>Columnar database for very fast analytics over huge event tables.</p>
+            <p class="pick"><b>Pick it when</b> you build product analytics, logs or metrics dashboards over billions of rows.</p>
+            <p class="skip"><b>Pick something else when</b> data fits on a laptop (DuckDB) or you need transactional updates (PostgreSQL).</p></div>
+          <div class="card" id="t-duckdb"><h4>DuckDB</h4><p>An in-process analytics database: SQL over CSV, Parquet and dataframes, no server.</p>
+            <p class="pick"><b>Pick it when</b> you analyze data locally or in a pipeline: often faster and simpler than pandas for big files.</p>
+            <p class="skip"><b>Pick something else when</b> many users write concurrently (PostgreSQL) or data is distributed (ClickHouse, Spark).</p></div>
+          <div class="card" id="t-pgvector"><h4>pgvector</h4><p>Vector similarity search inside PostgreSQL, used for RAG and semantic search. A strong trend is keeping vectors in Postgres rather than adding a separate database.</p>
+            <p class="pick"><b>Pick it when</b> you add AI search to an app that already uses Postgres, up to many millions of vectors.</p>
+            <p class="skip"><b>Pick something else when</b> vectors are the core product at very large scale (a dedicated vector database).</p></div>
+          <div class="card" id="t-vectordb"><h4>Dedicated vector databases (Qdrant, Weaviate, Pinecone)</h4><p>Databases built only for embedding search, with advanced filtering and scaling.</p>
+            <p class="pick"><b>Pick it when</b> vector search is central, very large, or needs features Postgres lacks.</p>
+            <p class="skip"><b>Pick something else when</b> you're just adding semantic search to an existing app (pgvector).</p></div>
+          <div class="card" id="t-neo4j"><h4>Neo4j (graph databases)</h4><p>Stores nodes and relationships; queries walk connections (Cypher).</p>
+            <p class="pick"><b>Pick it when</b> questions are about paths and connections: recommendations, fraud rings, knowledge graphs.</p>
+            <p class="skip"><b>Pick something else when</b> relationships are simple: SQL joins or recursive queries handle them.</p></div>
+          <div class="card" id="t-timescale"><h4>TimescaleDB (time series)</h4><p>A PostgreSQL extension for time-stamped data: sensor readings, metrics, prices.</p>
+            <p class="pick"><b>Pick it when</b> you store lots of time series and want to keep SQL and Postgres.</p>
+            <p class="skip"><b>Pick something else when</b> it's pure metrics monitoring (Prometheus) or huge event analytics (ClickHouse).</p></div>
+          <div class="card" id="t-orm"><h4>ORMs and query builders</h4><p>Drizzle, Prisma (TypeScript), SQLAlchemy (Python), Hibernate/JPA (Java), Entity Framework Core (C#).</p>
+            <p class="pick"><b>Pick one when</b> you want type-safe queries and migrations. Drizzle stays close to SQL; Prisma has a friendly schema language.</p>
+            <p class="skip"><b>Write SQL directly when</b> queries are complex or performance-critical. Always look at the SQL an ORM generates.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="ai-tech" data-title="AI & machine learning">
+        <h3>AI &amp; machine learning</h3>
+        <div class="cards">
+          <div class="card" id="t-llmapi"><h4>LLM APIs (Claude, OpenAI, Gemini)</h4><p>Call a hosted model through the provider's SDK: chat, summarization, extraction, tool use.</p>
+            <p class="pick"><b>Pick it when</b> you add AI features to an app. Start with a direct SDK call: it's the simplest thing that works, and you can add a framework later.</p>
+            <p class="skip"><b>Pick something else when</b> data can't leave your machines (local models) or you need a multi-step agent loop (an agent SDK).</p></div>
+          <div class="card" id="t-aisdk"><h4>Vercel AI SDK</h4><p>TypeScript toolkit for streaming chat UIs, structured output, tool calling and agents across many model providers, with MCP support.</p>
+            <p class="pick"><b>Pick it when</b> you build AI features inside a TypeScript/React web app and want provider flexibility.</p>
+            <p class="skip"><b>Pick something else when</b> you need long-running durable workflows (LangGraph) or Python (PydanticAI).</p></div>
+          <div class="card" id="t-claudeagent"><h4>Claude Agent SDK</h4><p>The agent loop behind Claude Code as a library (TypeScript and Python): built-in file, shell and web tools, subagents, and deep MCP integration.</p>
+            <p class="pick"><b>Pick it when</b> you build agents that work with files, code and commands, or want a capable agent with little scaffolding.</p>
+            <p class="skip"><b>Pick something else when</b> you need a fixed, auditable pipeline (LangGraph) or to switch between model providers (Vercel AI SDK, PydanticAI).</p></div>
+          <div class="card" id="t-langgraph"><h4>LangGraph</h4><p>Build agents as explicit graphs of steps with state, checkpoints and human-in-the-loop.</p>
+            <p class="pick"><b>Pick it when</b> workflows are complex, long-running or must resume after failures.</p>
+            <p class="skip"><b>Pick something else when</b> a simple chat or single tool loop will do: it's overkill there.</p></div>
+          <div class="card" id="t-pydanticai"><h4>PydanticAI</h4><p>Typed Python agent framework from the Pydantic team; validated structured outputs and dependency injection.</p>
+            <p class="pick"><b>Pick it when</b> you build Python agents and want type safety and testability, especially with FastAPI.</p>
+            <p class="skip"><b>Pick something else when</b> you work in TypeScript (Vercel AI SDK).</p></div>
+          <div class="card" id="t-mcp"><h4>Model Context Protocol (MCP)</h4><p>An open protocol for giving AI assistants tools and data. Write an MCP server once and Claude, IDEs and agent frameworks can all use it.</p>
+            <p class="pick"><b>Pick it when</b> you want AI assistants to use your API, database or service.</p>
+            <p class="skip"><b>Skip it when</b> the tool lives only inside your own app's code: plain function/tool calling is simpler.</p></div>
+          <div class="card" id="t-ollama"><h4>Local models (Ollama, llama.cpp)</h4><p>Run open-weight models on your own machine or server.</p>
+            <p class="pick"><b>Pick it when</b> privacy, offline use or cost per call matters, or for experimenting.</p>
+            <p class="skip"><b>Pick something else when</b> you need the strongest reasoning and coding quality (frontier hosted models).</p></div>
+          <div class="card" id="t-pytorch"><h4>PyTorch</h4><p>The standard deep-learning framework in research and industry.</p>
+            <p class="pick"><b>Pick it when</b> you train or fine-tune neural networks: vision, language, audio.</p>
+            <p class="skip"><b>Pick something else when</b> data is tabular (scikit-learn, gradient boosting) or you only call a model API.</p></div>
+          <div class="card" id="t-sklearn"><h4>scikit-learn &amp; gradient boosting</h4><p>Classic ML (regression, classification, clustering) plus XGBoost/LightGBM for tabular data.</p>
+            <p class="pick"><b>Pick it when</b> you predict from spreadsheet-like data: gradient boosting usually beats neural nets there.</p>
+            <p class="skip"><b>Pick something else when</b> inputs are images, audio or free text (PyTorch, pre-trained models).</p></div>
+          <div class="card" id="t-hf"><h4>Hugging Face</h4><p>Hub of open models and datasets, plus the Transformers library.</p>
+            <p class="pick"><b>Pick it when</b> you want a pre-trained model to use or fine-tune instead of training from scratch.</p></div>
+          <div class="card" id="t-dataframes"><h4>pandas &amp; Polars (in Jupyter)</h4><p>DataFrame libraries for cleaning and analyzing tables; Jupyter notebooks for exploring. Polars is a much faster, Rust-based newer alternative.</p>
+            <p class="pick"><b>Pick it when</b> you explore and analyze data. Use Polars for new work on larger data; pandas has the most tutorials and integrations.</p>
+            <p class="skip"><b>Pick something else when</b> the data doesn't fit in memory (DuckDB, Spark).</p></div>
+          <div class="card" id="t-spark"><h4>Apache Spark / Databricks</h4><p>Distributed processing across a cluster.</p>
+            <p class="pick"><b>Pick it when</b> data really is too big for one machine (terabytes and more).</p>
+            <p class="skip"><b>Pick something else when</b> it fits on one machine: DuckDB or Polars will be simpler and often faster.</p></div>
+          <div class="card" id="t-dbt"><h4>dbt + orchestrators (Dagster, Airflow)</h4><p>dbt turns SQL into tested, versioned data transformations; orchestrators schedule pipelines.</p>
+            <p class="pick"><b>Pick it when</b> you build a data warehouse or recurring ETL pipelines.</p>
+            <p class="skip"><b>Pick something else when</b> it's a one-off analysis (a notebook).</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="infra" data-title="Tooling, infra & hosting">
+        <h3>Tooling, infra &amp; hosting</h3>
+        <div class="cards">
+          <div class="card" id="t-git"><h4>Git &amp; GitHub / GitLab</h4><p>Version control and collaboration: branches, pull requests, code review.</p>
+            <p class="pick"><b>Always.</b> Small commits, clear messages, review before merging.</p></div>
+          <div class="card" id="t-docker"><h4>Docker &amp; Compose</h4><p>Package an app with its environment so it runs the same everywhere. Used by about 7 in 10 developers (Stack Overflow 2025).</p>
+            <p class="pick"><b>Pick it when</b> you deploy servers, run databases locally (Compose), or want reproducible builds.</p>
+            <p class="skip"><b>Pick something else when</b> a platform builds and runs your code for you (Vercel, Netlify, Cloudflare).</p></div>
+          <div class="card" id="t-k8s"><h4>Kubernetes</h4><p>Runs and scales containers across many machines.</p>
+            <p class="pick"><b>Pick it when</b> you run many services with real scaling and reliability needs, and have people to operate it.</p>
+            <p class="skip"><b>Pick something else when</b> it's one app or a small team: a PaaS or a single server with Docker is far simpler.</p></div>
+          <div class="card" id="t-cicd"><h4>CI/CD (GitHub Actions, GitLab CI)</h4><p>Run tests, linters and deployments automatically on every push.</p>
+            <p class="pick"><b>Pick it when</b> more than one person touches the code, or you ever forget to run tests. (Always.)</p></div>
+          <div class="card" id="t-terraform"><h4>Terraform / OpenTofu</h4><p>Describe cloud infrastructure in code you can review and version. OpenTofu is the open-source fork.</p>
+            <p class="pick"><b>Pick it when</b> you manage real cloud resources that must be reproducible.</p>
+            <p class="skip"><b>Pick something else when</b> a PaaS handles infrastructure for you.</p></div>
+          <div class="card" id="t-cloud"><h4>AWS, Azure, Google Cloud</h4><p>The big clouds: compute, storage, managed databases, queues, identity. AWS is the largest; Azure fits Microsoft shops; Google Cloud is strong in data and ML.</p>
+            <p class="pick"><b>Pick it when</b> you need many managed services, compliance, or large scale.</p>
+            <p class="skip"><b>Pick something else when</b> it's a side project or small product: a PaaS is cheaper in time.</p></div>
+          <div class="card" id="t-vercel"><h4>Vercel &amp; Netlify</h4><p>Push-to-deploy platforms for frontends and serverless functions; Vercel is made by the Next.js team.</p>
+            <p class="pick"><b>Pick it when</b> you deploy Next.js, Astro, SvelteKit and similar with previews for every pull request.</p>
+            <p class="skip"><b>Pick something else when</b> you run long-lived servers, WebSockets or heavy background jobs (Fly.io, Render, a VPS).</p></div>
+          <div class="card" id="t-cloudflare"><h4>Cloudflare (Workers, Pages, R2, D1)</h4><p>Code that runs at the edge in hundreds of locations, plus storage and databases.</p>
+            <p class="pick"><b>Pick it when</b> you want low latency worldwide and generous free tiers; great with Hono.</p>
+            <p class="skip"><b>Pick something else when</b> you need full Node compatibility or long-running processes.</p></div>
+          <div class="card" id="t-paas"><h4>Fly.io, Render, Railway</h4><p>Platforms that run your Docker container or app server with databases attached.</p>
+            <p class="pick"><b>Pick it when</b> you have a backend server (Django, Rails, Go, Phoenix) and don't want to manage machines.</p>
+            <p class="skip"><b>Pick something else when</b> the site is static (GitHub Pages, Netlify).</p></div>
+          <div class="card" id="t-vps"><h4>A plain VPS</h4><p>Rent a Linux server (Hetzner, DigitalOcean and many others) and run Docker on it.</p>
+            <p class="pick"><b>Pick it when</b> you want the lowest cost and to learn Linux and operations.</p>
+            <p class="skip"><b>Pick something else when</b> you don't want to handle security updates, backups and uptime yourself.</p></div>
+          <div class="card" id="t-observability"><h4>Observability (OpenTelemetry, Grafana, Sentry)</h4><p>Logs, metrics, traces and error tracking for production.</p>
+            <p class="pick"><b>Pick it when</b> real users depend on the app. Start with error tracking (Sentry), then add metrics.</p></div>
+          <div class="card" id="t-uv"><h4>uv &amp; Ruff (Python tooling)</h4><p>uv replaces pip, venv and pyenv with one very fast tool; Ruff replaces Flake8, isort and Black. Both are Rust-based and among the most admired developer tools.</p>
+            <p class="pick"><b>Pick them</b> for every new Python project.</p></div>
+          <div class="card" id="t-lint"><h4>ESLint + Prettier, or Biome</h4><p>Linting and formatting for JS/TS. Biome is one fast tool that does both.</p>
+            <p class="pick"><b>Pick Biome</b> for new projects that want speed and less config; <b>ESLint</b> when you need its huge plugin ecosystem.</p></div>
+          <div class="card" id="t-pkg"><h4>npm, pnpm, Yarn, Bun</h4><p>JavaScript package managers.</p>
+            <p class="pick"><b>Pick pnpm</b> for fast, disk-efficient installs and monorepos; <b>npm</b> for zero setup; <b>bun install</b> if you use Bun.</p></div>
         </div>
       </section>
 
       <section class="sub" id="apis" data-title="APIs & testing">
         <h3>APIs &amp; testing</h3>
         <div class="cards">
-          <div class="card"><h4>REST</h4><p>Resources over HTTP with standard verbs and status codes. Simple, cacheable, the default for public APIs. Describe it with OpenAPI.</p></div>
-          <div class="card"><h4>GraphQL</h4><p>Clients ask for exactly the fields they need from one endpoint. Good for complex frontends; harder caching and authorization.</p></div>
-          <div class="card"><h4>gRPC</h4><p>Typed, fast binary RPC between services (Protocol Buffers).</p></div>
-          <div class="card"><h4>WebSockets / SSE</h4><p>Real-time updates: chat, live dashboards, multiplayer.</p></div>
-          <div class="card"><h4>Unit &amp; integration tests</h4><p>Vitest/Jest (JS), JUnit (Java), pytest (Python), xUnit (C#). Test behavior, not implementation details.</p></div>
-          <div class="card"><h4>End-to-end tests</h4><p>Playwright or Cypress drive a real browser. Keep a few for critical flows; they're slow and can be flaky.</p></div>
-          <div class="card"><h4>Linters &amp; formatters</h4><p>ESLint, Prettier, Ruff, Checkstyle, rustfmt. Let tools settle style so reviews focus on logic.</p></div>
+          <div class="card" id="t-rest"><h4>REST (+ OpenAPI)</h4><p>Resources over HTTP with standard verbs and status codes.</p>
+            <p class="pick"><b>Pick it when</b> you build public APIs or have many different clients: simple, cacheable, universal.</p>
+            <p class="skip"><b>Pick something else when</b> one TS team owns both ends (tRPC) or clients need flexible nested data (GraphQL).</p></div>
+          <div class="card" id="t-graphql"><h4>GraphQL</h4><p>Clients ask for exactly the fields they need from one endpoint.</p>
+            <p class="pick"><b>Pick it when</b> several frontends need different shapes of deeply related data.</p>
+            <p class="skip"><b>Pick something else when</b> the API is simple: caching, authorization and performance are harder than with REST.</p></div>
+          <div class="card" id="t-trpc"><h4>tRPC (and typed server functions)</h4><p>Call backend functions from the frontend with shared TypeScript types and no schema files.</p>
+            <p class="pick"><b>Pick it when</b> one team owns a TypeScript frontend and backend in one repo.</p>
+            <p class="skip"><b>Pick something else when</b> other languages or third parties consume the API (REST).</p></div>
+          <div class="card" id="t-grpc"><h4>gRPC</h4><p>Fast, typed binary RPC between services using Protocol Buffers.</p>
+            <p class="pick"><b>Pick it when</b> internal services in different languages talk a lot.</p>
+            <p class="skip"><b>Pick something else when</b> browsers are the client (REST).</p></div>
+          <div class="card" id="t-realtime"><h4>WebSockets &amp; Server-Sent Events</h4><p>Push updates to clients. SSE is one-way and simpler (and how most AI chat responses stream); WebSockets are two-way.</p>
+            <p class="pick"><b>Pick SSE</b> for live feeds and streaming text; <b>WebSockets</b> for chat, games and collaboration.</p></div>
+          <div class="card" id="t-vitest"><h4>Vitest &amp; Jest</h4><p>Unit test runners for JS/TS. Vitest is fast, Vite-native, Jest-compatible, and one of the fastest-growing tools in State of JS 2025.</p>
+            <p class="pick"><b>Pick Vitest</b> for new projects; keep Jest where it's already set up.</p></div>
+          <div class="card" id="t-playwright"><h4>Playwright &amp; Cypress</h4><p>End-to-end tests that drive real browsers. Playwright's usage grew fastest in State of JS 2025.</p>
+            <p class="pick"><b>Pick Playwright</b> for new projects (all major browsers, fast, parallel). Keep a few E2E tests for critical flows; they're slow and can be flaky.</p></div>
+          <div class="card" id="t-pytest"><h4>pytest, JUnit, xUnit</h4><p>The standard test runners for Python, Java and .NET.</p>
+            <p class="pick"><b>Pick them</b> as the default in their ecosystems. Test behavior, not implementation details.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="games" data-title="Game engines">
+        <h3>Game engines</h3>
+        <div class="cards">
+          <div class="card" id="t-godot"><h4>Godot</h4><p>Free, open-source engine with a lightweight editor and the Python-like GDScript (C# also supported). Adoption has been rising fast among indie developers and game jams.</p>
+            <p class="pick"><b>Pick it when</b> you make 2D or small/medium 3D games, start out, or want no licensing fees.</p>
+            <p class="skip"><b>Pick something else when</b> you target consoles directly or need cutting-edge 3D (Unity, Unreal).</p></div>
+          <div class="card" id="t-unity"><h4>Unity</h4><p>Hugely popular C# engine with a big asset store, strong on mobile and cross-platform.</p>
+            <p class="pick"><b>Pick it when</b> you make mobile games, want the most tutorials and assets, or need console support.</p>
+            <p class="skip"><b>Pick something else when</b> you want a fully open-source engine (Godot) or AAA-level 3D graphics (Unreal).</p></div>
+          <div class="card" id="t-unreal"><h4>Unreal Engine</h4><p>The high-end 3D engine (C++ and Blueprints visual scripting), now the most common primary engine among professional studios.</p>
+            <p class="pick"><b>Pick it when</b> you aim for realistic 3D, console/PC releases, or a job at a large studio.</p>
+            <p class="skip"><b>Pick something else when</b> the game is 2D, for mobile or web, or a small first project.</p></div>
+          <div class="card" id="t-gamemaker"><h4>GameMaker</h4><p>Engine focused on 2D, with a quick learning curve.</p>
+            <p class="pick"><b>Pick it when</b> you make 2D games and want to see results fast.</p>
+            <p class="skip"><b>Pick something else when</b> you want 3D (Godot, Unity).</p></div>
+          <div class="card" id="t-phaser"><h4>Phaser</h4><p>2D game framework for the browser in JavaScript/TypeScript.</p>
+            <p class="pick"><b>Pick it when</b> the game should run in a browser with no install, or you already know JS.</p>
+            <p class="skip"><b>Pick something else when</b> you need 3D or console releases.</p></div>
+          <div class="card" id="t-threejs"><h4>Three.js / Babylon.js</h4><p>3D rendering in the browser with WebGL/WebGPU.</p>
+            <p class="pick"><b>Pick it when</b> you build web 3D: product viewers, visualizations, small browser games.</p>
+            <p class="skip"><b>Pick something else when</b> you need a full editor and engine toolset (Godot, Unity).</p></div>
+          <div class="card" id="t-bevy"><h4>Bevy</h4><p>Data-driven (ECS) game engine in Rust; code-first, no visual editor yet.</p>
+            <p class="pick"><b>Pick it when</b> you love Rust and want to learn engine architecture.</p>
+            <p class="skip"><b>Pick something else when</b> you want to ship a game soon with a mature editor (Godot).</p></div>
+          <div class="card" id="t-pygame"><h4>Pygame / LÖVE</h4><p>Simple 2D game libraries for Python and Lua.</p>
+            <p class="pick"><b>Pick it when</b> you learn programming through games.</p>
+            <p class="skip"><b>Pick something else when</b> you plan a commercial release (Godot, Unity).</p></div>
+          <div class="card" id="t-micropython"><h4>MicroPython &amp; Arduino (embedded)</h4><p>Program microcontrollers in Python (MicroPython) or simplified C++ (Arduino).</p>
+            <p class="pick"><b>Pick it when</b> you build hobby electronics, IoT prototypes or learn hardware.</p>
+            <p class="skip"><b>Pick something else when</b> you need tight timing or minimal power use in a product (C, C++, Rust).</p></div>
         </div>
       </section>
 
       <section class="sub" id="choosing" data-title="How to choose">
         <h3>How to choose</h3>
         <ul class="rules">
-          <li><b>Boring is good.</b> Mature tools have answers on the internet, stable APIs, and fewer surprises.</li>
-          <li><b>Fit the problem's shape:</b> relational data → SQL database; real-time → WebSockets; CPU-heavy → compiled language.</li>
-          <li><b>Count the cost of each extra moving part.</b> Every new service, queue or database needs monitoring, upgrades and backups.</li>
+          <li><b>What your team knows beats a small technical edge.</b> A familiar tool shipped beats a perfect one half-learned.</li>
+          <li><b>Boring is good.</b> Mature tools have answers online, stable APIs and fewer surprises. Try new things on side projects first.</li>
+          <li><b>Fit the shape of the problem:</b> relational data → SQL; real-time → WebSockets/Elixir; CPU-heavy → compiled language; content site → static.</li>
+          <li><b>Count every moving part.</b> Each extra service, queue or database needs monitoring, upgrades and backups.</li>
+          <li><b>Check health before adopting:</b> recent releases, open issue activity, docs quality, and who maintains it.</li>
           <li><b>Learn fundamentals over frameworks.</b> HTTP, SQL, data structures, Git and the terminal transfer to every stack.</li>
         </ul>
+        <div class="callout"><b>Sources checked for this section (November 2026):</b>
+          <a href="https://survey.stackoverflow.co/2025/technology/" rel="noopener">Stack Overflow Developer Survey 2025</a>,
+          <a href="https://2025.stateofjs.com/en-US/libraries" rel="noopener">State of JavaScript 2025</a>,
+          <a href="https://blog.jetbrains.com/pycharm/2025/09/the-state-of-python-2025/" rel="noopener">JetBrains State of Python 2025</a>,
+          <a href="https://lp.jetbrains.com/the-state-of-gamedev-2025/" rel="noopener">JetBrains State of Game Development 2025</a>,
+          <a href="https://kotlinlang.org/docs/multiplatform/kotlin-multiplatform-react-native.html" rel="noopener">Kotlin Multiplatform docs</a>,
+          <a href="https://expo.dev/articles/choosing-a-mobile-stack/choose-a-mobile-stack" rel="noopener">Expo: choosing a mobile stack</a>,
+          and framework comparisons from <a href="https://www.speakeasy.com/blog/ai-agent-framework-comparison" rel="noopener">Speakeasy</a> and <a href="https://betterstack.com/community/guides/scaling-nodejs/tauri-vs-electron-vs-deno-vs-electrobun/" rel="noopener">Better Stack</a>. Tools move fast: check release notes before committing to anything new.</div>
       </section>
     </section>
 
-    <!-- ===================================================== 4. AI -->
+    <!-- ===================================================== 6. AI -->
     <section class="part" id="ai" data-title="Working with AI">
-      <h2><span class="num">04</span>Working with AI</h2>
+      <h2><span class="num">06</span>Working with AI</h2>
       <p class="lead">AI assistants are great at drafting, explaining and reviewing. They're also confidently wrong sometimes. These rules keep you fast without shipping code nobody understands.</p>
 
       <section class="sub" id="ai-rules" data-title="Ground rules">
@@ -835,6 +1577,418 @@ show solutions until I ask.</code></pre></div>
   document.addEventListener('keydown', e => { if (e.key === '/' && document.activeElement !== q && !e.metaKey && !e.ctrlKey) { e.preventDefault(); q.focus(); } });
 
   if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+})();
+</script>
+<script>
+/* ---------------- Technology picker ----------------
+   Each track asks a few questions. Every answer is a tag; every candidate has weights per tag (f) and
+   optional reasons (y). Score = base + sum of weights for the chosen tags. Highest score wins. */
+const PICKER = {
+  root: { q: 'What are you building?', help: 'Pick the closest match. You can go back and change any answer.', opts: [
+    ['web', 'Website or web app', 'Sites, blogs, dashboards, SaaS, stores'],
+    ['backend', 'Backend or API', 'Server logic, REST/GraphQL APIs, real-time services'],
+    ['mobile', 'Mobile app', 'iOS and/or Android'],
+    ['desktop', 'Desktop app', 'Windows, macOS, Linux'],
+    ['db', 'A database', 'Where and how to store your data'],
+    ['ai', 'Data, ML or AI', 'Analysis, models, LLM apps, agents, pipelines'],
+    ['cli', 'CLI tool, script or automation', 'Terminal tools, scripts, CI glue'],
+    ['game', 'A game', '2D, 3D, browser games, game jams'],
+    ['systems', 'Systems, embedded or high-performance', 'Microcontrollers, OS-level, engines, fast libraries'],
+  ]},
+  tracks: {
+    web: {
+      label: 'Website or web app', langQ: 'lang',
+      qs: [
+        { id: 'kind', q: 'What kind of site is it?', opts: [
+          ['content', 'Content site', 'Blog, docs, portfolio, marketing pages'],
+          ['app', 'Interactive app', 'Dashboard, SaaS, tool behind a login'],
+          ['seo', 'Public and dynamic', 'Store, listings, social: must rank in search AND change often'],
+          ['tiny', 'One small page or widget', 'A calculator, a landing page, a demo']]},
+        { id: 'lang', q: 'Which language do you want to write it in?', help: 'Server frameworks render HTML from your backend language; JS frameworks run in the browser too.', opts: [
+          ['js', 'JavaScript / TypeScript', ''], ['py', 'Python', ''], ['cs', 'C#', ''], ['php', 'PHP', ''], ['ruby', 'Ruby', ''],
+          ['java', 'Java / Kotlin', ''], ['ex', 'Elixir', ''], ['anyl', 'No preference', 'Show me what fits best']]},
+        { id: 'exp', q: 'How experienced are you (or your team)?', opts: [
+          ['beginner', 'Learning / beginner', 'Lots of tutorials and a gentle curve matter'],
+          ['mid', 'Comfortable', 'Built a few projects already'],
+          ['bigteam', 'Experienced team, large codebase', 'Several developers, long-lived project']]},
+        { id: 'prio', q: 'What matters most?', opts: [
+          ['jobs', 'Ecosystem and job market', 'Most libraries, answers and job offers'],
+          ['perf', 'Speed for visitors', 'Fast loads, little JavaScript'],
+          ['simple', 'Simplicity', 'Least code and concepts'],
+          ['structure', 'Structure and conventions', 'One right way to do things'],
+          ['realtime', 'Real-time features', 'Live updates, chat, collaboration']]},
+      ],
+      cands: [
+        { id: 'astro', n: 'Astro', ref: 't-astro', f: { content: 6, tiny: 2, seo: 1, app: -3, js: 2, anyl: 1, perf: 3, simple: 2, beginner: 1, realtime: -2 },
+          y: { content: 'Built for content: ships almost no JavaScript, so pages load instantly and rank well', app: 'Not meant for whole-page interactive apps' } },
+        { id: 'next', n: 'Next.js (React)', ref: 't-nextjs', f: { app: 3, seo: 5, content: 1, js: 3, anyl: 1, jobs: 4, bigteam: 2, mid: 1, realtime: 1, simple: -1, beginner: -1 },
+          y: { seo: 'Server rendering for pages that must rank and stay dynamic', jobs: 'The most used React framework: most tutorials and jobs', simple: 'Server Components and caching add concepts to learn' } },
+        { id: 'spa', n: 'React + Vite (single-page app)', ref: 't-react', f: { app: 4, js: 3, anyl: 1, jobs: 3, simple: 1, beginner: 1, mid: 1, seo: -3, content: -2 },
+          y: { app: 'Simplest React setup for apps behind a login', seo: 'Rendered in the browser, which is weaker for search' } },
+        { id: 'tanstack', n: 'TanStack Start (React)', ref: 't-tanstack', f: { app: 4, seo: 2, js: 3, mid: 1, bigteam: 1, perf: 1, structure: 1, beginner: -2, jobs: -1 },
+          y: { app: 'End-to-end type-safe routing and data loading for app-like UIs', beginner: 'Newer, with fewer tutorials' } },
+        { id: 'rr7', n: 'React Router v7 (formerly Remix)', ref: 't-rr7', f: { app: 3, seo: 3, js: 3, mid: 1, simple: 1, perf: 1, jobs: 1 },
+          y: { seo: 'Server rendering with simple, web-standard loaders and actions' } },
+        { id: 'sveltekit', n: 'SvelteKit', ref: 't-svelte', f: { app: 3, seo: 3, content: 2, js: 3, anyl: 1, simple: 4, perf: 3, beginner: 2, realtime: 1, jobs: -1, bigteam: -1 },
+          y: { simple: 'Least boilerplate of the major frameworks', perf: 'Compiles to small, fast JavaScript', jobs: 'Smaller job market than React' } },
+        { id: 'nuxt', n: 'Nuxt (Vue)', ref: 't-vue', f: { app: 3, seo: 3, content: 2, js: 3, anyl: 1, simple: 2, beginner: 2, realtime: 1, jobs: 1 },
+          y: { beginner: 'Gentle learning curve and excellent docs' } },
+        { id: 'angular', n: 'Angular', ref: 't-angular', f: { app: 4, js: 2, structure: 4, bigteam: 4, jobs: 2, beginner: -2, content: -2, tiny: -3, simple: -2 },
+          y: { structure: 'Everything built in, one official way to do things', bigteam: 'Made for large enterprise teams', beginner: 'Steep learning curve' } },
+        { id: 'vanilla', n: 'Plain HTML, CSS & JavaScript', ref: 't-vanilla', f: { tiny: 6, content: 2, beginner: 3, simple: 3, perf: 3, anyl: 1, app: -3, bigteam: -3, jobs: -1 },
+          y: { tiny: 'No framework needed for a page this size', app: 'Gets messy as screens and shared state grow' } },
+        { id: 'django', n: 'Django (+ HTMX for interactivity)', ref: 't-django', f: { py: 7, app: 2, seo: 2, content: 1, structure: 2, beginner: 1, simple: 1 },
+          y: { py: 'Python full-stack with admin, auth and ORM included' } },
+        { id: 'laravel', n: 'Laravel (+ Livewire)', ref: 't-laravel', f: { php: 7, app: 2, seo: 2, simple: 2, beginner: 1, structure: 1 }, y: { php: 'PHP\'s most productive full-stack framework' } },
+        { id: 'rails', n: 'Ruby on Rails (+ Hotwire)', ref: 't-rails', f: { ruby: 7, app: 2, seo: 2, simple: 2, structure: 2 }, y: { ruby: 'Convention over configuration: very fast to build CRUD products' } },
+        { id: 'aspnet', n: 'ASP.NET Core (Razor Pages or Blazor)', ref: 't-aspnet', f: { cs: 7, app: 2, structure: 2, bigteam: 2 }, y: { cs: 'Full web stack in C#' } },
+        { id: 'spring', n: 'Spring Boot (+ Thymeleaf or a React frontend)', ref: 't-spring', f: { java: 7, app: 2, structure: 2, bigteam: 2, beginner: -1 }, y: { java: 'The standard JVM web stack' } },
+        { id: 'phoenix', n: 'Phoenix LiveView (Elixir)', ref: 't-phoenix', f: { ex: 7, realtime: 5, app: 2, simple: 1, beginner: -1, jobs: -1 },
+          y: { realtime: 'Real-time UIs rendered from the server, built for many live connections' } },
+      ],
+      pair: [['Database', 'PostgreSQL; managed via Supabase or Neon', 't-postgres'], ['Hosting', 'Vercel, Netlify or Cloudflare for JS frameworks; Fly.io, Render or a VPS for server frameworks; GitHub Pages for static sites', 't-vercel'],
+        ['Styling', 'Tailwind CSS, or plain CSS for small sites', 't-tailwind'], ['Tests', 'Vitest for units, Playwright for end-to-end', 't-playwright']],
+    },
+
+    backend: {
+      label: 'Backend or API', langQ: 'lang',
+      qs: [
+        { id: 'lang', q: 'Which language do you want to use?', opts: [
+          ['js', 'JavaScript / TypeScript', ''], ['py', 'Python', ''], ['jvm', 'Java / Kotlin', ''], ['cs', 'C#', ''], ['go', 'Go', ''], ['rust', 'Rust', ''],
+          ['php', 'PHP', ''], ['ruby', 'Ruby', ''], ['ex', 'Elixir', ''], ['anyl', 'No preference', '']]},
+        { id: 'kind', q: 'What does the backend mostly do?', opts: [
+          ['crud', 'Typical product backend', 'Users, auth, CRUD, admin panel'],
+          ['micro', 'High-throughput service', 'Lots of requests, microservices, low latency'],
+          ['rt', 'Real-time', 'Chat, live updates, multiplayer, many open connections'],
+          ['ai', 'Serves ML / AI features', 'Model inference, LLM calls, data processing'],
+          ['edge', 'Small serverless / edge functions', 'Lightweight APIs close to users']]},
+        { id: 'team', q: 'Who is building it?', opts: [
+          ['solo', 'Me or a small team', 'Ship fast, little ceremony'],
+          ['big', 'A larger team', 'Long-lived codebase, many contributors']]},
+        { id: 'ops', q: 'How much server work do you want?', opts: [
+          ['managed', 'As little as possible', 'Happy to use a backend-as-a-service'],
+          ['servers', 'Containers and servers are fine', 'I want full control'],
+          ['anyops', 'Not sure', '']]},
+      ],
+      cands: [
+        { id: 'node', n: 'Node.js with Fastify or Express', ref: 't-express', f: { js: 6, anyl: 1, crud: 1, rt: 2, micro: 1, solo: 1, servers: 1 }, y: { rt: 'Event-driven runtime handles many connections well' } },
+        { id: 'hono', n: 'Hono (on Bun, Node or Cloudflare Workers)', ref: 't-hono', f: { js: 6, edge: 6, managed: 2, micro: 2, ai: 1, solo: 1, anyl: 1, big: -1 }, y: { edge: 'Tiny, web-standard and runs on every edge runtime' } },
+        { id: 'nest', n: 'NestJS', ref: 't-nestjs', f: { js: 5, crud: 2, big: 4, micro: 1, solo: -1 }, y: { big: 'Modules and dependency injection keep big TS codebases organized', solo: 'A lot of structure for a small project' } },
+        { id: 'django', n: 'Django', ref: 't-django', f: { py: 6, crud: 4, solo: 2, big: 1, ai: 1, servers: 1, micro: -1, edge: -2 }, y: { crud: 'Admin panel, auth, ORM and migrations included' } },
+        { id: 'fastapi', n: 'FastAPI', ref: 't-fastapi', f: { py: 6, ai: 5, micro: 2, crud: 1, solo: 2, edge: -1 }, y: { ai: 'The usual way to serve Python ML and AI code over HTTP', crud: 'Bring your own admin and auth' } },
+        { id: 'spring', n: 'Spring Boot', ref: 't-spring', f: { jvm: 7, big: 4, crud: 2, micro: 2, solo: -1, edge: -3 }, y: { big: 'Enterprise-grade structure and libraries for big teams' } },
+        { id: 'aspnet', n: 'ASP.NET Core', ref: 't-aspnet', f: { cs: 7, big: 3, crud: 2, micro: 2, edge: -2 } },
+        { id: 'go', n: 'Go (net/http, chi or Gin)', ref: 't-gobackend', f: { go: 7, micro: 5, rt: 2, big: 2, servers: 2, anyl: 1 }, y: { micro: 'Fast, low-memory services that deploy as one binary' } },
+        { id: 'rust', n: 'Rust (Axum)', ref: 't-rustbackend', f: { rust: 7, micro: 4, edge: 1, solo: -2, crud: -1 }, y: { micro: 'Maximum throughput with memory safety', solo: 'Slower to iterate on business features' } },
+        { id: 'laravel', n: 'Laravel', ref: 't-laravel', f: { php: 7, crud: 4, solo: 2 } },
+        { id: 'rails', n: 'Ruby on Rails', ref: 't-rails', f: { ruby: 7, crud: 4, solo: 3 } },
+        { id: 'phoenix', n: 'Phoenix (Elixir)', ref: 't-phoenix', f: { ex: 7, rt: 6, crud: 1 }, y: { rt: 'Built for huge numbers of concurrent, real-time connections' } },
+        { id: 'supabase', n: 'Supabase (backend-as-a-service)', ref: 't-supabase', f: { managed: 6, crud: 3, rt: 3, solo: 3, anyl: 1, big: -1, micro: -2 },
+          y: { managed: 'Postgres, auth, storage and realtime without running servers', micro: 'Complex custom logic belongs in your own service' } },
+        { id: 'firebase', n: 'Firebase', ref: 't-firebase', f: { managed: 5, rt: 3, solo: 2, crud: 1, big: -1, micro: -2 }, y: { rt: 'Live-syncing data with strong mobile SDKs' } },
+      ],
+      pair: [['Database', 'PostgreSQL (plus Redis/Valkey for caching)', 't-postgres'], ['API style', 'REST with OpenAPI; tRPC if one TS team owns both ends', 't-rest'],
+        ['Deploy', 'Docker on Fly.io, Render or a VPS; Cloudflare Workers for edge', 't-docker'], ['Watch it', 'Error tracking with Sentry from day one', 't-observability']],
+    },
+
+    mobile: {
+      label: 'Mobile app', langQ: 'bg',
+      qs: [
+        { id: 'plat', q: 'Which platforms?', opts: [
+          ['ios', 'iOS only', ''], ['android', 'Android only', ''], ['both', 'iOS and Android', ''], ['bothweb', 'iOS, Android and the web', 'One codebase everywhere']]},
+        { id: 'bg', q: 'What do you (or your team) already know?', opts: [
+          ['web', 'Web / React / JavaScript', ''], ['kotlin', 'Kotlin / Android', ''], ['swift', 'Swift / iOS', ''], ['csharp', 'C# / .NET', ''], ['dart', 'Dart / Flutter', ''], ['newbg', 'None of these yet', '']]},
+        { id: 'kind', q: 'What is the app like?', opts: [
+          ['standard', 'A typical app', 'Lists, forms, accounts, feeds'],
+          ['native', 'Deep device features', 'Camera, AR, sensors, background work, widgets'],
+          ['design', 'Custom, animation-heavy design', 'A unique look that should be identical everywhere'],
+          ['simple', 'Mostly content or forms', 'Could almost be a website']]},
+      ],
+      cands: [
+        { id: 'swiftui', n: 'SwiftUI (native iOS)', ref: 't-swiftui', f: { ios: 7, swift: 4, native: 3, both: -5, bothweb: -6, android: -9 }, y: { native: 'Full access to every Apple API', both: 'iOS only: Android needs a second app' } },
+        { id: 'compose', n: 'Jetpack Compose (native Android)', ref: 't-compose', f: { android: 7, kotlin: 4, native: 3, both: -5, bothweb: -6, ios: -9 }, y: { native: 'Full access to every Android API' } },
+        { id: 'expo', n: 'React Native + Expo', ref: 't-expo', f: { both: 5, bothweb: 5, web: 5, standard: 2, simple: 1, newbg: 1, ios: 1, android: 1, native: -1 },
+          y: { web: 'Reuses React skills and can share code with a web app', native: 'Deep native features may need native modules' } },
+        { id: 'flutter', n: 'Flutter', ref: 't-flutter', f: { both: 5, bothweb: 3, dart: 5, design: 4, standard: 2, newbg: 2, ios: 1, android: 1 },
+          y: { design: 'Draws its own pixels: the same polished UI on every device', newbg: 'A good first choice when you have no prior stack' } },
+        { id: 'kmp', n: 'Kotlin Multiplatform (+ Compose Multiplatform)', ref: 't-kmp', f: { both: 4, kotlin: 5, native: 2, android: 2, web: -1, newbg: -1 },
+          y: { kotlin: 'Share Kotlin logic (and optionally UI) with iOS', native: 'Keeps a native UI option on each platform' } },
+        { id: 'pwa', n: 'Progressive Web App', ref: 't-pwa', f: { bothweb: 4, simple: 5, web: 3, native: -5, design: -1 }, y: { simple: 'No app store needed: installs from the browser', native: 'Limited access to device features' } },
+        { id: 'capacitor', n: 'Capacitor (Ionic)', ref: 't-capacitor', f: { bothweb: 4, web: 3, simple: 3, standard: 1, native: -2 }, y: { bothweb: 'Ships your web app to the stores with native plugins' } },
+        { id: 'maui', n: '.NET MAUI', ref: 't-maui', f: { csharp: 6, both: 2, standard: 1, design: -1 }, y: { csharp: 'One C# codebase for mobile and desktop' } },
+      ],
+      pair: [['Backend', 'Supabase or Firebase for auth, data and push', 't-supabase'], ['Local data', 'SQLite on the device', 't-sqlite']],
+    },
+
+    desktop: {
+      label: 'Desktop app', langQ: 'bg',
+      qs: [
+        { id: 'plat', q: 'Which operating systems?', opts: [
+          ['win', 'Windows only', ''], ['mac', 'macOS only', ''], ['all', 'Windows, macOS and Linux', ''], ['allmobile', 'Desktop and mobile', '']]},
+        { id: 'bg', q: 'What do you know best?', opts: [
+          ['web', 'Web (HTML/CSS/JS)', ''], ['rust', 'Rust', ''], ['csharp', 'C# / .NET', ''], ['jvm', 'Kotlin / Java', ''], ['cpp', 'C++', ''], ['py', 'Python', ''], ['dart', 'Dart', ''], ['swift', 'Swift', '']]},
+        { id: 'prio', q: 'What matters most?', opts: [
+          ['light', 'Small and light', 'Small download, low memory'],
+          ['heavy', 'A complex, heavy UI', 'Editor, IDE-like tool, rich rendering'],
+          ['native', 'Native look and OS integration', 'Feels like it belongs on the OS'],
+          ['fast', 'Shipping fast', 'Reuse what I know, mature tooling']]},
+      ],
+      cands: [
+        { id: 'electron', n: 'Electron', ref: 't-electron', f: { web: 5, all: 3, heavy: 4, fast: 3, light: -4, native: -1 },
+          y: { heavy: 'Proven by VS Code, Slack and Discord', light: 'Bundles Chromium: large installers and more memory' } },
+        { id: 'tauri', n: 'Tauri', ref: 't-tauri', f: { web: 4, rust: 5, all: 3, allmobile: 4, light: 5, fast: 1, heavy: -1 },
+          y: { light: 'Uses the system webview: installers of a few MB', allmobile: 'Tauri 2 also targets iOS and Android' } },
+        { id: 'wpf', n: 'WPF / WinUI (.NET)', ref: 't-wpf', f: { win: 5, csharp: 5, native: 3, all: -4, allmobile: -5, mac: -8 }, y: { win: 'Native Windows UI in C#' } },
+        { id: 'avalonia', n: 'Avalonia (.NET)', ref: 't-avalonia', f: { csharp: 5, all: 4, heavy: 1, allmobile: 1 }, y: { all: 'WPF-style C# UI on every desktop OS' } },
+        { id: 'qt', n: 'Qt (C++ or Python via PySide)', ref: 't-qt', f: { cpp: 6, py: 4, all: 3, heavy: 3, native: 2 }, y: { heavy: 'Mature toolkit for demanding, performance-sensitive UIs' } },
+        { id: 'swiftmac', n: 'SwiftUI / AppKit (macOS)', ref: 't-macnative', f: { mac: 6, swift: 5, native: 5, win: -8, all: -5, allmobile: -2 }, y: { native: 'Feels completely at home on the Mac' } },
+        { id: 'cmp', n: 'Compose Multiplatform', ref: 't-cmpdesktop', f: { jvm: 6, all: 3, allmobile: 2 }, y: { jvm: 'Kotlin UI shared with Android' } },
+        { id: 'flutter', n: 'Flutter (desktop)', ref: 't-flutter', f: { dart: 6, allmobile: 4, all: 2, fast: 1 }, y: { allmobile: 'One UI codebase for desktop and mobile' } },
+      ],
+      pair: [['Local data', 'SQLite', 't-sqlite'], ['Remember', 'Code signing and auto-updates take real setup on Windows and macOS', 't-cicd']],
+    },
+
+    db: {
+      label: 'Database', keyQ: 'shape',
+      qs: [
+        { id: 'shape', q: 'What does your data look like?', opts: [
+          ['rel', 'Structured and related', 'Users, orders, products: tables with relationships'],
+          ['doc', 'Flexible documents', 'JSON records whose shape varies'],
+          ['kv', 'Cache, sessions, counters', 'Fast key-value lookups'],
+          ['search', 'Text to search', 'Search-as-you-type over products or articles'],
+          ['analytics', 'Analytics over lots of rows', 'Events, logs, reporting'],
+          ['vector', 'Embeddings for AI', 'Semantic search, RAG'],
+          ['graph', 'A network of connections', 'Recommendations, fraud rings, knowledge graphs'],
+          ['ts', 'Time series', 'Sensor readings, metrics, prices over time']]},
+        { id: 'where', q: 'Where should it run?', opts: [
+          ['embed', 'Inside my app / on the device', 'No separate server'],
+          ['own', 'On a server I manage', ''],
+          ['cloud', 'Fully managed in the cloud', 'Someone else handles backups and scaling'],
+          ['edge', 'At the edge, close to users worldwide', '']]},
+        { id: 'scale', q: 'How big will it get?', opts: [
+          ['small', 'Small: a prototype or side project', ''], ['growing', 'A growing product', ''], ['huge', 'Very large: billions of rows or heavy traffic', '']]},
+      ],
+      cands: [
+        { id: 'postgres', n: 'PostgreSQL', ref: 't-postgres', f: { rel: 6, doc: 2, ts: 2, search: 1, vector: 1, analytics: 1, own: 2, cloud: 2, small: 1, growing: 2, huge: 1, kv: -1, embed: -4 },
+          y: { rel: 'The default relational database: correct, powerful, most used', doc: 'JSONB columns handle flexible data too', embed: 'Needs a server process' } },
+        { id: 'pgvector', n: 'PostgreSQL + pgvector', ref: 't-pgvector', f: { vector: 6, rel: 2, small: 1, growing: 2, cloud: 1, own: 1, embed: -4 }, y: { vector: 'Vectors right next to your app data, one database to run' } },
+        { id: 'sqlite', n: 'SQLite', ref: 't-sqlite', f: { rel: 4, embed: 7, small: 3, own: 1, analytics: 0, huge: -4, growing: -1, cloud: -1 }, y: { embed: 'A full SQL database in a single file, no server' } },
+        { id: 'mysql', n: 'MySQL / MariaDB', ref: 't-mysql', f: { rel: 5, own: 2, growing: 2, huge: 1, cloud: 1, vector: -1 } },
+        { id: 'managedpg', n: 'Managed Postgres (Supabase or Neon)', ref: 't-neon', f: { rel: 5, cloud: 5, vector: 2, small: 2, growing: 2, own: -2, embed: -5 }, y: { cloud: 'Postgres without running servers; free tiers for small projects' } },
+        { id: 'turso', n: 'Turso / Cloudflare D1 (edge SQLite)', ref: 't-turso', f: { rel: 3, edge: 6, embed: 2, small: 2, huge: -2 }, y: { edge: 'SQLite replicated close to users' } },
+        { id: 'mongo', n: 'MongoDB', ref: 't-mongodb', f: { doc: 6, growing: 2, huge: 2, cloud: 1, rel: -2 }, y: { doc: 'Stores JSON documents natively', rel: 'Weaker at joins and relationships' } },
+        { id: 'redis', n: 'Redis / Valkey', ref: 't-redis', f: { kv: 7, own: 1, cloud: 1, huge: 1, rel: -4 }, y: { kv: 'In-memory: sub-millisecond reads for caches and sessions' } },
+        { id: 'dynamo', n: 'DynamoDB / Firestore', ref: 't-dynamodb', f: { kv: 3, doc: 3, cloud: 4, huge: 3, edge: 1, rel: -3, own: -4 }, y: { cloud: 'Zero operations at any scale inside AWS or Google Cloud' } },
+        { id: 'meili', n: 'Meilisearch / Typesense', ref: 't-meili', f: { search: 6, small: 2, growing: 1 }, y: { search: 'Instant, typo-tolerant search that is easy to run' } },
+        { id: 'elastic', n: 'Elasticsearch / OpenSearch', ref: 't-search', f: { search: 5, huge: 3, analytics: 2, small: -1 }, y: { huge: 'Distributed search and log analytics at scale' } },
+        { id: 'clickhouse', n: 'ClickHouse', ref: 't-clickhouse', f: { analytics: 6, huge: 4, ts: 3, small: -2 }, y: { analytics: 'Columnar engine for fast queries over billions of rows' } },
+        { id: 'duckdb', n: 'DuckDB', ref: 't-duckdb', f: { analytics: 6, embed: 4, small: 2, huge: -1 }, y: { analytics: 'Fast SQL analytics in-process, no server' } },
+        { id: 'vectordb', n: 'A dedicated vector database (Qdrant, Weaviate, Pinecone)', ref: 't-vectordb', f: { vector: 5, huge: 3, small: -1 }, y: { huge: 'Built for very large embedding collections' } },
+        { id: 'neo4j', n: 'Neo4j', ref: 't-neo4j', f: { graph: 7, rel: -1 }, y: { graph: 'Queries that walk relationships are natural and fast' } },
+        { id: 'timescale', n: 'TimescaleDB', ref: 't-timescale', f: { ts: 6, rel: 1, own: 1, cloud: 1 }, y: { ts: 'Time series on top of familiar Postgres' } },
+      ],
+      pair: [['Access it with', 'An ORM or query builder: Drizzle/Prisma, SQLAlchemy, Hibernate, EF Core', 't-orm'], ['Always', 'Automated backups, and test restoring them', 't-postgres']],
+    },
+
+    ai: {
+      label: 'Data, ML or AI', keyQ: 'goal', langQ: 'lang',
+      qs: [
+        { id: 'goal', q: 'What are you trying to do?', opts: [
+          ['analyze', 'Analyze data', 'Explore, clean, report, visualize'],
+          ['mlclassic', 'Predict from tables', 'Classic ML on spreadsheet-like data'],
+          ['deep', 'Train neural networks', 'Images, audio, text models'],
+          ['llmapp', 'Add an LLM feature', 'Chatbot, summaries, extraction'],
+          ['agent', 'Build an AI agent', 'A model that uses tools and takes multi-step actions'],
+          ['pipeline', 'Data pipelines', 'Recurring ETL, a data warehouse']]},
+        { id: 'lang', q: 'Which language?', opts: [['py', 'Python', ''], ['ts', 'TypeScript', ''], ['other', 'Something else / no preference', '']]},
+        { id: 'where', q: 'Where can data and models run?', opts: [
+          ['cloud', 'Cloud APIs are fine', ''], ['local', 'Must stay local / private', 'On my machine or own servers']]},
+        { id: 'size', q: 'How much data or traffic?', opts: [
+          ['laptop', 'Fits on a laptop', ''], ['big', 'Large: needs a cluster or serious scale', '']]},
+      ],
+      cands: [
+        { id: 'df', n: 'Python + Polars or pandas in Jupyter', ref: 't-dataframes', f: { analyze: 6, py: 3, laptop: 2, local: 1, big: -2 }, y: { analyze: 'The standard toolkit for exploring and analyzing data' } },
+        { id: 'duckdb', n: 'DuckDB', ref: 't-duckdb', f: { analyze: 5, pipeline: 2, laptop: 3, local: 2, big: 1, py: 1, other: 1 }, y: { analyze: 'SQL over CSV/Parquet files, very fast, no server' } },
+        { id: 'sklearn', n: 'scikit-learn + XGBoost / LightGBM', ref: 't-sklearn', f: { mlclassic: 7, py: 3, laptop: 1, local: 1 }, y: { mlclassic: 'Gradient boosting usually wins on tabular data' } },
+        { id: 'pytorch', n: 'PyTorch + Hugging Face', ref: 't-pytorch', f: { deep: 7, py: 3, big: 1, local: 1 }, y: { deep: 'The standard for training and fine-tuning neural networks' } },
+        { id: 'llmapi', n: 'A model API directly (Claude, OpenAI or Gemini SDK)', ref: 't-llmapi', f: { llmapp: 6, agent: 2, cloud: 3, py: 1, ts: 1, other: 2, local: -4 }, y: { llmapp: 'The simplest thing that works: one SDK call', local: 'Data is sent to the provider' } },
+        { id: 'aisdk', n: 'Vercel AI SDK', ref: 't-aisdk', f: { llmapp: 5, agent: 4, ts: 5, cloud: 1, py: -4 }, y: { ts: 'TypeScript-first, with streaming UI helpers for web apps' } },
+        { id: 'claudeagent', n: 'Claude Agent SDK', ref: 't-claudeagent', f: { agent: 6, ts: 2, py: 2, cloud: 1, local: -2 }, y: { agent: 'Claude Code\'s agent loop with file, shell and MCP tools built in' } },
+        { id: 'langgraph', n: 'LangGraph', ref: 't-langgraph', f: { agent: 5, py: 3, ts: 1, big: 1, pipeline: 1 }, y: { agent: 'Explicit, durable multi-step workflows with checkpoints' } },
+        { id: 'pydanticai', n: 'PydanticAI', ref: 't-pydanticai', f: { agent: 4, llmapp: 3, py: 4, ts: -4 }, y: { py: 'Typed, testable Python agents' } },
+        { id: 'ollama', n: 'Local models (Ollama / llama.cpp)', ref: 't-ollama', f: { local: 7, llmapp: 3, agent: 1, cloud: -2 }, y: { local: 'Models run on your own hardware; nothing leaves the machine' } },
+        { id: 'spark', n: 'Apache Spark / Databricks', ref: 't-spark', f: { big: 6, pipeline: 4, analyze: 2, laptop: -4 }, y: { big: 'Distributed processing when one machine isn\'t enough' } },
+        { id: 'dbt', n: 'dbt + Dagster or Airflow', ref: 't-dbt', f: { pipeline: 6, analyze: 1, big: 1 }, y: { pipeline: 'Tested, versioned SQL transformations on a schedule' } },
+      ],
+      pair: [['Give it tools', 'Expose your APIs or data through an MCP server', 't-mcp'], ['Retrieval', 'pgvector for semantic search over your documents', 't-pgvector'], ['Quality', 'Build a small evaluation set before tuning prompts', 'ai-quality']],
+    },
+
+    cli: {
+      label: 'CLI tool or automation', langQ: 'lang',
+      qs: [
+        { id: 'kind', q: 'What is it for?', opts: [
+          ['script', 'Automating my own work', 'Rename files, call APIs, process data'],
+          ['distro', 'A tool other people install', 'Should be easy to download and run'],
+          ['ci', 'Glue in CI or on servers', 'Build steps, deploy scripts'],
+          ['winadmin', 'Managing Windows machines', '']]},
+        { id: 'lang', q: 'Which language do you prefer?', opts: [['py', 'Python', ''], ['js', 'JavaScript / TypeScript', ''], ['go', 'Go', ''], ['rust', 'Rust', ''], ['shell', 'Shell (Bash / zsh)', ''], ['anyl', 'No preference', '']]},
+        { id: 'prio', q: 'What matters most?', opts: [
+          ['quick', 'Fastest to write', ''], ['binary', 'One file that runs anywhere', 'No runtime to install'], ['speed', 'Raw speed', 'Processes lots of data']]},
+      ],
+      cands: [
+        { id: 'python', n: 'Python (with uv and Typer)', ref: 't-python', f: { py: 5, script: 4, quick: 4, ci: 1, anyl: 1, binary: -2, speed: -2 }, y: { quick: 'Batteries included; scripts run directly with uv', binary: 'Users need Python installed' } },
+        { id: 'bash', n: 'Bash / zsh', ref: 't-python', f: { shell: 5, ci: 4, script: 3, quick: 2, winadmin: -3, distro: -2 }, y: { ci: 'Perfect for gluing existing commands together', distro: 'Gets fragile beyond ~100 lines' } },
+        { id: 'node', n: 'TypeScript on Node or Bun', ref: 't-bun', f: { js: 5, script: 2, quick: 2, distro: 1 }, y: { js: 'Reuse npm packages and your web skills' } },
+        { id: 'go', n: 'Go (with Cobra)', ref: 't-go', f: { go: 5, distro: 5, binary: 5, ci: 2, speed: 2, anyl: 1 }, y: { binary: 'Cross-compiles to a single static binary for every OS' } },
+        { id: 'rust', n: 'Rust (with clap)', ref: 't-rust', f: { rust: 5, distro: 4, binary: 4, speed: 5, quick: -2 }, y: { speed: 'As fast as C, memory-safe; how uv, Ruff and ripgrep are built' } },
+        { id: 'pwsh', n: 'PowerShell', ref: 't-csharp', f: { winadmin: 7, script: 2, shell: 1 }, y: { winadmin: 'The native automation language for Windows' } },
+      ],
+      pair: [['Ship it', 'Publish a release with binaries or a package (PyPI, npm, Homebrew)', 't-cicd']],
+    },
+
+    game: {
+      label: 'Game', langQ: 'lang', keyQ: 'dim',
+      qs: [
+        { id: 'dim', q: 'What kind of game?', opts: [['d2', '2D', ''], ['d3', '3D', ''], ['web', 'Runs in a browser', 'No install'], ['jam', 'A game jam / quick prototype', '']]},
+        { id: 'exp', q: 'Your experience?', opts: [['beginner', 'Beginner', 'First or second game'], ['inter', 'Some experience', ''], ['pro', 'Professional ambitions', 'Commercial release, maybe a studio job']]},
+        { id: 'lang', q: 'Preferred language?', opts: [['cs', 'C#', ''], ['gd', 'Python-like scripting', 'GDScript, Lua'], ['cpp', 'C++', ''], ['js', 'JavaScript / TypeScript', ''], ['rust', 'Rust', ''], ['py', 'Python', ''], ['anyl', 'No preference', '']]},
+        { id: 'plat', q: 'Main platform?', opts: [['pc', 'PC (Steam, itch.io)', ''], ['mobile', 'Mobile', ''], ['console', 'Consoles', ''], ['webp', 'Web', '']]},
+      ],
+      cands: [
+        { id: 'godot', n: 'Godot', ref: 't-godot', f: { d2: 5, d3: 2, jam: 4, beginner: 4, gd: 6, cs: 2, py: 2, pc: 2, mobile: 1, webp: 1, anyl: 2, console: -1, pro: -1 },
+          y: { d2: 'Excellent dedicated 2D tools', beginner: 'Light, free, and quick to learn', console: 'Console releases usually go through porting partners' } },
+        { id: 'unity', n: 'Unity', ref: 't-unity', f: { d2: 3, d3: 4, mobile: 5, cs: 6, inter: 2, pro: 2, console: 3, pc: 2, jam: 2, webp: 1 }, y: { mobile: 'Strongest mobile pipeline and asset store' } },
+        { id: 'unreal', n: 'Unreal Engine', ref: 't-unreal', f: { d3: 6, pro: 5, cpp: 5, console: 4, pc: 3, beginner: -2, d2: -3, mobile: -1, webp: -4, jam: -2 },
+          y: { d3: 'Top-tier 3D graphics and tools', pro: 'Most common engine at professional studios', beginner: 'Heavy for a first game' } },
+        { id: 'gamemaker', n: 'GameMaker', ref: 't-gamemaker', f: { d2: 5, beginner: 4, jam: 3, pc: 1, d3: -6 }, y: { d2: 'Very fast 2D workflow' } },
+        { id: 'phaser', n: 'Phaser', ref: 't-phaser', f: { web: 6, d2: 3, js: 6, webp: 5, jam: 2, d3: -4 }, y: { web: 'Runs in any browser, written in JS/TS' } },
+        { id: 'three', n: 'Three.js / Babylon.js', ref: 't-threejs', f: { web: 4, d3: 3, js: 5, webp: 5, d2: -1 }, y: { web: '3D in the browser with WebGL/WebGPU' } },
+        { id: 'bevy', n: 'Bevy', ref: 't-bevy', f: { rust: 7, inter: 1, beginner: -2 }, y: { rust: 'Code-first Rust engine' } },
+        { id: 'pygame', n: 'Pygame / LÖVE', ref: 't-pygame', f: { py: 6, beginner: 3, d2: 2, jam: 1, d3: -5, mobile: -3, console: -5 }, y: { beginner: 'Learn programming by making small games' } },
+      ],
+      pair: [['Version control', 'Git with Git LFS for large art and audio files', 't-git']],
+    },
+
+    systems: {
+      label: 'Systems or embedded',
+      qs: [
+        { id: 'kind', q: 'What are you building?', opts: [
+          ['mcu', 'Microcontrollers / IoT', 'Arduino, ESP32, Raspberry Pi Pico'],
+          ['os', 'Low-level software', 'OS components, drivers, runtimes'],
+          ['perf', 'A performance-critical service or library', ''],
+          ['graphics', 'Graphics, audio or a game engine', '']]},
+        { id: 'prio', q: 'What matters most?', opts: [
+          ['safety', 'Memory safety and fewer bugs', ''], ['ecosystem', 'Existing libraries and code', 'Vendor SDKs, an existing C/C++ codebase'], ['learn', 'Learning how computers work', '']]},
+      ],
+      cands: [
+        { id: 'c', n: 'C', ref: 't-cpp', f: { mcu: 4, os: 4, ecosystem: 3, learn: 3 }, y: { mcu: 'Every microcontroller vendor SDK speaks C', learn: 'Shows exactly what the machine does' } },
+        { id: 'cpp', n: 'C++', ref: 't-cpp', f: { graphics: 6, perf: 3, ecosystem: 4, os: 1, mcu: 2 }, y: { graphics: 'The language of game engines, graphics and audio' } },
+        { id: 'rust', n: 'Rust', ref: 't-rust', f: { safety: 6, perf: 4, os: 3, mcu: 1, graphics: 1 }, y: { safety: 'Memory safety checked at compile time, C-level speed' } },
+        { id: 'zig', n: 'Zig', ref: 't-zig', f: { os: 2, mcu: 2, learn: 2, perf: 2, ecosystem: -2 }, y: { ecosystem: 'Young, pre-1.0 ecosystem' } },
+        { id: 'go', n: 'Go (if a garbage collector is acceptable)', ref: 't-go', f: { perf: 2, safety: 2, mcu: -4, os: -3 } },
+        { id: 'micropy', n: 'MicroPython / Arduino', ref: 't-micropython', f: { mcu: 5, learn: 4, perf: -3, os: -5 }, y: { mcu: 'The fastest way to get hardware doing something' } },
+      ],
+      pair: [['Tooling', 'Sanitizers and clang-tidy for C/C++; Clippy for Rust', 't-cpp']],
+    },
+  },
+};
+
+/* scoring: pure function so it can be tested outside the browser.
+   Two extra rules: a candidate tied to a different language than the one picked loses 3 points,
+   and when a track has a key question (the main goal), candidates that don't fit it rank below those that do. */
+const NEUTRAL = new Set(['anyl', 'newbg', 'other']);
+function pickerScore(trackId, values) {
+  const T = PICKER.tracks[trackId]; if (!T) return [];
+  const labelOf = {}; T.qs.forEach(q => q.opts.forEach(([v, l]) => { labelOf[v] = l; }));
+  const qIndex = id => T.qs.findIndex(q => q.id === id);
+  const langQ = T.langQ ? T.qs[qIndex(T.langQ)] : null, langV = langQ ? values[qIndex(T.langQ)] : null;
+  const keyV = T.keyQ ? values[qIndex(T.keyQ)] : null;
+  return T.cands.map((c, order) => {
+    let s = c.b || 0; const pros = [], cons = [];
+    for (const v of values) {
+      const w = c.f[v]; if (!w) continue; s += w;
+      const why = c.y && c.y[v];
+      if (w > 0) pros.push([w + (why ? 10 : 0), why || 'Fits: ' + labelOf[v]]);   // specific reasons first
+      else cons.push([w - (why ? 10 : 0), why || 'Less suited to: ' + labelOf[v]]);
+    }
+    if (langQ && langV && !NEUTRAL.has(langV) && !(c.f[langV] > 0) && langQ.opts.some(([v]) => !NEUTRAL.has(v) && c.f[v] > 0)) {
+      s -= 3; cons.push([-3, 'Uses a different language than ' + labelOf[langV]]);
+    }
+    const fitsKey = keyV == null || (c.f[keyV] || 0) > 0;
+    pros.sort((a, b) => b[0] - a[0]); cons.sort((a, b) => a[0] - b[0]);
+    return { c, s, order, fitsKey, pros: pros.map(p => p[1]), cons: cons.map(p => p[1]) };
+  }).sort((a, b) => (b.fitsKey - a.fitsKey) || b.s - a.s || a.order - b.order);
+}
+
+/* UI */
+(function pickerUI() {
+  if (typeof document === 'undefined') return;
+  const el = document.getElementById('pickerApp'); if (!el) return;
+  const KEY = 'algobench.picker';
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let st = { track: null, ans: [] };
+  try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && (s.track === null || PICKER.tracks[s.track]) && Array.isArray(s.ans)) st = s; } catch (_) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (_) {} };
+  let focusNext = false;
+
+  function optButtons(opts, cur) {
+    return '<div class="pk-opts">' + opts.map(([v, l, d], i) =>
+      `<button type="button" class="pk-opt${cur === v ? ' on' : ''}" data-v="${esc(v)}"><span class="pk-k">${i + 1 <= 9 ? i + 1 : ''}</span><b>${esc(l)}</b>${d ? `<span>${esc(d)}</span>` : ''}</button>`).join('') + '</div>';
+  }
+  function crumbs(T) {
+    if (!st.track) return '';
+    const items = [[-1, PICKER.root.opts.find(o => o[0] === st.track)[1]]];
+    st.ans.forEach((v, i) => { const q = T.qs[i]; const o = q && q.opts.find(x => x[0] === v); if (o) items.push([i, o[1]]); });
+    return '<div class="pk-crumbs">' + items.map(([i, l]) => `<button type="button" class="pk-crumb" data-goto="${i}" title="Change this answer">${esc(l)}</button>`).join('<span aria-hidden="true">›</span>') + '</div>';
+  }
+  function render() {
+    const T = st.track ? PICKER.tracks[st.track] : null;
+    const total = T ? T.qs.length + 1 : 1, step = T ? st.ans.length + 2 : 1;
+    let h = '';
+    if (!T || st.ans.length < T.qs.length) {
+      const q = T ? T.qs[st.ans.length] : PICKER.root;
+      const pct = Math.round(((step - 1) / (T ? total : 5)) * 100);
+      h += `<div class="pk-top"><span class="pk-step">${T ? `Question ${step} of ${total}` : 'Question 1'}</span><div class="pk-bar"><i style="width:${pct}%"></i></div></div>`;
+      h += crumbs(T);
+      h += `<h4 class="pk-q" tabindex="-1">${esc(q.q)}</h4>${q.help ? `<p class="pk-help">${esc(q.help)}</p>` : ''}`;
+      h += optButtons(q.opts, null);
+      h += `<div class="pk-nav">${st.track ? '<button type="button" class="btn" data-act="back">← Back</button><button type="button" class="btn" data-act="reset">Start over</button>' : ''}</div>`;
+    } else {
+      const res = pickerScore(st.track, st.ans), top = res[0], alts = res.slice(1, 4).filter(r => (r.fitsKey || !top.fitsKey) && r.s > 0);
+      h += `<div class="pk-top"><span class="pk-step">Your recommendation</span><div class="pk-bar"><i style="width:100%"></i></div></div>`;
+      h += crumbs(T);
+      h += `<div class="pk-result"><span class="pk-label">Best fit</span><h4 class="pk-q" tabindex="-1">${esc(top.c.n)}</h4>`;
+      if (top.pros.length) h += '<ul class="pk-why">' + top.pros.slice(0, 4).map(p => `<li class="pro">${esc(p)}</li>`).join('') + '</ul>';
+      if (top.cons.length) h += '<ul class="pk-why">' + top.cons.slice(0, 2).map(p => `<li class="con">${esc(p)}</li>`).join('') + '</ul>';
+      h += `<a class="try" href="#${top.c.ref}">Read about ${esc(top.c.n.split(' (')[0])}</a></div>`;
+      if (alts.length) h += '<p class="pk-sub">Also worth a look</p><div class="pk-alts">' + alts.map(r =>
+        `<div class="pk-alt"><b>${esc(r.c.n)}</b><span>${esc(r.pros[0] || '')}</span>${r.cons[0] ? `<span class="con">${esc(r.cons[0])}</span>` : ''}<a class="try" href="#${r.c.ref}">Details</a></div>`).join('') + '</div>';
+      if (T.pair && T.pair.length) h += '<p class="pk-sub">Pair it with</p><ul class="pk-pair">' + T.pair.map(([k, v, ref]) => `<li><b>${esc(k)}:</b> <a href="#${ref}">${esc(v)}</a></li>`).join('') + '</ul>';
+      h += '<p class="pk-note">Close scores are a tie: if your team already knows one of the top options, pick that one.</p>';
+      h += '<div class="pk-nav"><button type="button" class="btn" data-act="back">← Change last answer</button><button type="button" class="btn" data-act="reset">Start over</button></div>';
+    }
+    el.innerHTML = h;
+    if (focusNext) { focusNext = false; const q = el.querySelector('.pk-q'); if (q) q.focus({ preventScroll: true }); }
+  }
+  function choose(v) {
+    if (!st.track) { st = { track: v, ans: [] }; }
+    else { const T = PICKER.tracks[st.track]; if (st.ans.length < T.qs.length) st.ans.push(v); }
+    save(); focusNext = true; render();
+    const top = el.getBoundingClientRect().top; if (top < 70 || top > innerHeight * .6) el.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+  el.addEventListener('click', e => {
+    const o = e.target.closest('.pk-opt'); if (o) { choose(o.dataset.v); return; }
+    const c = e.target.closest('.pk-crumb'); if (c) { const i = +c.dataset.goto; if (i < 0) st = { track: null, ans: [] }; else st.ans = st.ans.slice(0, i); save(); focusNext = true; render(); return; }
+    const a = e.target.closest('[data-act]'); if (!a) return;
+    if (a.dataset.act === 'reset') st = { track: null, ans: [] };
+    else if (a.dataset.act === 'back') { if (st.ans.length) st.ans.pop(); else st.track = null; }
+    save(); focusNext = true; render();
+  });
+  el.addEventListener('keydown', e => {   // number keys pick an option while the picker has focus
+    if (e.metaKey || e.ctrlKey || e.altKey || !/^[1-9]$/.test(e.key)) return;
+    const b = el.querySelectorAll('.pk-opt')[+e.key - 1]; if (b) { e.preventDefault(); b.click(); }
+  });
+  render();
 })();
 </script>
 </body>

@@ -615,6 +615,7 @@ function load(){
 }
 const S = load();
 /* links like index.html#array:quick (from the guide) open a workspace with an algorithm picked */
+let pendingInsert=null;   // #sketch:stack etc. drops that structure on the board after boot
 (function openFromHash(){ const [m,a]=decodeURIComponent(location.hash.slice(1)).split(':'); if(!['array','graph','grid','custom','sketch'].includes(m)) return;
   S.mode=m;
   if(m==='array'&&['bubble','insertion','selection','quick','merge','binary','twosum'].includes(a)) S.array.algo=a;
@@ -623,6 +624,7 @@ const S = load();
     else if(!S.graph.nodes.length) Object.assign(S.graph,sampleGraph(),{start:0,target:7}); }
   if(m==='grid'&&['bfs','dfs','dijkstra','astar','greedy'].includes(a)) S.grid.algo=a;
   if(m==='custom'&&TPL[a]){ S.custom.code=TPL[a].code; S.custom.input=TPL[a].input; }
+  if(m==='sketch'&&['array','stack','queue','matrix','list','tree','hash','var','ptr','box','class','interface','note','actor','usecase','lifeline','umlclass','umlseq'].includes(a)) pendingInsert=a;
   try{ history.replaceState(null,'',location.pathname+location.search); }catch(_){}
 })();
 let saveT=0;
@@ -2156,6 +2158,7 @@ new ResizeObserver(()=>resize()).observe(stage);
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>draw());
 syncArrayField(); syncArrayAlgo(); syncGraphSelects(); syncGTool(); syncGrid(); SK.init();
 setMode(S.mode);
+if(pendingInsert) SK.insert(pendingInsert);
 })();
 </script>
 <script>
