@@ -1,7 +1,7 @@
 // Offline cache. Bump VERSION whenever any file changes.
-const VERSION = 'algobench-v2';
+const VERSION = 'algobench-v4';
 const FILES = [
-  './', './index.html', './fonts.css', './manifest.webmanifest',
+  './', './index.html', './guide.html', './fonts.css', './manifest.webmanifest',
   './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png',
   './icons/maskable-192.png', './icons/maskable-512.png', './icons/apple-touch-icon.png',
   "./fonts/Inter-latin-ext-UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7W0Q5n-wU.woff2",

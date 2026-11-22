@@ -1,0 +1,841 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Algorithm Bench Guide</title>
+<meta name="description" content="Common algorithms, problem-solving patterns, a rundown of popular technologies, and how to work with AI without losing code quality.">
+<meta name="theme-color" content="#EDF0F4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1319" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="fonts.css">
+<style>
+:root{
+  --bg:#EDF0F4; --surface:#FFFFFF; --surface-2:#F4F6F9; --line:#D5DBE4; --fg:#17202C; --muted:#5A6577;
+  --accent:#2B59E0; --accent-soft:#DCE4FB; --on-accent:#FFFFFF; --cmp:#D98E0B; --cmp-soft:#FBE8C2;
+  --swap:#DC4F39; --swap-soft:#F9DCD6; --done:#13937A; --done-soft:#CBEEE4; --bar:#9AA9C2;
+  --f-display:"Space Grotesk","Inter",system-ui,sans-serif; --f-ui:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1319; --surface:#151B24; --surface-2:#1B232E; --line:#2A3443; --fg:#E4E9F1; --muted:#93A0B3;
+  --accent:#7196FF; --accent-soft:#23335C; --on-accent:#0E1319; --cmp:#F0B13E; --cmp-soft:#4A3912;
+  --swap:#FF7B65; --swap-soft:#4D2620; --done:#3CC8A4; --done-soft:#153F36; --bar:#4B5B78; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1319; --surface:#151B24; --surface-2:#1B232E; --line:#2A3443; --fg:#E4E9F1; --muted:#93A0B3;
+  --accent:#7196FF; --accent-soft:#23335C; --on-accent:#0E1319; --cmp:#F0B13E; --cmp-soft:#4A3912;
+  --swap:#FF7B65; --swap-soft:#4D2620; --done:#3CC8A4; --done-soft:#153F36; --bar:#4B5B78; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-padding-top:76px}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 var(--f-ui);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+code,kbd{font:500 .86em var(--f-mono);background:var(--surface-2);border:1px solid var(--line);border-radius:5px;padding:0 4px}
+pre{font:12.5px/1.6 var(--f-mono);background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;overflow-x:auto;margin:10px 0 0;tab-size:2}
+pre code{background:none;border:0;padding:0;font-size:inherit}
+
+header.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:10px max(16px,env(safe-area-inset-right)) 10px max(16px,env(safe-area-inset-left));background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.brand{font:700 19px var(--f-display);letter-spacing:-.01em;display:flex;align-items:center;gap:9px;margin:0;color:var(--fg);text-decoration:none}
+.brand small{font:500 13px var(--f-ui);color:var(--muted);margin-left:2px}
+.spacer{flex:1}
+.btn{font:500 13px var(--f-ui);color:var(--fg);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:6px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none}
+.btn:hover{border-color:var(--muted)}
+.search{position:relative;flex:0 1 300px;min-width:0}
+.search input{width:100%;font:14px var(--f-ui);color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px 7px 32px}
+.search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted)}
+input:focus-visible,a:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+.wrap{display:grid;grid-template-columns:230px minmax(0,1fr);gap:28px;max-width:1240px;margin:0 auto;
+  padding:20px max(16px,env(safe-area-inset-right)) 60px max(16px,env(safe-area-inset-left))}
+nav.toc{position:sticky;top:76px;align-self:start;max-height:calc(100vh - 96px);overflow:auto;font-size:13.5px;padding-bottom:16px}
+nav.toc h2{font:600 11px var(--f-ui);text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:16px 0 6px}
+nav.toc h2:first-child{margin-top:0}
+nav.toc a{display:block;color:var(--muted);text-decoration:none;padding:3px 10px;border-left:2px solid transparent}
+nav.toc a:hover{color:var(--fg)}
+nav.toc a.on{color:var(--fg);border-left-color:var(--accent);background:var(--accent-soft);border-radius:0 6px 6px 0}
+.toc-mobile{display:none}
+
+main{min-width:0;max-width:900px}
+.intro{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:28px}
+.intro h1{font:700 28px/1.2 var(--f-display);letter-spacing:-.015em;margin:0 0 8px}
+.intro p{margin:0;color:var(--muted);max-width:68ch}
+.parts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:16px}
+.parts a{display:block;text-decoration:none;color:var(--fg);background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.parts a:hover{border-color:var(--accent)}
+.parts b{display:block;font:600 14px var(--f-display)}
+.parts span{font-size:12.5px;color:var(--muted)}
+
+section.part{margin-top:44px}
+section.part > h2{font:700 24px/1.2 var(--f-display);letter-spacing:-.01em;margin:0 0 6px;display:flex;align-items:baseline;gap:10px}
+section.part > h2 .num{font:600 13px var(--f-mono);color:var(--accent)}
+section.part > p.lead{color:var(--muted);margin:0 0 6px;max-width:70ch}
+section.sub{margin-top:26px}
+section.sub > h3{font:600 18px/1.3 var(--f-display);margin:0 0 4px}
+section.sub > p{margin:4px 0 0;max-width:72ch}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0;display:flex;flex-direction:column;gap:6px}
+.card.wide{grid-column:1/-1}
+.card h4{font:600 15px/1.3 var(--f-display);margin:0;display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.card p{margin:0;font-size:14px}
+.card .meta{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font:500 11.5px var(--f-mono);border-radius:6px;padding:1px 7px;background:var(--surface-2);border:1px solid var(--line);color:var(--fg);white-space:nowrap}
+.tag.t{background:var(--accent-soft);border-color:transparent}
+.tag.s{background:var(--done-soft);border-color:transparent}
+.tag.w{background:var(--cmp-soft);border-color:transparent}
+.card .use{color:var(--muted);font-size:13.5px}
+.card .use b{color:var(--fg);font-weight:600}
+.card .gotcha{font-size:13px;color:var(--muted);border-left:3px solid var(--cmp);padding-left:8px}
+.try{font:500 12.5px var(--f-ui);text-decoration:none;white-space:nowrap}
+.try::after{content:" →"}
+
+.tbl{overflow-x:auto;margin-top:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:560px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font:600 11px var(--f-ui);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--surface-2)}
+td.m{font-family:var(--f-mono);font-size:12.5px;white-space:nowrap}
+
+ul.rules,ol.rules{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+ul.rules li,ol.rules li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:14px}
+ul.rules li b,ol.rules li b{font-weight:600}
+ol.rules{counter-reset:r}
+ol.rules li{counter-increment:r;display:grid;grid-template-columns:28px minmax(0,1fr);gap:4px}
+ol.rules li::before{content:counter(r);font:600 13px var(--f-mono);color:var(--accent)}
+.callout{margin-top:14px;background:var(--accent-soft);border-radius:12px;padding:12px 16px;font-size:14px}
+.callout b{font-weight:600}
+.empty{display:none;margin-top:40px;color:var(--muted);text-align:center}
+mark{background:var(--cmp-soft);color:inherit;border-radius:3px}
+
+@media (max-width:960px){
+  .wrap{grid-template-columns:minmax(0,1fr)}
+  nav.toc{display:none}
+  .toc-mobile{display:block;margin-bottom:18px}
+  .toc-mobile select{width:100%;font:14px var(--f-ui);color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+}
+@media (max-width:560px){
+  html{scroll-padding-top:124px}
+  header.top{gap:10px}
+  .brand small{display:none}
+  .search{order:5;flex:1 1 100%}
+  .intro{padding:16px}
+  .intro h1{font-size:23px}
+  .cards{grid-template-columns:minmax(0,1fr)}
+  input{font-size:16px!important}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="index.html" title="Back to the bench">
+    <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="11" width="4" height="9" rx="1" fill="var(--bar)"/><rect x="9" y="4" width="4" height="16" rx="1" fill="var(--accent)"/><rect x="16" y="8" width="4" height="12" rx="1" fill="var(--cmp)"/></svg>
+    Algorithm Bench <small>Guide</small>
+  </a>
+  <div class="spacer"></div>
+  <label class="search"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.8"/><path d="M10.6 10.6L14 14"/></svg>
+    <input type="search" id="q" placeholder="Search the guide (press /)" aria-label="Search the guide" autocomplete="off"></label>
+  <a class="btn" href="index.html">← Back to the bench</a>
+</header>
+
+<div class="wrap">
+  <nav class="toc" id="toc" aria-label="Contents"></nav>
+  <main id="main">
+    <div class="toc-mobile"><select id="tocSelect" aria-label="Jump to a section"></select></div>
+
+    <div class="intro" id="top">
+      <h1>The guide</h1>
+      <p>A field manual to keep next to the bench: the algorithms that keep showing up, how to recognize which one a problem wants, what the popular tools are actually for, and how to use AI so you get faster <em>and</em> keep learning and shipping good code. Anything marked <b>Try it</b> opens in the bench so you can step through it.</p>
+      <div class="parts">
+        <a href="#algorithms"><b>1 · Algorithms</b><span>Sorting, searching, graphs, DP and more, with costs</span></a>
+        <a href="#patterns"><b>2 · Solving problems</b><span>A process, signals to patterns, code templates</span></a>
+        <a href="#tech"><b>3 · Technologies</b><span>What popular tools are for, and when to pick them</span></a>
+        <a href="#ai"><b>4 · Working with AI</b><span>Rules for speed without giving up quality</span></a>
+      </div>
+    </div>
+
+    <!-- ===================================================== 1. ALGORITHMS -->
+    <section class="part" id="algorithms" data-title="Algorithms">
+      <h2><span class="num">01</span>Algorithms</h2>
+      <p class="lead">Each entry gives the idea in one line, its cost, when to reach for it, and the mistake people usually make. Costs use n for items, V and E for graph nodes and edges.</p>
+
+      <section class="sub" id="complexity" data-title="Big-O cheat sheet">
+        <h3>Big-O cheat sheet</h3>
+        <p>Big-O describes how cost grows with input size, ignoring constants. Roughly, a modern machine does 10<sup>8</sup> simple steps per second, which is what makes the "what n can I afford" column useful.</p>
+        <div class="tbl"><table>
+          <tr><th>Class</th><th>Name</th><th>Typical source</th><th>Fine up to about</th></tr>
+          <tr><td class="m">O(1)</td><td>constant</td><td>array index, hash lookup</td><td>anything</td></tr>
+          <tr><td class="m">O(log n)</td><td>logarithmic</td><td>binary search, balanced tree, heap op</td><td>anything</td></tr>
+          <tr><td class="m">O(n)</td><td>linear</td><td>one pass, two pointers, sliding window</td><td>10<sup>7</sup>–10<sup>8</sup></td></tr>
+          <tr><td class="m">O(n log n)</td><td>linearithmic</td><td>sorting, n heap operations</td><td>10<sup>6</sup></td></tr>
+          <tr><td class="m">O(n²)</td><td>quadratic</td><td>all pairs, simple 2D DP</td><td>5 000</td></tr>
+          <tr><td class="m">O(n³)</td><td>cubic</td><td>Floyd–Warshall, interval DP</td><td>500</td></tr>
+          <tr><td class="m">O(2ⁿ)</td><td>exponential</td><td>all subsets, bitmask DP</td><td>20–25</td></tr>
+          <tr><td class="m">O(n!)</td><td>factorial</td><td>all permutations</td><td>10</td></tr>
+        </table></div>
+        <div class="tbl"><table>
+          <tr><th>Data structure</th><th>Access / find</th><th>Insert / delete</th><th>Reach for it when</th></tr>
+          <tr><td>Dynamic array</td><td class="m">O(1) index, O(n) search</td><td class="m">O(1)* end, O(n) middle</td><td>default list; cache-friendly</td></tr>
+          <tr><td>Linked list</td><td class="m">O(n)</td><td class="m">O(1) at a known node</td><td>splicing, LRU cache with a hash map</td></tr>
+          <tr><td>Stack / queue / deque</td><td class="m">O(1) ends</td><td class="m">O(1) ends</td><td>undo, DFS, BFS, sliding window max</td></tr>
+          <tr><td>Hash map / set</td><td class="m">O(1) avg</td><td class="m">O(1) avg</td><td>lookups, counting, dedupe, memo</td></tr>
+          <tr><td>Balanced BST (TreeMap)</td><td class="m">O(log n)</td><td class="m">O(log n)</td><td>sorted keys, floor/ceiling, ranges</td></tr>
+          <tr><td>Binary heap</td><td class="m">O(1) min, O(n) search</td><td class="m">O(log n)</td><td>top-k, scheduling, Dijkstra</td></tr>
+          <tr><td>Trie</td><td class="m">O(L) per word</td><td class="m">O(L)</td><td>prefix search, autocomplete</td></tr>
+          <tr><td>Union-find</td><td class="m">≈ O(1)</td><td class="m">≈ O(1) union</td><td>connectivity, Kruskal, grouping</td></tr>
+          <tr><td>Fenwick / segment tree</td><td class="m">O(log n) range query</td><td class="m">O(log n) update</td><td>range sums/min with updates</td></tr>
+        </table></div>
+        <p class="use" style="margin-top:8px;color:var(--muted);font-size:13px">* amortized: occasionally O(n) when the array grows, but cheap on average.</p>
+      </section>
+
+      <section class="sub" id="sorting" data-title="Sorting">
+        <h3>Sorting</h3>
+        <p>In real code, call the language's built-in sort (usually Timsort or introsort). Knowing these matters for interviews, for custom orderings, and because their ideas (divide and conquer, partitioning, heaps) appear everywhere.</p>
+        <div class="tbl"><table>
+          <tr><th>Algorithm</th><th>Best</th><th>Average</th><th>Worst</th><th>Space</th><th>Stable</th></tr>
+          <tr><td>Bubble</td><td class="m">O(n)</td><td class="m">O(n²)</td><td class="m">O(n²)</td><td class="m">O(1)</td><td>yes</td></tr>
+          <tr><td>Insertion</td><td class="m">O(n)</td><td class="m">O(n²)</td><td class="m">O(n²)</td><td class="m">O(1)</td><td>yes</td></tr>
+          <tr><td>Selection</td><td class="m">O(n²)</td><td class="m">O(n²)</td><td class="m">O(n²)</td><td class="m">O(1)</td><td>no</td></tr>
+          <tr><td>Merge</td><td class="m">O(n log n)</td><td class="m">O(n log n)</td><td class="m">O(n log n)</td><td class="m">O(n)</td><td>yes</td></tr>
+          <tr><td>Quick</td><td class="m">O(n log n)</td><td class="m">O(n log n)</td><td class="m">O(n²)</td><td class="m">O(log n)</td><td>no</td></tr>
+          <tr><td>Heap</td><td class="m">O(n log n)</td><td class="m">O(n log n)</td><td class="m">O(n log n)</td><td class="m">O(1)</td><td>no</td></tr>
+          <tr><td>Counting</td><td class="m">O(n + k)</td><td class="m">O(n + k)</td><td class="m">O(n + k)</td><td class="m">O(k)</td><td>yes</td></tr>
+          <tr><td>Radix (LSD)</td><td class="m">O(d·(n + b))</td><td class="m">O(d·(n + b))</td><td class="m">O(d·(n + b))</td><td class="m">O(n + b)</td><td>yes</td></tr>
+        </table></div>
+        <div class="cards">
+          <div class="card"><h4>Bubble sort <a class="try" href="index.html#array:bubble">Try it</a></h4>
+            <p>Swap neighbors that are out of order; each pass bubbles the largest item to the end.</p>
+            <p class="use"><b>Use it</b> to learn. Stop early when a pass makes no swaps.</p></div>
+          <div class="card"><h4>Insertion sort <a class="try" href="index.html#array:insertion">Try it</a></h4>
+            <p>Grow a sorted prefix; slide each new item left until it fits.</p>
+            <p class="use"><b>Use it</b> for tiny or nearly sorted arrays. Real sorts switch to it below ~16 items.</p></div>
+          <div class="card"><h4>Selection sort <a class="try" href="index.html#array:selection">Try it</a></h4>
+            <p>Find the minimum of the unsorted part and swap it into place.</p>
+            <p class="use"><b>Use it</b> when writes are expensive: at most n−1 swaps.</p></div>
+          <div class="card"><h4>Merge sort <a class="try" href="index.html#array:merge">Try it</a></h4>
+            <p>Split in half, sort each half, merge the two sorted halves.</p>
+            <p class="use"><b>Use it</b> when you need stability or guaranteed n log n, for linked lists, or for external sorting of huge files.</p>
+            <p class="gotcha">The merge step needs O(n) extra memory for arrays.</p></div>
+          <div class="card"><h4>Quicksort <a class="try" href="index.html#array:quick">Try it</a></h4>
+            <p>Pick a pivot, partition smaller items left and larger right, recurse on both sides.</p>
+            <p class="use"><b>Use it</b> as the fast in-memory default. Quickselect finds the k-th smallest in O(n) average.</p>
+            <p class="gotcha">Always picking the first or last element as pivot degrades to O(n²) on sorted input; pick randomly or median-of-three.</p></div>
+          <div class="card"><h4>Heapsort</h4>
+            <p>Build a max-heap, then repeatedly move the max to the end.</p>
+            <p class="use"><b>Use it</b> for guaranteed O(n log n) with O(1) extra memory.</p></div>
+          <div class="card"><h4>Counting / radix sort</h4>
+            <p>Don't compare: count occurrences of each key, or sort digit by digit.</p>
+            <p class="use"><b>Use it</b> for integers or short strings in a small range: beats n log n.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="searching" data-title="Searching">
+        <h3>Searching</h3>
+        <div class="cards">
+          <div class="card"><h4>Binary search <a class="try" href="index.html#array:binary">Try it</a></h4>
+            <div class="meta"><span class="tag t">O(log n)</span><span class="tag s">O(1) space</span></div>
+            <p>On sorted data, compare with the middle and throw away the half that can't contain the answer.</p>
+            <p class="gotcha">Off-by-one errors: decide whether <code>hi</code> is inclusive and keep it consistent. Use <code>lo + (hi - lo) / 2</code> in languages with overflow.</p></div>
+          <div class="card"><h4>Binary search on the answer</h4>
+            <div class="meta"><span class="tag t">O(log range · check)</span></div>
+            <p>If "can we do it with x?" is false then true as x grows, binary-search the smallest x that works.</p>
+            <p class="use"><b>Signals:</b> "minimum maximum", "smallest capacity", "fewest days".</p></div>
+          <div class="card"><h4>Two pointers <a class="try" href="index.html#array:twosum">Try it</a></h4>
+            <div class="meta"><span class="tag t">O(n)</span></div>
+            <p>Move two indices toward each other (or in the same direction) and use sortedness to skip work.</p>
+            <p class="use"><b>Use it</b> for pair sums in sorted arrays, removing duplicates in place, merging, palindromes.</p></div>
+          <div class="card"><h4>Hash lookup</h4>
+            <div class="meta"><span class="tag t">O(1) average</span><span class="tag w">O(n) memory</span></div>
+            <p>Trade memory for time: store what you've seen so each lookup is instant.</p>
+            <p class="use"><b>Use it</b> for "have I seen this?", counting, two-sum on unsorted data.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="graphs" data-title="Graphs">
+        <h3>Graphs</h3>
+        <p>Many problems are graphs in disguise: grids, dependencies, states of a puzzle, friendships, routes. First decide: directed or not, weighted or not, and whether there are negative weights or cycles.</p>
+        <div class="cards">
+          <div class="card"><h4>Breadth-first search <a class="try" href="index.html#graph:bfs">Try it</a></h4>
+            <div class="meta"><span class="tag t">O(V + E)</span></div>
+            <p>Explore in rings using a queue; the first time you reach a node is via the fewest edges.</p>
+            <p class="use"><b>Use it</b> for shortest paths in unweighted graphs and grids, levels, spreading processes.</p>
+            <p class="gotcha">Mark nodes as seen when you <em>enqueue</em> them, not when you dequeue, or you add duplicates.</p></div>
+          <div class="card"><h4>Depth-first search <a class="try" href="index.html#graph:dfs">Try it</a></h4>
+            <div class="meta"><span class="tag t">O(V + E)</span></div>
+            <p>Go as deep as possible, then backtrack (recursion or an explicit stack).</p>
+            <p class="use"><b>Use it</b> for connectivity, counting components, cycle detection, topological order, flood fill.</p>
+            <p class="gotcha">Deep recursion can overflow the stack on big inputs; switch to an explicit stack.</p></div>
+          <div class="card"><h4>Dijkstra <a class="try" href="index.html#graph:dijkstra">Try it</a></h4>
+            <div class="meta"><span class="tag t">O((V + E) log V)</span></div>
+            <p>Always finalize the closest unfinished node, using a priority queue.</p>
+            <p class="use"><b>Use it</b> for shortest paths with non-negative weights.</p>
+            <p class="gotcha">Wrong with negative edges. Skip stale queue entries whose distance is outdated.</p></div>
+          <div class="card"><h4>A* search <a class="try" href="index.html#grid:astar">Try it</a></h4>
+            <div class="meta"><span class="tag t">≤ Dijkstra in practice</span></div>
+            <p>Dijkstra ordered by <code>g + h</code>, where h estimates the remaining distance.</p>
+            <p class="use"><b>Use it</b> for one start, one goal, with a good heuristic (maps, games).</p>
+            <p class="gotcha">h must never overestimate, or the path may not be shortest.</p></div>
+          <div class="card"><h4>Bellman–Ford</h4>
+            <div class="meta"><span class="tag t">O(V · E)</span></div>
+            <p>Relax every edge V−1 times; a further improvement means a negative cycle.</p>
+            <p class="use"><b>Use it</b> with negative weights, or to detect negative cycles (arbitrage).</p></div>
+          <div class="card"><h4>Floyd–Warshall</h4>
+            <div class="meta"><span class="tag t">O(V³)</span><span class="tag w">O(V²) memory</span></div>
+            <p>For each middle node k, try improving every pair i→j through k.</p>
+            <p class="use"><b>Use it</b> for all-pairs distances on small graphs (V ≤ ~400).</p></div>
+          <div class="card"><h4>0-1 BFS</h4>
+            <div class="meta"><span class="tag t">O(V + E)</span></div>
+            <p>Weights are only 0 or 1: push 0-edges to the front of a deque, 1-edges to the back.</p></div>
+          <div class="card"><h4>Topological sort <a class="try" href="index.html#graph:topo">Try it</a></h4>
+            <div class="meta"><span class="tag t">O(V + E)</span></div>
+            <p>Kahn: repeatedly output a node with no incoming edges. Or reverse DFS finish order.</p>
+            <p class="use"><b>Use it</b> for build orders, course prerequisites, task scheduling.</p>
+            <p class="gotcha">If not every node comes out, the graph has a cycle.</p></div>
+          <div class="card"><h4>Prim / Kruskal <a class="try" href="index.html#graph:prim">Try it</a></h4>
+            <div class="meta"><span class="tag t">O(E log V)</span></div>
+            <p>Minimum spanning tree. Prim grows one tree with a heap; Kruskal adds the lightest edges that don't make a cycle, using union-find.</p>
+            <p class="use"><b>Use it</b> to connect everything as cheaply as possible (networks, clustering).</p></div>
+          <div class="card"><h4>Strongly connected components</h4>
+            <div class="meta"><span class="tag t">O(V + E)</span></div>
+            <p>Tarjan (one DFS with low-links) or Kosaraju (DFS, reverse graph, DFS again).</p>
+            <p class="use"><b>Use it</b> for groups that can all reach each other, 2-SAT, simplifying a graph to a DAG.</p></div>
+          <div class="card"><h4>Bipartite check</h4>
+            <div class="meta"><span class="tag t">O(V + E)</span></div>
+            <p>Two-color with BFS/DFS; a conflict means an odd cycle.</p>
+            <p class="use"><b>Use it</b> for "split into two groups with no conflicts inside a group".</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="trees" data-title="Trees & heaps">
+        <h3>Trees &amp; heaps</h3>
+        <div class="cards">
+          <div class="card"><h4>Traversals</h4>
+            <p><b>Pre-order</b> (node, left, right) copies/serializes. <b>In-order</b> (left, node, right) gives sorted order of a BST. <b>Post-order</b> (left, right, node) computes sizes/heights and deletes. <b>Level order</b> is BFS.</p></div>
+          <div class="card"><h4>Binary search tree</h4>
+            <div class="meta"><span class="tag t">O(h) per op</span></div>
+            <p>Left subtree &lt; node &lt; right subtree. Balanced variants (red-black, AVL) keep h = O(log n).</p>
+            <p class="gotcha">Inserting sorted data into an unbalanced BST makes a linked list: O(n) per op.</p></div>
+          <div class="card"><h4>Heap / priority queue</h4>
+            <div class="meta"><span class="tag t">O(log n) push/pop</span></div>
+            <p>A complete binary tree stored in an array; parent of i is ⌊(i−1)/2⌋. Building one from n items is O(n).</p>
+            <p class="use"><b>Use it</b> for top-k, merge k sorted lists, running median (two heaps), schedulers.</p></div>
+          <div class="card"><h4>Lowest common ancestor</h4>
+            <div class="meta"><span class="tag t">O(log n) per query</span></div>
+            <p>Binary lifting: precompute 2<sup>k</sup>-th ancestors, then lift both nodes.</p></div>
+          <div class="card"><h4>Trie</h4>
+            <div class="meta"><span class="tag t">O(L)</span></div>
+            <p>A tree of characters; each path from the root spells a prefix.</p>
+            <p class="use"><b>Use it</b> for autocomplete, word games, IP routing, many-pattern search.</p></div>
+          <div class="card"><h4>Fenwick &amp; segment trees</h4>
+            <div class="meta"><span class="tag t">O(log n) query/update</span></div>
+            <p>Prefix sums (Fenwick) or any associative range query like min/max/sum (segment tree) that stays fast while values change.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="dp" data-title="Dynamic programming">
+        <h3>Dynamic programming</h3>
+        <p>DP = recursion + remembering answers to subproblems. Define the <b>state</b> (what you need to know), the <b>transition</b> (how a state is built from smaller ones), the <b>base cases</b>, and the <b>order</b> to fill. Start with memoized recursion; convert to a table if you need speed or less stack. <a class="try" href="index.html#custom:lcs">Try the LCS table</a></p>
+        <div class="tbl"><table>
+          <tr><th>Problem</th><th>State</th><th>Transition</th><th>Cost</th></tr>
+          <tr><td>Climbing stairs / Fibonacci</td><td class="m">dp[i]</td><td class="m">dp[i-1] + dp[i-2]</td><td class="m">O(n)</td></tr>
+          <tr><td>Coin change (fewest coins)</td><td class="m">dp[a]</td><td class="m">min over c of dp[a-c] + 1</td><td class="m">O(a·coins)</td></tr>
+          <tr><td>0/1 knapsack</td><td class="m">dp[w]</td><td class="m">max(dp[w], dp[w-wt]+val), w descending</td><td class="m">O(n·W)</td></tr>
+          <tr><td>Longest increasing subsequence</td><td class="m">tails[len]</td><td class="m">binary-search the slot for each x</td><td class="m">O(n log n)</td></tr>
+          <tr><td>Longest common subsequence</td><td class="m">dp[i][j]</td><td class="m">match ? diag+1 : max(up, left)</td><td class="m">O(n·m)</td></tr>
+          <tr><td>Edit distance</td><td class="m">dp[i][j]</td><td class="m">min(insert, delete, replace) + 1</td><td class="m">O(n·m)</td></tr>
+          <tr><td>Grid paths</td><td class="m">dp[r][c]</td><td class="m">dp[r-1][c] + dp[r][c-1]</td><td class="m">O(r·c)</td></tr>
+          <tr><td>Interval DP (matrix chain)</td><td class="m">dp[l][r]</td><td class="m">min over split k</td><td class="m">O(n³)</td></tr>
+          <tr><td>Bitmask DP (TSP)</td><td class="m">dp[mask][last]</td><td class="m">extend by one unvisited city</td><td class="m">O(2ⁿ·n²)</td></tr>
+        </table></div>
+        <div class="callout"><b>Tell it's DP:</b> the question asks for a count, a min/max, or yes/no over many choices, and a brute force recomputes the same sub-question again and again.</div>
+      </section>
+
+      <section class="sub" id="greedy" data-title="Greedy">
+        <h3>Greedy</h3>
+        <p>Make the locally best choice and never look back. Fast and simple, but only correct when you can argue that a best choice now never blocks a better solution later (an "exchange argument"). If you can't argue it, try DP.</p>
+        <div class="cards">
+          <div class="card"><h4>Interval scheduling</h4><p>Sort by end time, keep every interval that starts after the last kept one ends. Maximizes the number of non-overlapping intervals.</p></div>
+          <div class="card"><h4>Merging intervals</h4><p>Sort by start, extend the current interval while the next one overlaps.</p></div>
+          <div class="card"><h4>Huffman coding</h4><p>Repeatedly merge the two least frequent symbols (heap). Optimal prefix codes.</p></div>
+          <div class="card"><h4>Coin change, careful</h4><p>Taking the largest coin works for 1/2/5/10 coins but fails for 1/3/4 (6 = 3+3, greedy gives 4+1+1). Classic greedy trap.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="strings" data-title="Strings">
+        <h3>Strings</h3>
+        <div class="cards">
+          <div class="card"><h4>KMP</h4><div class="meta"><span class="tag t">O(n + m)</span></div><p>Precompute, for each prefix of the pattern, its longest proper prefix that is also a suffix; never re-scan text characters.</p></div>
+          <div class="card"><h4>Rabin–Karp</h4><div class="meta"><span class="tag t">O(n + m) average</span></div><p>Rolling hash: compare hashes of windows, verify on match. Great for many patterns or duplicate substrings.</p></div>
+          <div class="card"><h4>Z-function</h4><div class="meta"><span class="tag t">O(n)</span></div><p>For each position, the length of the longest match with the string's prefix. Search by running it on <code>pattern + '$' + text</code>.</p></div>
+          <div class="card"><h4>Palindromes</h4><div class="meta"><span class="tag t">O(n²) / O(n)</span></div><p>Expand around each center (2n−1 centers) is simple and usually enough; Manacher does it in O(n).</p></div>
+          <div class="card"><h4>Anagrams &amp; counts</h4><div class="meta"><span class="tag t">O(n)</span></div><p>Compare letter-count arrays; slide a window and update counts in O(1) per step.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="math" data-title="Math & bits">
+        <h3>Math &amp; bits</h3>
+        <div class="cards">
+          <div class="card"><h4>GCD (Euclid)</h4><div class="meta"><span class="tag t">O(log min(a, b))</span></div><p><code>gcd(a, b) = gcd(b, a % b)</code>, and <code>lcm = a / gcd · b</code>.</p></div>
+          <div class="card"><h4>Sieve of Eratosthenes</h4><div class="meta"><span class="tag t">O(n log log n)</span></div><p>Cross out multiples of each prime starting at p². All primes up to n.</p></div>
+          <div class="card"><h4>Fast exponentiation</h4><div class="meta"><span class="tag t">O(log e)</span></div><p>Square the base, multiply in when the current bit of the exponent is 1. Do it mod m for huge powers.</p></div>
+          <div class="card"><h4>Modular arithmetic</h4><p>Take <code>% m</code> after every + and ×. Division mod a prime p: multiply by <code>a^(p-2) mod p</code> (Fermat).</p></div>
+          <div class="card"><h4>Bit tricks</h4><p><code>x &amp; (x-1)</code> drops the lowest set bit; <code>x &amp; -x</code> keeps it; XOR of all numbers cancels pairs; masks <code>0 … 2ⁿ-1</code> enumerate subsets.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="backtracking" data-title="Backtracking">
+        <h3>Backtracking</h3>
+        <p>Build a solution step by step; when a partial solution can't work, undo the last choice and try the next. It's DFS over the tree of choices. The art is <b>pruning</b>: stop exploring a branch as early as possible. Typical uses: permutations, subsets, combinations summing to a target, N-Queens, Sudoku, word search.</p>
+        <div class="callout">Sketch the choice tree in the <b>Sketch</b> tab with a binary tree and capture a step per decision: it makes the recursion click.</div>
+      </section>
+    </section>
+
+    <!-- ===================================================== 2. PATTERNS -->
+    <section class="part" id="patterns" data-title="Solving problems">
+      <h2><span class="num">02</span>Solving problems</h2>
+      <p class="lead">Most problems are a known pattern in a costume. The process below gets you from "no idea" to working code without skipping the steps where bugs hide.</p>
+
+      <section class="sub" id="process" data-title="A process that works">
+        <h3>A process that works</h3>
+        <ol class="rules">
+          <li><span><b>Restate the problem</b> in your own words. Write down the input, the output, and the constraints (how big is n? can values be negative? duplicates? empty input?).</span></li>
+          <li><span><b>Work two or three examples by hand</b>, including an edge case: empty, one item, all equal, already sorted, negative numbers.</span></li>
+          <li><span><b>Write the brute force</b> first, even just in words, and state its cost. It's a correct baseline and often shows the waste.</span></li>
+          <li><span><b>Find the bottleneck.</b> What's repeated? Then look at the signals table below for a pattern that removes it.</span></li>
+          <li><span><b>Check the budget.</b> Use the n limit to pick the target complexity (n ≤ 10⁵ wants O(n log n) or better).</span></li>
+          <li><span><b>Code it in small pieces</b> with clear names. Get a simple version running before handling every edge case.</span></li>
+          <li><span><b>Trace it.</b> Step through your examples on paper or in the bench (the <b>Your code</b> tab shows every <code>step()</code>).</span></li>
+          <li><span><b>Test the edges</b>, then state the final time and space complexity.</span></li>
+        </ol>
+      </section>
+
+      <section class="sub" id="signals" data-title="Signals → pattern">
+        <h3>Signals → pattern</h3>
+        <div class="tbl"><table>
+          <tr><th>If the problem says / has…</th><th>Try</th></tr>
+          <tr><td>sorted array, find a pair/triple</td><td>two pointers, binary search</td></tr>
+          <tr><td>contiguous subarray/substring with a limit ("at most k", "longest without repeats")</td><td>sliding window</td></tr>
+          <tr><td>subarray sum equals k, negatives allowed</td><td>prefix sums + hash map</td></tr>
+          <tr><td>range sums asked many times</td><td>prefix sums (static), Fenwick tree (with updates)</td></tr>
+          <tr><td>"next greater/smaller", stock span, histogram area</td><td>monotonic stack</td></tr>
+          <tr><td>top k, k-th largest, merge k lists, running median</td><td>heap</td></tr>
+          <tr><td>"minimum largest", "smallest capacity that works"</td><td>binary search on the answer</td></tr>
+          <tr><td>shortest path, fewest moves, grid, unweighted</td><td>BFS</td></tr>
+          <tr><td>shortest path with weights</td><td>Dijkstra (non-negative), Bellman–Ford (negative)</td></tr>
+          <tr><td>connected groups, "are these linked", merging sets</td><td>union-find or DFS</td></tr>
+          <tr><td>prerequisites, dependencies, order of tasks</td><td>topological sort</td></tr>
+          <tr><td>overlapping intervals, meeting rooms</td><td>sort by start/end, sweep; heap of end times</td></tr>
+          <tr><td>all combinations / permutations / subsets</td><td>backtracking</td></tr>
+          <tr><td>count ways, min/max cost over choices, overlapping subproblems</td><td>dynamic programming</td></tr>
+          <tr><td>cycle in a linked list, middle node</td><td>fast &amp; slow pointers</td></tr>
+          <tr><td>prefixes, many words</td><td>trie</td></tr>
+          <tr><td>"seen before?", frequencies, dedupe</td><td>hash set / map</td></tr>
+          <tr><td>n ≤ 20, choose any subset</td><td>bitmask enumeration or bitmask DP</td></tr>
+        </table></div>
+      </section>
+
+      <section class="sub" id="templates" data-title="Code templates">
+        <h3>Code templates</h3>
+        <p>Skeletons in JavaScript. Paste one into the <b>Your code</b> tab, add <code>step()</code> calls, and watch it run.</p>
+        <div class="cards">
+          <div class="card wide"><h4>Sliding window (longest valid window) <a class="try" href="index.html#custom:window">Try it</a></h4>
+<pre><code>function longest(s) {
+  const count = new Map();
+  let left = 0, best = 0;
+  for (let right = 0; right &lt; s.length; right++) {
+    count.set(s[right], (count.get(s[right]) || 0) + 1);      // grow
+    while (count.get(s[right]) &gt; 1) {                         // invalid? shrink
+      count.set(s[left], count.get(s[left]) - 1);
+      left++;
+    }
+    best = Math.max(best, right - left + 1);
+  }
+  return best;   // longest substring without repeats
+}</code></pre></div>
+          <div class="card"><h4>Prefix sums + hash map</h4>
+<pre><code>// number of subarrays summing to k
+function countK(nums, k) {
+  const seen = new Map([[0, 1]]);
+  let sum = 0, count = 0;
+  for (const x of nums) {
+    sum += x;
+    count += seen.get(sum - k) || 0;
+    seen.set(sum, (seen.get(sum) || 0) + 1);
+  }
+  return count;
+}</code></pre></div>
+          <div class="card"><h4>Binary search on the answer</h4>
+<pre><code>// smallest x in [lo, hi] where works(x)
+// works must be false…false,true…true
+function firstTrue(lo, hi, works) {
+  while (lo &lt; hi) {
+    const mid = lo + Math.floor((hi - lo) / 2);
+    if (works(mid)) hi = mid;
+    else lo = mid + 1;
+  }
+  return lo;
+}</code></pre></div>
+          <div class="card"><h4>Monotonic stack</h4>
+<pre><code>// next greater element to the right
+function nextGreater(a) {
+  const res = Array(a.length).fill(-1);
+  const stack = [];               // indices
+  for (let i = 0; i &lt; a.length; i++) {
+    while (stack.length &amp;&amp;
+           a[stack.at(-1)] &lt; a[i])
+      res[stack.pop()] = a[i];
+    stack.push(i);
+  }
+  return res;
+}</code></pre></div>
+          <div class="card"><h4>BFS on a grid <a class="try" href="index.html#grid:bfs">Try it</a></h4>
+<pre><code>function shortest(grid, sr, sc, er, ec) {
+  const H = grid.length, W = grid[0].length;
+  const dist = grid.map(r =&gt; r.map(() =&gt; -1));
+  const q = [[sr, sc]]; dist[sr][sc] = 0;
+  for (let h = 0; h &lt; q.length; h++) {
+    const [r, c] = q[h];
+    if (r === er &amp;&amp; c === ec) return dist[r][c];
+    for (const [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+      const nr = r + dr, nc = c + dc;
+      if (nr &lt; 0 || nc &lt; 0 || nr &gt;= H || nc &gt;= W) continue;
+      if (grid[nr][nc] === '#' || dist[nr][nc] !== -1) continue;
+      dist[nr][nc] = dist[r][c] + 1;     // mark when queued
+      q.push([nr, nc]);
+    }
+  }
+  return -1;
+}</code></pre></div>
+          <div class="card"><h4>Union-find</h4>
+<pre><code>const parent = [...Array(n).keys()];
+const size = Array(n).fill(1);
+function find(x) {
+  while (parent[x] !== x) {
+    parent[x] = parent[parent[x]]; // halve path
+    x = parent[x];
+  }
+  return x;
+}
+function union(a, b) {
+  a = find(a); b = find(b);
+  if (a === b) return false;     // already linked
+  if (size[a] &lt; size[b]) [a, b] = [b, a];
+  parent[b] = a; size[a] += size[b];
+  return true;
+}</code></pre></div>
+          <div class="card"><h4>Backtracking</h4>
+<pre><code>function subsetsSumming(nums, target) {
+  const out = [], pick = [];
+  function go(i, sum) {
+    if (sum === target) out.push([...pick]);
+    if (sum &gt;= target) return;         // prune
+    for (let j = i; j &lt; nums.length; j++) {
+      pick.push(nums[j]);              // choose
+      go(j + 1, sum + nums[j]);        // explore
+      pick.pop();                      // undo
+    }
+  }
+  go(0, 0);
+  return out;
+}</code></pre></div>
+          <div class="card"><h4>Memoized DP</h4>
+<pre><code>// fewest coins to make amount (-1 if impossible)
+function coins(cs, amount) {
+  const memo = new Map();
+  function f(a) {
+    if (a === 0) return 0;
+    if (a &lt; 0) return Infinity;
+    if (memo.has(a)) return memo.get(a);
+    let best = Infinity;
+    for (const c of cs) best = Math.min(best, f(a - c) + 1);
+    memo.set(a, best);
+    return best;
+  }
+  const r = f(amount);
+  return r === Infinity ? -1 : r;
+}</code></pre></div>
+          <div class="card"><h4>Fast &amp; slow pointers</h4>
+<pre><code>function hasCycle(head) {
+  let slow = head, fast = head;
+  while (fast &amp;&amp; fast.next) {
+    slow = slow.next;
+    fast = fast.next.next;
+    if (slow === fast) return true;
+  }
+  return false;
+}</code></pre></div>
+        </div>
+      </section>
+
+      <section class="sub" id="design" data-title="Designing real programs">
+        <h3>Designing real programs</h3>
+        <p>Algorithms are a small part of most software. These habits matter more day to day:</p>
+        <ul class="rules">
+          <li><b>Model the data first.</b> Good types and names make the code obvious; most bugs live in unclear data.</li>
+          <li><b>Small functions with one job</b>, and keep side effects (I/O, network, database) at the edges so the core is easy to test.</li>
+          <li><b>Make illegal states unrepresentable:</b> enums instead of magic strings, required fields instead of "maybe null".</li>
+          <li><b>Validate at the boundary</b> (user input, API responses, files) and trust your types inside.</li>
+          <li><b>Draw it.</b> A class or sequence diagram (UML section of the Sketch tab) exposes coupling and missing steps before you write code.</li>
+          <li><b>Measure before optimizing.</b> Pick the right algorithm up front; micro-optimize only what a profiler shows.</li>
+        </ul>
+      </section>
+    </section>
+
+    <!-- ===================================================== 3. TECH -->
+    <section class="part" id="tech" data-title="Technologies">
+      <h2><span class="num">03</span>Technologies</h2>
+      <p class="lead">What the popular tools are for and when to pick them. Rules of thumb, not rankings: the best choice is usually what your team already knows well, as long as it fits the problem.</p>
+
+      <section class="sub" id="languages" data-title="Languages">
+        <h3>Languages</h3>
+        <div class="cards">
+          <div class="card"><h4>Python</h4><p>Readable, huge ecosystem. <b>Strong in</b> data science, ML/AI, scripting, automation, backends (Django, FastAPI).</p><p class="gotcha">Slow for CPU-heavy loops (use NumPy or native extensions); dynamic types need discipline (type hints + mypy/pyright).</p></div>
+          <div class="card"><h4>JavaScript / TypeScript</h4><p>The language of the web; Node, Deno and Bun run it on servers. TypeScript adds static types and is the norm for serious projects.</p><p class="gotcha">Quirky equality and number semantics; npm dependency trees grow fast.</p></div>
+          <div class="card"><h4>Java</h4><p>Mature, fast JVM, strong typing. <b>Strong in</b> enterprise backends (Spring), Android legacy, big systems. Modern Java (records, pattern matching, virtual threads) is much less verbose.</p></div>
+          <div class="card"><h4>Kotlin</h4><p>Concise JVM language, null-safety built in. Default for Android; works anywhere Java does.</p></div>
+          <div class="card"><h4>C#</h4><p>.NET's language: backends (ASP.NET Core), desktop, games (Unity). Excellent tooling, similar niche to Java.</p></div>
+          <div class="card"><h4>Go</h4><p>Simple, fast to compile, great concurrency (goroutines). <b>Strong in</b> cloud services, CLIs, infrastructure (Docker and Kubernetes are written in Go).</p></div>
+          <div class="card"><h4>Rust</h4><p>C-level speed with memory safety checked at compile time. <b>Strong in</b> systems, performance-critical services, WebAssembly, CLIs.</p><p class="gotcha">Steep learning curve (ownership and lifetimes).</p></div>
+          <div class="card"><h4>C / C++</h4><p>Maximum control and speed: operating systems, embedded, game engines, competitive programming (C++ STL).</p><p class="gotcha">Manual memory management: buffer overflows and use-after-free bugs.</p></div>
+          <div class="card"><h4>Swift</h4><p>Apple platforms (iOS, macOS). Modern, safe, fast.</p></div>
+          <div class="card"><h4>SQL</h4><p>Not optional: almost every app stores data in a relational database. Learn joins, indexes, GROUP BY, transactions.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="frontend" data-title="Frontend">
+        <h3>Frontend</h3>
+        <div class="cards">
+          <div class="card"><h4>HTML, CSS, JS first</h4><p>Frameworks change; the platform stays. Semantic HTML, flexbox/grid and the DOM make every framework easier. Small sites (like this one) need no framework.</p></div>
+          <div class="card"><h4>React</h4><p>Component library with the largest ecosystem and job market. Pair with a framework (Next.js, Remix/React Router) for routing, data loading and server rendering.</p></div>
+          <div class="card"><h4>Vue</h4><p>Approachable component framework with single-file components; Nuxt is its full-stack framework.</p></div>
+          <div class="card"><h4>Svelte</h4><p>Compiles components into minimal JS; very little boilerplate. SvelteKit for full apps.</p></div>
+          <div class="card"><h4>Angular</h4><p>Batteries-included and opinionated (DI, forms, router, TypeScript). Common in large enterprise teams.</p></div>
+          <div class="card"><h4>Tailwind CSS</h4><p>Utility classes in markup; fast to build consistent UIs. Pairs well with component libraries.</p></div>
+          <div class="card"><h4>Build tools</h4><p>Vite is the common default dev server and bundler. npm, pnpm or yarn manage packages.</p></div>
+          <div class="card"><h4>Mobile</h4><p>Native (Swift, Kotlin) for the best platform fit; React Native or Flutter (Dart) for one codebase on both platforms.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="backend" data-title="Backend">
+        <h3>Backend</h3>
+        <div class="cards">
+          <div class="card"><h4>Node.js (Express, Fastify, NestJS)</h4><p>JavaScript on the server; great for I/O-heavy APIs and sharing types with a TypeScript frontend. NestJS adds structure for big apps.</p></div>
+          <div class="card"><h4>Spring Boot</h4><p>The Java standard: dependency injection, data access, security, huge ecosystem. Heavy but very capable.</p></div>
+          <div class="card"><h4>Django / FastAPI / Flask</h4><p>Python. Django: batteries included (ORM, admin, auth). FastAPI: modern typed APIs with automatic docs. Flask: minimal.</p></div>
+          <div class="card"><h4>ASP.NET Core</h4><p>C# web framework: fast, well documented, strong on Azure.</p></div>
+          <div class="card"><h4>Ruby on Rails, Laravel</h4><p>Convention-over-configuration frameworks (Ruby, PHP) that make CRUD apps very fast to build.</p></div>
+          <div class="card"><h4>Go net/http, Gin, Echo</h4><p>Small, fast services with few dependencies; easy to deploy as a single binary.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="data" data-title="Databases & messaging">
+        <h3>Databases &amp; messaging</h3>
+        <div class="cards">
+          <div class="card"><h4>PostgreSQL</h4><p>The safe default relational database: correct, feature-rich (JSON, full-text search, extensions).</p></div>
+          <div class="card"><h4>MySQL / MariaDB</h4><p>Widely hosted relational databases; simpler feature set, very common in web hosting.</p></div>
+          <div class="card"><h4>SQLite</h4><p>A database in a single file, no server. Perfect for apps, tests, prototypes and small sites.</p></div>
+          <div class="card"><h4>MongoDB</h4><p>Document store (JSON-like). Flexible schema; good when data really is document-shaped.</p><p class="gotcha">"No schema" still needs a schema in your code; relations and joins are weaker.</p></div>
+          <div class="card"><h4>Redis / Valkey</h4><p>In-memory key-value store: caching, sessions, rate limits, queues, leaderboards.</p></div>
+          <div class="card"><h4>Elasticsearch / OpenSearch</h4><p>Full-text search and log analytics.</p></div>
+          <div class="card"><h4>Kafka</h4><p>Durable, replayable event log for high-throughput streams between services.</p></div>
+          <div class="card"><h4>RabbitMQ</h4><p>Message broker for job queues and routing between services.</p></div>
+          <div class="card"><h4>ORMs</h4><p>Prisma, Drizzle, TypeORM (JS), Hibernate/JPA (Java), SQLAlchemy (Python), Entity Framework (C#). Fast to start, but learn the SQL they generate.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="infra" data-title="Tooling, infra & cloud">
+        <h3>Tooling, infra &amp; cloud</h3>
+        <div class="cards">
+          <div class="card"><h4>Git &amp; GitHub/GitLab</h4><p>Version control is non-negotiable: small commits, clear messages, branches and pull requests for review.</p></div>
+          <div class="card"><h4>Docker</h4><p>Package an app with its environment so it runs the same everywhere. Docker Compose runs several services locally.</p></div>
+          <div class="card"><h4>Kubernetes</h4><p>Runs and scales containers across many machines. Powerful, complex; most small projects don't need it.</p></div>
+          <div class="card"><h4>CI/CD</h4><p>GitHub Actions, GitLab CI and similar run tests and deploys on every push. Automate checks you'd forget.</p></div>
+          <div class="card"><h4>Terraform / OpenTofu</h4><p>Infrastructure as code: describe servers, databases and networks in files you can review and version.</p></div>
+          <div class="card"><h4>Cloud providers</h4><p>AWS (largest), Azure (strong with Microsoft shops), Google Cloud (data/ML). Learn the basics: compute, storage, managed databases, IAM.</p></div>
+          <div class="card"><h4>Hosting platforms</h4><p>Vercel, Netlify, Cloudflare, GitHub Pages, Render, Fly.io: deploy with a push, little ops work. Great for side projects.</p></div>
+          <div class="card"><h4>Observability</h4><p>Logs, metrics and traces (OpenTelemetry, Prometheus, Grafana, Sentry) tell you what's happening in production.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="apis" data-title="APIs & testing">
+        <h3>APIs &amp; testing</h3>
+        <div class="cards">
+          <div class="card"><h4>REST</h4><p>Resources over HTTP with standard verbs and status codes. Simple, cacheable, the default for public APIs. Describe it with OpenAPI.</p></div>
+          <div class="card"><h4>GraphQL</h4><p>Clients ask for exactly the fields they need from one endpoint. Good for complex frontends; harder caching and authorization.</p></div>
+          <div class="card"><h4>gRPC</h4><p>Typed, fast binary RPC between services (Protocol Buffers).</p></div>
+          <div class="card"><h4>WebSockets / SSE</h4><p>Real-time updates: chat, live dashboards, multiplayer.</p></div>
+          <div class="card"><h4>Unit &amp; integration tests</h4><p>Vitest/Jest (JS), JUnit (Java), pytest (Python), xUnit (C#). Test behavior, not implementation details.</p></div>
+          <div class="card"><h4>End-to-end tests</h4><p>Playwright or Cypress drive a real browser. Keep a few for critical flows; they're slow and can be flaky.</p></div>
+          <div class="card"><h4>Linters &amp; formatters</h4><p>ESLint, Prettier, Ruff, Checkstyle, rustfmt. Let tools settle style so reviews focus on logic.</p></div>
+        </div>
+      </section>
+
+      <section class="sub" id="choosing" data-title="How to choose">
+        <h3>How to choose</h3>
+        <ul class="rules">
+          <li><b>Boring is good.</b> Mature tools have answers on the internet, stable APIs, and fewer surprises.</li>
+          <li><b>Fit the problem's shape:</b> relational data → SQL database; real-time → WebSockets; CPU-heavy → compiled language.</li>
+          <li><b>Count the cost of each extra moving part.</b> Every new service, queue or database needs monitoring, upgrades and backups.</li>
+          <li><b>Learn fundamentals over frameworks.</b> HTTP, SQL, data structures, Git and the terminal transfer to every stack.</li>
+        </ul>
+      </section>
+    </section>
+
+    <!-- ===================================================== 4. AI -->
+    <section class="part" id="ai" data-title="Working with AI">
+      <h2><span class="num">04</span>Working with AI</h2>
+      <p class="lead">AI assistants are great at drafting, explaining and reviewing. They're also confidently wrong sometimes. These rules keep you fast without shipping code nobody understands.</p>
+
+      <section class="sub" id="ai-rules" data-title="Ground rules">
+        <h3>Ground rules</h3>
+        <ol class="rules">
+          <li><span><b>You own every line.</b> If you can't explain what a piece of code does and why, it isn't ready to commit, no matter who wrote it.</span></li>
+          <li><span><b>Decide what "done" means before you ask.</b> Write the goal, the constraints and how you'll check it (tests, example inputs and outputs).</span></li>
+          <li><span><b>Give context, not just a command.</b> Relevant files, error messages, language and framework versions, project conventions. With coding agents, keep a project instructions file (like <code>CLAUDE.md</code>) with build/test commands and rules.</span></li>
+          <li><span><b>Work in small steps.</b> One feature or fix per request, small diffs you can actually read. Big "build the whole app" requests produce code you can't review.</span></li>
+          <li><span><b>Ask for a plan first</b> on anything non-trivial, and correct the plan before any code is written. Fixing a plan is cheap; fixing 500 lines is not.</span></li>
+          <li><span><b>Verify, don't trust.</b> Run the code and the tests. Check unfamiliar APIs and packages against official docs: assistants can invent functions, options and even package names.</span></li>
+          <li><span><b>Commit before big changes</b> so you can diff and revert. Version control is your undo button.</span></li>
+          <li><span><b>Never paste secrets</b> (API keys, passwords, customer data) into prompts. Use placeholders.</span></li>
+        </ol>
+      </section>
+
+      <section class="sub" id="ai-quality" data-title="Keeping quality high">
+        <h3>Keeping quality high</h3>
+        <ul class="rules">
+          <li><b>Tests are the contract.</b> Have tests written (or write them yourself) first, then ask for code that makes them pass. Never accept "fixing" a failing test by weakening it.</li>
+          <li><b>Read the diff like a reviewer.</b> Look for: invented APIs, swallowed errors (<code>catch {}</code>), hard-coded values, missing input validation, SQL built with string concatenation, duplicated logic, and unrelated "while I'm here" edits.</li>
+          <li><b>Watch for scope creep.</b> If you asked for a bug fix and got a refactor, ask for the minimal change instead.</li>
+          <li><b>Keep the architecture yours.</b> AI follows patterns it sees. Point it at your existing modules so it extends them instead of inventing parallel ones.</li>
+          <li><b>Use static checks:</b> types, linters, formatters and CI catch a whole class of AI mistakes automatically.</li>
+          <li><b>Security review anything touching auth, payments, file paths, user input or shell commands.</b> Ask the AI to review for vulnerabilities too, then verify the findings yourself.</li>
+          <li><b>Check dependencies</b> before installing: is the package real, maintained, and spelled right? Typosquatted packages are a known attack.</li>
+          <li><b>Refactor after it works.</b> AI code is often verbose; simplifying it is also how you come to understand it.</li>
+        </ul>
+      </section>
+
+      <section class="sub" id="ai-learning" data-title="Learning while using AI">
+        <h3>Learning while using AI</h3>
+        <p>If your goal is to get better (not just to finish a task), use AI as a tutor, not a vending machine.</p>
+        <ul class="rules">
+          <li><b>Try first, for 15–20 minutes.</b> Then ask for a <em>hint</em>, not the answer: "Don't give me code, what should I look at?"</li>
+          <li><b>Ask why.</b> "Why is this O(n log n)?", "What breaks if I remove this line?", "What's the trade-off versus X?"</li>
+          <li><b>Explain it back.</b> Describe your understanding and ask the AI to correct it.</li>
+          <li><b>Have it quiz you</b> on a topic, or generate edge cases for your code that you then fix yourself.</li>
+          <li><b>Rewrite from memory.</b> After seeing a solution, close it and rebuild it. Step through it in the bench to make sure you really get it.</li>
+          <li><b>Ask for review, not rewrites:</b> "Review my code; point out bugs and style issues but don't fix them."</li>
+        </ul>
+      </section>
+
+      <section class="sub" id="ai-prompts" data-title="Prompt templates">
+        <h3>Prompt templates</h3>
+        <div class="cards">
+          <div class="card"><h4>Fix a bug</h4>
+<pre><code>Bug: [what happens] vs [what should happen].
+Steps to reproduce: [...]
+Error / output: [paste exactly]
+Relevant code: [file names or snippets]
+Already tried: [...]
+Find the root cause first and explain it,
+then propose the smallest fix.</code></pre></div>
+          <div class="card"><h4>Build a feature</h4>
+<pre><code>Goal: [user-visible behavior]
+Constraints: [stack, versions, no new deps, ...]
+Follow the patterns in: [existing files]
+Done when: [tests / acceptance criteria]
+First give me a short plan and the files
+you'd touch. Wait for my OK before coding.</code></pre></div>
+          <div class="card"><h4>Review my code</h4>
+<pre><code>Review this for correctness, edge cases,
+security and readability. List issues by
+severity with line references. Don't rewrite
+it; explain each problem so I can fix it.</code></pre></div>
+          <div class="card"><h4>Learn a concept</h4>
+<pre><code>Explain [topic] as if I know [what I know].
+Use one small example, then give me two
+exercises of increasing difficulty. Don't
+show solutions until I ask.</code></pre></div>
+        </div>
+      </section>
+
+      <section class="sub" id="ai-redflags" data-title="Red flags">
+        <h3>Red flags</h3>
+        <ul class="rules">
+          <li>"It works" but nobody ran it, or the tests were changed to pass.</li>
+          <li>A function, flag or package you can't find in the official docs.</li>
+          <li>Huge diffs for small requests, or files changed that had nothing to do with the task.</li>
+          <li>Errors silenced instead of handled; <code>any</code> types or disabled lint rules sprinkled in.</li>
+          <li>You keep pasting errors back and forth without understanding them. Stop, read the error, and debug one step yourself.</li>
+        </ul>
+        <div class="callout"><b>The short version:</b> be specific about the goal, work in small reviewed steps, verify with tests and docs, and make sure you could have written (or at least explained) every line yourself.</div>
+      </section>
+    </section>
+
+    <p class="empty" id="empty">Nothing matches that search.</p>
+  </main>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  const parts = $$('section.part'), subs = $$('section.sub');
+
+  /* table of contents */
+  const toc = $('#toc'), sel = $('#tocSelect');
+  let html = '', opts = '<option value="">Jump to…</option>';
+  for (const p of parts) {
+    html += `<h2><a href="#${p.id}" style="padding:0;border:0;color:inherit">${p.dataset.title}</a></h2>`;
+    opts += `<optgroup label="${p.dataset.title}">`;
+    for (const s of p.querySelectorAll('section.sub')) { html += `<a href="#${s.id}" data-id="${s.id}">${s.dataset.title}</a>`; opts += `<option value="${s.id}">${s.dataset.title}</option>`; }
+    opts += '</optgroup>';
+  }
+  toc.innerHTML = html; sel.innerHTML = opts;
+  sel.addEventListener('change', () => { if (sel.value) location.hash = sel.value; sel.value = ''; });
+
+  /* highlight the section in view */
+  const links = new Map($$('nav.toc a[data-id]').map(a => [a.dataset.id, a]));
+  const vis = new Set();
+  const io = new IntersectionObserver(es => {
+    for (const e of es) e.isIntersecting ? vis.add(e.target.id) : vis.delete(e.target.id);
+    const first = subs.find(s => vis.has(s.id));
+    if (first) links.forEach((a, id) => a.classList.toggle('on', id === first.id));
+  }, { rootMargin: '-80px 0px -55% 0px' });
+  subs.forEach(s => io.observe(s));
+
+  /* search: filter cards, rows, list items and whole sections */
+  const q = $('#q');
+  const units = $$('.card, tr, ul.rules > li, ol.rules > li, .callout, section.sub > p');
+  let t = 0;
+  function filter() {
+    const term = q.value.trim().toLowerCase();
+    for (const u of units) {
+      if (u.tagName === 'TR' && u.querySelector('th')) continue;
+      u.hidden = !!term && !u.textContent.toLowerCase().includes(term);
+    }
+    let any = false;
+    for (const s of subs) {
+      const hit = !term || s.querySelector('h3').textContent.toLowerCase().includes(term);
+      if (hit && term) s.querySelectorAll('[hidden]').forEach(x => x.hidden = false);
+      const shown = !term || hit || [...s.querySelectorAll('.card, tr, li, .callout, p')].some(x => !x.hidden && !(x.tagName === 'TR' && x.querySelector('th')) && x.textContent.toLowerCase().includes(term));
+      s.hidden = !shown; any = any || shown;
+      for (const tb of s.querySelectorAll('.tbl')) tb.hidden = !!term && ![...tb.querySelectorAll('tr')].some(r => !r.hidden && !r.querySelector('th'));
+    }
+    for (const p of parts) { const lead = p.querySelector('p.lead'); const sh = [...p.querySelectorAll('section.sub')].some(s => !s.hidden); p.hidden = !!term && !sh; if (lead) lead.hidden = !!term; }
+    $('.intro').hidden = !!term;
+    $('#empty').style.display = term && !any ? 'block' : 'none';
+  }
+  q.addEventListener('input', () => { clearTimeout(t); t = setTimeout(filter, 120); });
+  q.addEventListener('keydown', e => { if (e.key === 'Escape') { q.value = ''; filter(); q.blur(); } });
+  document.addEventListener('keydown', e => { if (e.key === '/' && document.activeElement !== q && !e.metaKey && !e.ctrlKey) { e.preventDefault(); q.focus(); } });
+
+  if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+})();
+</script>
+</body>
+</html>
