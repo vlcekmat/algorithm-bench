@@ -269,6 +269,26 @@ ul.td-lists.grouped li:not(.td-cat) button{padding-left:22px}
 .menu-pop hr{border:0;border-top:1px solid var(--line);margin:4px 0;width:100%}
 .menu-confirm{display:flex;flex-direction:column;gap:8px;padding:8px 10px;margin-top:4px;border-radius:8px;background:var(--swap-soft);font-size:12.5px}
 
+.sk-ops{position:absolute;z-index:5;display:flex;gap:1px;align-items:center;padding:3px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 16px rgba(10,20,40,.18);white-space:nowrap;max-width:calc(100% - 8px);overflow-x:auto;scrollbar-width:none}
+.sk-ops button{font:500 12.5px var(--f-ui);color:var(--fg);background:transparent;border:0;border-radius:7px;padding:5px 9px;cursor:pointer;flex:none}
+.sk-ops button:hover,.sk-menu button:hover{background:var(--surface-2)}
+.sk-ops button.danger:hover,.sk-menu button.danger:hover{color:var(--swap)}
+.sk-ops button:disabled,.sk-menu button:disabled{opacity:.4;cursor:default;background:none}
+.sk-ops .sep{width:1px;align-self:stretch;background:var(--line);margin:3px 3px;flex:none}
+.sk-ops button.dot{width:22px;height:22px;padding:0;display:grid;place-items:center}
+.sk-ops button.dot i,.sk-menu button.dot i{width:13px;height:13px;border-radius:50%;background:var(--mk);border:1.5px solid var(--muted);display:block}
+.sk-ops button.dot.on i,.sk-menu button.dot.on i{border-color:var(--fg);box-shadow:0 0 0 1.5px var(--fg)}
+.sk-menu{position:absolute;z-index:6;min-width:200px;max-width:min(330px,calc(100% - 8px));max-height:calc(100% - 8px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 28px rgba(10,20,40,.22);padding:5px;display:flex;flex-direction:column;gap:1px}
+.sk-menu > button{text-align:left;font:500 13px var(--f-ui);color:var(--fg);background:transparent;border:0;border-radius:7px;padding:6px 10px;cursor:pointer}
+.sk-menu .mh{font:600 10.5px var(--f-ui);text-transform:uppercase;letter-spacing:.09em;color:var(--muted);padding:6px 10px 3px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sk-menu hr{border:0;border-top:1px solid var(--line);margin:4px 0;width:100%}
+.sk-menu .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:1px}
+.sk-menu .mgrid button{text-align:left;font:500 13px var(--f-ui);color:var(--fg);background:transparent;border:0;border-radius:7px;padding:6px 10px;cursor:pointer}
+.sk-menu .mdots{display:flex;gap:2px;padding:2px 6px}
+.sk-menu .mdots button{width:26px;height:26px;padding:0;display:grid;place-items:center;border:0;background:transparent;border-radius:7px;cursor:pointer}
+.ins-mode{text-transform:none;letter-spacing:0}
+.ins-mode button{font-size:11.5px!important;padding:3px 9px!important}
+
 @media (max-width:880px){
   html,body{height:auto}
   .app{height:auto}
@@ -561,7 +581,7 @@ ul.td-lists.grouped li:not(.td-cat) button{padding-left:22px}
       </div>
       <div class="card" data-for="sketch"><h3>Selection</h3><div id="skProps"></div></div>
       <div class="card" data-for="sketch">
-        <h3>Insert</h3>
+        <h3>Insert <span class="seg ins-mode" id="skInsMode" role="group" aria-label="What new structures start with"><button data-v="0" id="skim-ex" title="Insert structures filled with example values">Example</button><button data-v="1" id="skim-empty" title="Insert structures with no values in them">Empty</button></span></h3>
         <div class="ins-grid">
           <button class="btn" data-ins="array" id="ins-array">Array</button>
           <button class="btn" data-ins="stack" id="ins-stack">Stack</button>
@@ -592,6 +612,7 @@ ul.td-lists.grouped li:not(.td-cat) button{padding-left:22px}
       <div class="card" data-for="sketch">
         <h3>Board</h3>
         <div class="row"><button class="btn" id="skFit2">Fit to screen</button><button class="btn" id="skPng">Export PNG</button><button class="btn" id="skClear">Clear board</button></div>
+        <p class="small muted" style="margin:0"><b>Select</b> a structure to get its operations (push, pop, enqueue, insert node…) in a bar right next to it. <b>Two-finger click</b> (right-click) the board to insert a structure right there, or a structure to see everything you can do with it.</p>
         <p class="small muted" style="margin:0">Scroll or two-finger drag to pan. Pinch or ⌘/Ctrl + scroll to zoom. Keys: V select, D draw, E erase, R box, O circle, A arrow, T text, H pan, ⌘Z undo, Delete removes.</p>
       </div>
 
@@ -1436,7 +1457,7 @@ function setMode(m){
   $('#penBtn').hidden=$('#inkClear').hidden= m==='sketch'||m==='todo';
   $('#stage').hidden=$('.caption').hidden=$('.player').hidden= m==='todo';
   $('#todoSide').hidden= m==='todo';
-  if(m!=='sketch') SK.closeEdit(true);
+  if(m!=='sketch'){ SK.closeEdit(true); SK.hideOverlays(); }
   if(m==='sketch'||m==='todo') setPen(false);
   resize(); TD.render();
   if(m==='todo'){ /* nothing to run */ }
@@ -1619,6 +1640,7 @@ const SK=(()=>{
   function varParts(it){ const nw=measure((it.name||'')+' =',`600 14px ${FM}`); const vw=Math.max(48,measure(it.v??'',`600 15px ${FM}`)+18);
     return {name:{x:it.x,y:it.y,w:nw+8,h:36},box:{x:it.x+nw+8,y:it.y,w:vw,h:36}}; }
   function textBox(it){ const s=it.size||18, lines=String(it.text||'').split('\n'); const w=Math.max(20,...lines.map(l=>measure(l,`500 ${s}px ${FU}`))); return {x:it.x,y:it.y,w,h:lines.length*s*1.3}; }
+  const ptrHidden=it=>{ const A=it.at&&ITEM(it.at.id); return !!(A&&A.type==='array'&&!A.cells.length); };   // nothing to point at
   function ptrGeom(it){
     const A=it.at&&ITEM(it.at.id);
     if(A&&A.type==='array'&&A.cells.length){ const k=clamp(it.at.k,0,A.cells.length-1), r=cellRect(A,k);
@@ -1706,7 +1728,7 @@ const SK=(()=>{
         const f=p.y<G.ops.y?'attrs':'ops', L=f==='attrs'?G.aL:G.oL, n=Math.floor((p.y-G[f].y-5)/G.LH); return {it,f,n:L.length?clamp(n,0,L.length-1):null}; }
       case 'lifeline': { const G=lifeGeom(it); if(inR(p,G.head)) return {it};
         return (Math.abs(p.x-G.cx)<tol+3&&p.y>=it.y+40&&p.y<=it.y+it.h)?{it,line:true}:null; }
-      case 'ptr': { const G=ptrGeom(it); return (inR(p,ptrLabel(it,G))||(G.rank===0&&segDist(p,{x:G.lx,y:G.ly},G.tip)<tol))?{it}:null; }
+      case 'ptr': { if(ptrHidden(it)) return null; const G=ptrGeom(it); return (inR(p,ptrLabel(it,G))||(G.rank===0&&segDist(p,{x:G.lx,y:G.ly},G.tip)<tol))?{it}:null; }
       case 'stroke': { const P=it.pts, t=tol+(it.w||2.5)/2; if(P.length===1) return Math.hypot(P[0][0]-p.x,P[0][1]-p.y)<t?{it}:null;
         for(let i=1;i<P.length;i++) if(segDist(p,{x:P[i-1][0],y:P[i-1][1]},{x:P[i][0],y:P[i][1]})<t) return {it}; return null; }
       case 'array': { for(let k=0;k<it.cells.length;k++) if(inR(p,cellRect(it,k))) return {it,k};
@@ -1804,7 +1826,7 @@ const SK=(()=>{
         else { ctx.strokeStyle=T.muted; ctx.lineWidth=1.2; ctx.beginPath(); ctx.moveTo(nx+7,it.y+33); ctx.lineTo(nx+25,it.y+7); ctx.stroke(); }
         break; }
       case 'var': { const P=varParts(it); txt((it.name||'')+' =',P.name.x,P.name.y+18,`600 14px ${FM}`,c,'left'); cellBox(P.box,it.m,c,false); fitText(it.v,P.box,15); break; }
-      case 'ptr': { const G=ptrGeom(it); txt(it.name||'',G.lx,G.ly,`700 13px ${FM}`,c);
+      case 'ptr': { if(ptrHidden(it)) break; const G=ptrGeom(it); txt(it.name||'',G.lx,G.ly,`700 13px ${FM}`,c);
         if(G.rank===0){ const from=G.dir==='left'?{x:G.lx-ptrLabel(it,G).w/2-2,y:G.ly}:{x:G.lx,y:G.ly-10};
           ctx.strokeStyle=c; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(from.x,from.y); ctx.lineTo(G.tip.x,G.tip.y); ctx.stroke(); head(from,G.tip,9,c); }
         break; }
@@ -1864,9 +1886,14 @@ const SK=(()=>{
       sel=new Set([it.id]); changed(); openEdit(selCell); } }
   function appendCell(it){ if(edT) closeEdit(true); commit(); it.cells.push({v:'',m:null}); const k=it.cells.length-1;
     selCell={id:it.id,k}; sel=new Set([it.id]); changed(); openEdit({id:it.id,k,newCell:true},''); }
+  // move a newly made node to the nearest spot where it doesn't cover anything (dir: 'right' keeps lists on one row, 'down' suits trees)
+  function nudge(n,dir){ const others=D().items.filter(x=>x!==n&&solid(x)&&x.type!=='text').map(bb), pad=14, b0=bb(n);
+    const free=(dx,dy)=>!others.some(o=>!(b0.x+dx>o.x+o.w+pad||b0.x+dx+b0.w+pad<o.x||b0.y+dy>o.y+o.h+pad||b0.y+dy+b0.h+pad<o.y));
+    const tries=[[0,0]]; for(let r=1;r<=14;r++) tries.push(...(dir==='down'?[[0,r*30],[r*30,0],[-r*30,0]]:[[r*40,0],[0,r*60],[0,-r*60]]));
+    const t=tries.find(([dx,dy])=>free(dx,dy)); if(t){ n.x+=t[0]; n.y+=t[1]; } }
   function addNextNode(it){ if(edT) closeEdit(true); commit(); const n={id:nid(),type:'node',x:it.x+140,y:it.y,v:'',m:null,color:it.color||'fg'};
     const old=D().items.find(x=>x.type==='arrow'&&x.a&&x.a.id===it.id&&x.a.port==='next');
-    if(old){ old.a={id:n.id,port:'next'}; n.y=it.y+70; }
+    if(old){ old.a={id:n.id,port:'next'}; n.y=it.y+70; } nudge(n,'right');
     D().items.push(n,{id:nid(),type:'arrow',a:{id:it.id,port:'next'},b:{id:n.id},color:'fg'}); sel=new Set([n.id]); selCell=null; changed(); openEdit({id:n.id,f:'v',newNode:true},''); }
   function resizeHandle(it){ if(BOXY.has(it.type)) return {x:it.x+it.w,y:it.y+it.h}; if(it.type==='lifeline') return {x:lifeGeom(it).cx,y:it.y+it.h}; return null; }
   function render(){
@@ -1878,7 +1905,8 @@ const SK=(()=>{
     if(live){ renderAll(D().items,true); overlays(); } else renderAll(f.items,false);
     ctx.setTransform(dpr,0,0,dpr,0,0);
     if(!live){ ctx.strokeStyle=T.accent; ctx.lineWidth=3; ctx.strokeRect(1.5,1.5,W-3,H-3); }
-    else if(!D().items.length) text('Pick a tool above, or insert a data structure from the panel',W/2,H/2,{font:`500 14px ${FU}`,color:T.muted});
+    else if(!D().items.length) text('Pick a tool above, insert a structure from the panel, or two-finger click (right-click) here',W/2,H/2,{font:`500 14px ${FU}`,color:T.muted});
+    updateOps();
   }
 
   /* value slots (cells, node values, variables, labels) */
@@ -2007,7 +2035,7 @@ const SK=(()=>{
     if(touches.size===2){ startPinch(); return; } if(touches.size>2) return;
     const p=toW(s.x,s.y);
     if(e.button===1||tool==='hand'){ act={type:'pan',s,v0:{...V()}}; return; }
-    if(e.button!==0) return;
+    if(e.button!==0||(e.ctrlKey&&e.pointerType==='mouse'&&/Mac/.test(navigator.platform))) return;
     if(!isLive()){ act={type:'pan',s,v0:{...V()}}; if(!viewHint){ viewHint=true; toast('You are viewing a captured step. Press "Back to live board" to edit.'); } return; }
     if(e.pointerType==='touch'&&(tool==='select'||tool==='text')){ const now=performance.now();
       if(lastTap&&now-lastTap.t<330&&Math.hypot(s.x-lastTap.x,s.y-lastTap.y)<24){ lastTap=null; dbl(e); return; } lastTap={t:now,x:s.x,y:s.y}; }
@@ -2074,12 +2102,13 @@ const SK=(()=>{
           if(t.id===a.from.id){ slotSet(a.from,slotGet(t)); slotSet(t,v); } else slotSet(t,v);
           if(t.k!=null||t.i!=null){ selCell=t; sel=new Set([t.id]); } changed(); } else render(); break; }
       case 'aend': a.it[a.end]=attachAt(p,a.end==='a'); changed(); break;
-    } }
+    }
+    updateOps(); }
   function startPinch(){ if(act&&act.created){ D().items=D().items.filter(x=>x!==act.it); undoS.pop(); } act=null; if(edT) closeEdit(true);
     const [a,b]=[...touches.values()], m={x:(a.x+b.x)/2,y:(a.y+b.y)/2}; pinch={d0:Math.max(10,dist(a,b)),z0:V().z,w0:toW(m.x,m.y)}; render(); }
   function doPinch(){ const [a,b]=[...touches.values()], m={x:(a.x+b.x)/2,y:(a.y+b.y)/2}, v=V();
     v.z=clamp(pinch.z0*dist(a,b)/pinch.d0,.2,4); v.x=pinch.w0.x-m.x/v.z; v.y=pinch.w0.y-m.y/v.z; render(); }
-  function wheel(e){ e.preventDefault(); const s=pt(e), v=V(); if(edT) closeEdit(true);
+  function wheel(e){ e.preventDefault(); const s=pt(e), v=V(); if(edT) closeEdit(true); if(!menuEl.hidden){ menuEl.hidden=true; menuAt=null; }
     if(e.ctrlKey||e.metaKey){ const w0=toW(s.x,s.y); v.z=clamp(v.z*Math.exp(-e.deltaY*.01),.2,4); v.x=w0.x-s.x/v.z; v.y=w0.y-s.y/v.z; }
     else { const k=e.deltaMode===1?16:1; v.x+=e.deltaX*k/v.z; v.y+=e.deltaY*k/v.z; }
     render(); save(); }
@@ -2175,7 +2204,7 @@ const SK=(()=>{
     if(!ids.length){ el.innerHTML='<p class="small muted" style="margin:0">Click something to select it, double-click to edit it, or drag across empty space to select several things. Hover a shape and drag one of its blue dots to draw an arrow. Double-click empty space to write text.</p>'; return; }
     let h='';
     if(ids.length>1){ h=`<div class="prop-title">${ids.length} items</div>`+colorRow('')+'<div class="row"><button class="btn" data-act="dup">Duplicate</button><button class="btn" data-act="del">Delete</button></div>'; el.innerHTML=h; return; }
-    const it=ITEM(ids[0]), NAMES={array:it.vertical?'Stack (vertical array)':'Array',matrix:'Table',node:'List node',var:'Variable',ptr:'Pointer',rect:'Box',ellipse:'Circle / use case',text:'Text',stroke:'Drawing',arrow:'Arrow',
+    const it=ITEM(ids[0]), NAMES={array:it.vertical?'Stack (vertical array)':'Array',matrix:'Table',node:'List node',var:'Variable',ptr:'Pointer',rect:'Box',ellipse:skind(it)==='tnode'?'Tree node':'Circle / use case',text:'Text',stroke:'Drawing',arrow:'Arrow',
       class:it.stereo?`Class «${it.stereo}»`:'Class',note:'Note',actor:'Actor',lifeline:'Lifeline'};
     h=`<div class="prop-title">${NAMES[it.type]||it.type}</div>`;
     if(it.type==='array'){ const k=selCell&&selCell.id===it.id?selCell.k:null;
@@ -2217,8 +2246,26 @@ const SK=(()=>{
       case 'color': commit(); color=v; ids.forEach(id=>ITEM(id).color=v); syncColor(); break;
       case 'mark': { if(!it) return; commit(); const m=v||null;
         if(selCell&&selCell.id===it.id){ const c=selCell.k!=null?it.cells[selCell.k]:it.rows[selCell.i]?.[selCell.j]; if(c) c.m=m; } else it.m=m; break; }
-      case 'push': commit(); it.cells.push(blank()); selCell={id:it.id,k:it.cells.length-1}; changed(); openEdit(selCell); return;
-      case 'pop': if(!it.cells.length) return; commit(); it.cells.pop(); clean(); break;
+      case 'push': commit(); it.cells.push(blank()); selCell={id:it.id,k:it.cells.length-1}; syncPtrs(it); changed(); openEdit(selCell); return;
+      case 'pop': if(!it.cells.length) return; commit(); it.cells.pop(); syncPtrs(it); clean(); break;
+      case 'unshift': commit(); it.cells.unshift(blank()); selCell={id:it.id,k:0}; syncPtrs(it); changed(); openEdit(selCell); return;
+      case 'shift': if(!it.cells.length) return; commit(); it.cells.shift(); syncPtrs(it); clean(); break;
+      case 'insAfter': commit(); it.cells.splice(selCell.k+1,0,blank()); selCell={id:it.id,k:selCell.k+1}; syncPtrs(it); changed(); openEdit(selCell); return;
+      case 'revArr': commit(); it.cells.reverse(); if(selCell&&selCell.k!=null) selCell={id:it.id,k:it.cells.length-1-selCell.k}; break;
+      case 'clearArr': if(!it.cells.length) return; commit(); it.cells=[]; syncPtrs(it); clean(); break;
+      case 'peek': { if(!it.cells.length){ toast(`The ${skind(it)} is empty`); return; } const k=skind(it)==='stack'?it.cells.length-1:0; commit();
+        it.cells.forEach(c=>{ if(c.m==='accent') c.m=null; }); it.cells[k].m='accent'; selCell={id:it.id,k}; toast(`${skind(it)==='stack'?'top':'front'} = ${it.cells[k].v===''?'(blank)':it.cells[k].v}`); break; }
+      case 'clearVals': commit(); it.rows.forEach(r=>r.forEach(c=>{ c.v=''; c.m=null; })); break;
+      case 'chain': if(!selCell||selCell.i==null) { toast('Select a bucket first'); return; } chainAdd(it,selCell.i); return;
+      case 'appendEnd': { let last=it; const seen=new Set([it.id]); for(;;){ const a=D().items.find(x=>x.type==='arrow'&&x.a&&x.a.id===last.id&&x.a.port==='next'); const n=a&&a.b&&ITEM(a.b.id);
+          if(!n||n.type!=='node'||seen.has(n.id)) break; seen.add(n.id); last=n; } addNextNode(last); return; }
+      case 'delNode': delNode(it); return;
+      case 'child': addChild(it,v); return;
+      case 'delSub': delSub(it); return;
+      case 'inc': case 'dec': { const n=Number(it.v); if(String(it.v).trim()===''||!isFinite(n)){ toast('The value is not a number'); return; } commit(); it.v=String(n+(a==='inc'?1:-1)); break; }
+      case 'clearV': commit(); it.v=''; break;
+      case 'edit': { const t=it.type==='var'||it.type==='node'?{id:it.id,f:'v'}:it.type==='class'?{id:it.id,f:'name'}:it.type==='ptr'?{id:it.id,f:'name'}:(it.type==='array'||it.type==='matrix')?(selCell&&selCell.id===it.id?selCell:{id:it.id,f:'label'}):TEXTY.has(it.type)?{id:it.id,f:'text'}:it.type==='arrow'?{id:it.id,f:'label'}:null; if(t) openEdit(t); return; }
+      case 'ptrMove': { const A=it.at&&ITEM(it.at.id); if(!A||!A.cells.length) return; commit(); it.at.k=clamp(it.at.k+(+v),0,A.cells.length-1); break; }
       case 'insBefore': commit(); it.cells.splice(selCell.k,0,blank()); changed(); openEdit(selCell); return;
       case 'delCell': commit(); it.cells.splice(selCell.k,1); clean(); break;
       case 'addRow': commit(); it.rows.push(Array.from({length:Math.max(1,it.rows[0]?it.rows[0].length:1)},blank)); break;
@@ -2252,8 +2299,104 @@ const SK=(()=>{
       else { c.x+=24; c.y+=24; } }
     D().items.push(...out); sel=new Set(out.map(c=>c.id)); selCell=null; changed(); }
 
-  /* inserting ready-made structures */
-  function insert(kind){ if(!isLive()){ stopPlay(); go(1e9); } if(edT) closeEdit(true); commit();
+  /* ---------- structure operations ---------- */
+  // what a thing is, as far as operations go (older boards have no .kind, so guess from its shape)
+  function skind(it){
+    if(it.type==='array') return it.kind||(it.vertical?'stack':/^queue/i.test(it.label||'')?'queue':'array');
+    if(it.type==='matrix') return it.kind||(/^bucket/i.test(it.label||'')?'hash':'table');
+    if(it.type==='ellipse') return it.kind==='tnode'||(Math.abs(it.w-it.h)<2&&it.w<=70)?'tnode':'ellipse';
+    return it.type; }
+  // stacks keep "top" on the last cell; queues keep "front" on the first and "back" on the last
+  function syncPtrs(it){ const kd=skind(it), n=it.cells.length;
+    for(const p of D().items){ if(p.type!=='ptr'||!p.at||p.at.id!==it.id) continue; const nm=String(p.name||'').toLowerCase();
+      if(kd==='stack'&&nm==='top') p.at.k=Math.max(0,n-1);
+      else if(kd==='queue'&&['back','rear','tail'].includes(nm)) p.at.k=Math.max(0,n-1);
+      else if(kd==='queue'&&['front','head'].includes(nm)) p.at.k=0;
+      else p.at.k=clamp(p.at.k,0,Math.max(0,n-1)); } }
+  const nextOf=n=>{ const a=D().items.find(x=>x.type==='arrow'&&x.a&&x.a.id===n.id&&x.a.port==='next'); return a; };
+  function chainAdd(b,i){ let a=D().items.find(x=>x.type==='arrow'&&x.a&&x.a.id===b.id&&x.a.i===i), last=null; const seen=new Set();
+    while(a&&a.b&&a.b.id!=null){ const n=ITEM(a.b.id); if(!n||n.type!=='node'||seen.has(n.id)) break; seen.add(n.id); last=n; a=nextOf(n); }
+    if(last){ addNextNode(last); return; }
+    if(edT) closeEdit(true); commit(); const cols=Math.max(1,...b.rows.map(r=>r.length));
+    const n={id:nid(),type:'node',x:b.x+cols*b.cw+60,y:b.y+i*b.ch+(b.ch-40)/2,v:'',m:null,color:b.color||'fg'}; nudge(n,'right');
+    D().items.push(n,{id:nid(),type:'arrow',a:{id:b.id,i,j:0},b:{id:n.id},color:'fg'}); sel=new Set([n.id]); selCell=null; changed(); openEdit({id:n.id,f:'v',newNode:true},''); }
+  function delNode(it){ const L=D().items, out=nextOf(it), nxt=out&&out.b&&out.b.id!=null?out.b.id:null, kill=[it.id]; if(out) kill.push(out.id); commit();
+    for(const a of L) if(a.type==='arrow'&&a.b&&a.b.id===it.id&&a!==out){ if(nxt!=null&&!(a.a&&a.a.id===nxt)) a.b={id:nxt}; else kill.push(a.id); }   // whatever pointed here now points to the next node
+    removeItems(kill); sel=nxt!=null?new Set([nxt]):new Set(); selCell=null; changed(); }
+  const tChildren=p=>D().items.filter(a=>a.type==='arrow'&&a.a&&a.a.id===p.id&&a.b&&a.b.id!=null).map(a=>ITEM(a.b.id)).filter(n=>n&&skind(n)==='tnode');
+  function addChild(p,side){ const cx=p.x+p.w/2, has=tChildren(p).find(n=>side==='L'?n.x+n.w/2<cx:n.x+n.w/2>cx);
+    if(has){ sel=new Set([has.id]); selCell=null; changed(); toast(`It already has a ${side==='L'?'left':'right'} child`); return; }
+    let d=0, cur=p; for(let g=0;g<30;g++){ const a=D().items.find(x=>x.type==='arrow'&&x.b&&x.b.id===cur.id&&x.a&&x.a.id!=null&&ITEM(x.a.id)&&skind(ITEM(x.a.id))==='tnode'); if(!a) break; d++; cur=ITEM(a.a.id); }
+    const dx=Math.max(34,130/2**d); if(edT) closeEdit(true); commit();
+    const n={id:nid(),type:'ellipse',kind:'tnode',x:cx+(side==='L'?-dx:dx)-23,y:p.y+80,w:46,h:46,text:'',color:p.color||'fg',m:null}; nudge(n,'down');
+    D().items.push(n,{id:nid(),type:'arrow',a:{id:p.id},b:{id:n.id},color:'fg'}); sel=new Set([n.id]); selCell=null; changed(); openEdit({id:n.id,f:'text'}); }
+  function delSub(p){ const set=new Set([p.id]), q=[p]; while(q.length){ for(const c of tChildren(q.shift())) if(!set.has(c.id)){ set.add(c.id); q.push(c); } }
+    const kill=[...set, ...D().items.filter(a=>a.type==='arrow'&&((a.a&&set.has(a.a.id))||(a.b&&set.has(a.b.id)))).map(a=>a.id)];
+    commit(); removeItems(kill); changed(); if(set.size>1) toast(`Deleted ${set.size} nodes`); }
+  const MK=[['','none'],['cmp','compare'],['swap','swap'],['done','done'],['accent','focus']];
+  // every operation a thing supports: [action, label, value, title, disabled]; '|' is a separator, 'marks' the highlight dots
+  function opsFor(it){ const kd=skind(it), sc=selCell&&selCell.id===it.id?selCell:null, o=[];
+    const k=sc&&sc.k!=null?sc.k:null, n=it.cells?it.cells.length:0;
+    if(kd==='stack') o.push(['push','Push'],['pop','Pop',null,'Remove the top value',!n],['peek','Peek',null,'Highlight the top value',!n]);
+    else if(kd==='queue') o.push(['push','Enqueue',null,'Add at the back'],['shift','Dequeue',null,'Remove from the front',!n],['peek','Front',null,'Highlight the front value',!n]);
+    else if(kd==='array') o.push(['push','Append'],['unshift','Prepend'],['pop','Remove last',null,'',!n],['revArr','Reverse',null,'',n<2]);
+    if(it.type==='array'){ if(k!=null) o.push('|',['insBefore',`Insert before [${k}]`],['insAfter',`Insert after [${k}]`],['delCell',`Delete [${k}]`,null,'','',true]);
+      o.push(['clearArr','Clear',null,'Remove every value',!n]); if(k!=null) o.push('|','marks'); }
+    if(kd==='table') o.push(['addRow','+ Row'],['delRow','− Row',null,'',it.rows.length<=1],['addCol','+ Column'],['delCol','− Column',null,'',!it.rows[0]||it.rows[0].length<=1],['clearVals','Clear values']);
+    if(kd==='hash') o.push(['chain',sc&&sc.i!=null?`Add to bucket [${sc.i}]`:'Add to bucket',null,sc?'Add a key to the end of this bucket\'s chain':'Select a bucket cell first',!(sc&&sc.i!=null)],['addRow','+ Bucket'],['delRow','− Bucket',null,'',it.rows.length<=1]);
+    if(it.type==='matrix'&&sc) o.push('|','marks');
+    if(kd==='node') o.push(['edit','Edit value'],['nextNode','Insert after'],['appendEnd','Append at end'],['delNode','Delete & relink',null,'Remove this node and connect its neighbours',false],'|','marks');
+    if(kd==='tnode'){ const cx=it.x+it.w/2, ch=tChildren(it); o.push(['edit','Edit'],['child','+ Left child','L','',ch.some(c=>c.x+c.w/2<cx)],['child','+ Right child','R','',ch.some(c=>c.x+c.w/2>cx)],['delSub','Delete subtree',null,'Delete this node and everything under it'],'|','marks'); }
+    if(kd==='var') o.push(['edit','Edit value'],['inc','+1'],['dec','−1'],['clearV','Clear'],'|','marks');
+    if(kd==='ptr'&&it.at&&ITEM(it.at.id)&&ITEM(it.at.id).type==='array'){ const A=ITEM(it.at.id); o.push(['ptrMove','◀ Move',-1,'',it.at.k<=0],['ptrMove','Move ▶',1,'',it.at.k>=A.cells.length-1]); }
+    if(kd==='ptr') o.push(['edit','Rename']);
+    if(kd==='class') o.push(['addMember','+ Field','attrs'],['addMember','+ Method','ops'],['edit','Rename']);
+    if(['rect','ellipse','note','text','actor','lifeline'].includes(kd)) o.push(['edit','Edit text']);
+    if(['rect','ellipse','note','lifeline'].includes(kd)) o.push('|','marks');
+    if(kd==='arrow') o.push(['reverse','Reverse'],['edit','Label']);
+    if((it.type==='array'||it.type==='matrix')&&!sc) o.push(['edit','Rename']);
+    o.push('|',['dup','Duplicate'],['del','Delete',null,'',false,true]);
+    return o; }
+  const curMark=it=>{ const sc=selCell&&selCell.id===it.id?selCell:null; const c=sc?(sc.k!=null?it.cells[sc.k]:it.rows[sc.i]?.[sc.j]):it; return (c&&c.m)||''; };
+  function opsHTML(it,menu){ const m=curMark(it); let h='';
+    for(const q of opsFor(it)){
+      if(q==='|'){ h+=menu?'<hr>':'<span class="sep"></span>'; continue; }
+      if(q==='marks'){ const dots=MK.map(([v,l])=>`<button type="button" class="dot${m===v?' on':''}" data-op="mark" data-v="${v}" title="Highlight: ${l}" aria-label="Highlight: ${l}" style="--mk:var(--${v?v+'-soft':'surface'})"><i></i></button>`).join('');
+        h+=menu?`<div class="mh">Highlight</div><div class="mdots">${dots}</div>`:dots; continue; }
+      const [a,l,v,t,dis,danger]=q; h+=`<button type="button" data-op="${a}"${v!=null?` data-v="${esc(v)}"`:''}${t?` title="${esc(t)}"`:''}${dis?' disabled':''}${danger?' class="danger"':''}>${esc(l)}</button>`; }
+    return h; }
+  // the thing the floating bar works on: the one selected item, ignoring the pointers/arrows/labels that came with it
+  function opTarget(){ if(tool!=='select'||!isLive()||act||edT) return null; const L=[...sel].map(ITEM).filter(Boolean); if(!L.length) return null; if(L.length===1) return L[0];
+    const main=L.filter(x=>!['ptr','arrow','text'].includes(x.type)); return main.length===1?main[0]:null; }
+  const opsEl=document.createElement('div'); opsEl.className='sk-ops'; opsEl.id='skOps'; opsEl.hidden=true; opsEl.setAttribute('role','toolbar'); opsEl.setAttribute('aria-label','Operations'); stage.appendChild(opsEl);
+  const menuEl=document.createElement('div'); menuEl.className='sk-menu'; menuEl.id='skMenu'; menuEl.hidden=true; menuEl.setAttribute('role','menu'); stage.appendChild(menuEl);
+  let opsKey='';
+  function updateOps(){ const it=S.mode==='sketch'&&menuEl.hidden?opTarget():null; if(!it){ opsEl.hidden=true; opsKey=''; return; }
+    const key=it.id+'|'+opsHTML(it,false); if(key!==opsKey){ opsKey=key; opsEl.innerHTML=key.slice(key.indexOf('|')+1); opsEl.dataset.id=it.id; }
+    opsEl.hidden=false; const b=bb(it), a=toS(b.x,b.y), z=toS(b.x+b.w,b.y+b.h), w=opsEl.offsetWidth, h=opsEl.offsetHeight, gap=22;
+    let top=a.y-gap-h; if(top<4) top=z.y+gap; if(top+h>H-4) top=clamp(a.y-gap-h,4,H-h-4);
+    opsEl.style.left=clamp((a.x+z.x)/2-w/2,4,Math.max(4,W-w-4))+'px'; opsEl.style.top=top+'px'; }
+  function runOp(id,a,v){ const it=ITEM(id); if(!it||!isLive()) return; if(!sel.has(id)||sel.size>1){ if(!(selCell&&selCell.id===id)) selCell=null; sel=new Set([id]); }
+    doAct(a,v); }
+  /* right-click / two-finger click menu */
+  const INSERTABLE=[['array','Array'],['stack','Stack'],['queue','Queue'],['matrix','Table / DP'],['list','Linked list'],['tree','Binary tree'],['hash','Hash table'],['var','Variable'],['ptr','Pointer'],['box','Box'],['class','Class'],['interface','Interface'],['note','Note'],['actor','Actor'],['usecase','Use case'],['lifeline','Lifeline']];
+  let menuAt=null;
+  function openMenu(e){ if(!isLive()){ toast('You are viewing a captured step. Press "Back to live board" to edit.'); return; }
+    if(edT) closeEdit(true); const s=pt(e), p=toW(s.x,s.y), h=hit(p); menuAt=p;
+    if(h&&solid(h.it)||h&&['arrow','ptr'].includes(h.it.type)){ const it=h.it; sel=new Set([it.id]); selCell=(h.k!=null||h.i!=null)?slotOf(h):null;
+      const NM={stack:'Stack',queue:'Queue',array:'Array',table:'Table',hash:'Hash table',node:'List node',tnode:'Tree node',var:'Variable',ptr:'Pointer',class:'Class',arrow:'Arrow'};
+      menuEl.innerHTML=`<div class="mh">${esc(NM[skind(it)]||'Selection')}${selCell&&selCell.k!=null?` [${selCell.k}]`:selCell&&selCell.i!=null?` [${selCell.i}, ${selCell.j}]`:''}</div>`+opsHTML(it,true); menuEl.dataset.id=it.id; }
+    else { const E=!!S.ui.skEmpty; menuEl.dataset.id='';
+      menuEl.innerHTML=`<div class="mh">Insert here <span class="seg ins-mode"><button type="button" data-mode="0" aria-pressed="${!E}">Example</button><button type="button" data-mode="1" aria-pressed="${E}">Empty</button></span></div><div class="mgrid">${INSERTABLE.map(([k,l])=>`<button type="button" data-ins-at="${k}">${l}</button>`).join('')}</div>`; }
+    menuEl.hidden=false; opsEl.hidden=true; render();
+    const w=menuEl.offsetWidth, hh=menuEl.offsetHeight; menuEl.style.left=clamp(s.x+2,4,Math.max(4,W-w-4))+'px'; menuEl.style.top=clamp(s.y+2,4,Math.max(4,H-hh-4))+'px';
+    (menuEl.querySelector('button:not([disabled])')||menuEl).focus({preventScroll:true}); }
+  function closeMenu(){ if(menuEl.hidden) return; menuEl.hidden=true; menuAt=null; render(); }
+  function syncInsMode(){ const E=!!S.ui.skEmpty; $$('#skInsMode button').forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.v==='1')===E))); }
+
+  /* inserting ready-made structures (opts.empty: no example values; opts.at: top-left corner on the board) */
+  function insert(kind,opts={}){ if(!isLive()){ stopPlay(); go(1e9); } if(edT) closeEdit(true); commit();
+    const E=opts.empty??!!S.ui.skEmpty;
     const c=toW(W/2,H/2), out=[], cell=v=>({v:String(v),m:null});
     const arr=(x,y,vals,label,vertical=false)=>({id:nid(),type:'array',x,y,cells:vals.map(cell),cw:48,ch:44,label,vertical,idx:true,color:'fg'});
     const ptr=(name,id,k)=>({id:nid(),type:'ptr',name,x:0,y:0,at:{id,k},color:'accent'});
@@ -2262,25 +2405,27 @@ const SK=(()=>{
     const sty=(ar,key,extra)=>Object.assign(ar,APRE.find(x=>x[0]===key)[2],extra||{});
     const cls=(x,y,name,attrs,ops,extra)=>Object.assign({id:nid(),type:'class',x,y,name,stereo:'',abstract:false,attrs,ops,color:'fg',m:null},extra||{});
     switch(kind){
-      case 'array': out.push(arr(c.x-144,c.y-22,[4,8,15,16,23,42],'arr')); break;
-      case 'stack': { const s=arr(c.x-24,c.y+66,[7,3,9],'stack',true); out.push(s,ptr('top',s.id,2)); break; }
-      case 'queue': { const q=arr(c.x-96,c.y-40,[5,1,8,6],'queue'); out.push(q,ptr('front',q.id,0),ptr('back',q.id,3)); break; }
+      case 'array': out.push(Object.assign(arr(c.x-144,c.y-22,E?[]:[4,8,15,16,23,42],'arr'),{kind:'array'})); break;
+      case 'stack': { const s=Object.assign(arr(c.x-24,c.y+66,E?[]:[7,3,9],'stack',true),{kind:'stack'}); out.push(s,ptr('top',s.id,E?0:2)); break; }
+      case 'queue': { const q=Object.assign(arr(c.x-96,c.y-40,E?[]:[5,1,8,6],'queue'),{kind:'queue'}); out.push(q,ptr('front',q.id,0),ptr('back',q.id,E?0:3)); break; }
       case 'matrix': out.push({id:nid(),type:'matrix',x:c.x-110,y:c.y-80,rows:Array.from({length:4},()=>Array.from({length:5},()=>cell(''))),cw:44,ch:40,label:'table',color:'fg'}); break;
-      case 'list': { const ns=[12,7,31,4].map((v,k)=>node(c.x-270+k*140,c.y-20,v)); const hd={id:nid(),type:'text',x:c.x-270,y:c.y-80,text:'head',color:'muted',size:15};
+      case 'list': { const ns=(E?['']:[12,7,31,4]).map((v,k)=>node(c.x-270+k*140,c.y-20,v)); const hd={id:nid(),type:'text',x:c.x-270,y:c.y-80,text:'head',color:'muted',size:15};
         out.push(...ns,hd,arrow({id:hd.id},{id:ns[0].id},'muted')); ns.slice(0,-1).forEach((n,k)=>out.push(arrow({id:n.id,port:'next'},{id:ns[k+1].id}))); break; }
-      case 'tree': { const P=[[0,-110],[-130,-30],[130,-30],[-195,50],[-65,50],[65,50],[195,50]], vals=[8,4,12,2,6,10,14];
-        const ns=P.map(([dx,dy],k)=>({id:nid(),type:'ellipse',x:c.x+dx-23,y:c.y+dy-23,w:46,h:46,text:String(vals[k]),color:'fg',m:null}));
+      case 'tree': { const P=E?[[0,-110]]:[[0,-110],[-130,-30],[130,-30],[-195,50],[-65,50],[65,50],[195,50]], vals=E?['']:[8,4,12,2,6,10,14];
+        const ns=P.map(([dx,dy],k)=>({id:nid(),type:'ellipse',kind:'tnode',x:c.x+dx-23,y:c.y+dy-23,w:46,h:46,text:String(vals[k]),color:'fg',m:null}));
+        if(E){ out.push(...ns); break; }
         out.push(...ns); [[0,1],[0,2],[1,3],[1,4],[2,5],[2,6]].forEach(([p,q])=>out.push(arrow({id:ns[p].id},{id:ns[q].id}))); break; }
-      case 'hash': { const b={id:nid(),type:'matrix',x:c.x-200,y:c.y-100,rows:Array.from({length:5},()=>[cell('')]),cw:48,ch:40,label:'buckets',color:'fg'};
+      case 'hash': { const b={id:nid(),type:'matrix',kind:'hash',x:c.x-200,y:c.y-100,rows:Array.from({length:5},()=>[cell('')]),cw:48,ch:40,label:'buckets',color:'fg'};
+        if(E){ out.push(b); break; }
         const n1=node(c.x-90,c.y-60,'"ant"'), n2=node(c.x+50,c.y-60,'"bee"'), n3=node(c.x-90,c.y+20,'"cat"');
         out.push(b,n1,n2,n3,arrow({id:b.id,i:1,j:0},{id:n1.id}),arrow({id:n1.id,port:'next'},{id:n2.id}),arrow({id:b.id,i:3,j:0},{id:n3.id})); break; }
-      case 'var': out.push({id:nid(),type:'var',x:c.x-40,y:c.y-18,name:'i',v:'0',m:null,color:'fg'}); break;
+      case 'var': out.push({id:nid(),type:'var',x:c.x-40,y:c.y-18,name:'i',v:E?'':'0',m:null,color:'fg'}); break;
       case 'ptr': out.push({id:nid(),type:'ptr',x:c.x,y:c.y,name:'p',at:null,color:'accent'}); break;
-      case 'box': out.push({id:nid(),type:'rect',x:c.x-70,y:c.y-35,w:140,h:70,text:'note',color:'fg',m:null}); break;
+      case 'box': out.push({id:nid(),type:'rect',x:c.x-70,y:c.y-35,w:140,h:70,text:E?'':'note',color:'fg',m:null}); break;
       /* UML */
-      case 'class': out.push(cls(c.x-80,c.y-60,'ClassName','- field: int','+ method(): void')); break;
-      case 'interface': out.push(cls(c.x-80,c.y-50,'Shape','','+ area(): double\n+ perimeter(): double',{stereo:'interface'})); break;
-      case 'note': out.push({id:nid(),type:'note',x:c.x-85,y:c.y-40,w:170,h:80,text:'A note',color:'fg',m:null}); break;
+      case 'class': out.push(cls(c.x-80,c.y-60,'ClassName',E?'':'- field: int',E?'':'+ method(): void')); break;
+      case 'interface': out.push(cls(c.x-80,c.y-50,E?'Interface':'Shape','',E?'':'+ area(): double\n+ perimeter(): double',{stereo:'interface'})); break;
+      case 'note': out.push({id:nid(),type:'note',x:c.x-85,y:c.y-40,w:170,h:80,text:E?'':'A note',color:'fg',m:null}); break;
       case 'actor': out.push({id:nid(),type:'actor',x:c.x-30,y:c.y-45,text:'User',color:'fg'}); break;
       case 'usecase': out.push({id:nid(),type:'ellipse',x:c.x-85,y:c.y-32,w:170,h:64,text:'Use case',color:'fg',m:null}); break;
       case 'lifeline': out.push({id:nid(),type:'lifeline',x:c.x-60,y:c.y-150,h:300,text:'obj : Class',color:'fg',m:null}); break;
@@ -2296,14 +2441,18 @@ const SK=(()=>{
         const msg=(i,j,dy,label,kind)=>sty(arrow({id:L[i].id,dy},{id:L[j].id,dy}),kind,{label});
         out.push(...L,msg(0,1,90,'login(user, pw)','arrow'),msg(1,2,140,'findUser(user)','arrow'),msg(2,1,190,'user','ret'),msg(1,0,250,'token','ret')); break; }
     }
+    if(opts.at&&out.length){ const prev=scene; scene=D().items.concat(out); const b=boardBox(out); scene=prev; shiftOut(out,opts.at.x-b.x,opts.at.y-b.y); }
     place(out); D().items.push(...out); sel=new Set(out.map(o=>o.id)); selCell=null; setTool('select'); changed();
-    if(kind==='class'||kind==='interface') openEdit({id:out[0].id,f:'name'}); }
+    if(kind==='class'||kind==='interface') openEdit({id:out[0].id,f:'name'});
+    else if(E&&(kind==='var'||kind==='list')) openEdit({id:out.find(o=>o.type==='var'||o.type==='node').id,f:'v'});
+    else if(E&&kind==='tree') openEdit({id:out[0].id,f:'text'}); }
+  function shiftOut(out,dx,dy){ for(const it of out){ if(it.type==='stroke') it.pts.forEach(q=>{q[0]+=dx;q[1]+=dy;}); else if(it.type==='arrow'){ for(const e of ['a','b']) if(it[e]&&it[e].id==null){ it[e].x+=dx; it[e].y+=dy; } } else if(!(it.type==='ptr'&&it.at)){ it.x+=dx; it.y+=dy; } } }
   function place(out){ const prev=scene; scene=D().items.concat(out); const box=boardBox(out); scene=prev; const others=D().items.map(bb), pad=36;
     const clash=(dx,dy)=>others.some(o=>!(box.x+dx>o.x+o.w+pad||box.x+dx+box.w+pad<o.x||box.y+dy>o.y+o.h+pad||box.y+dy+box.h+pad<o.y));
     let best=null;
     for(let r=0;r<=30&&!best;r++) for(const [ax,ay] of r?[[1,0],[0,1],[-1,0],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]]:[[0,0]]){ const dx=ax*r*60, dy=ay*r*60; if(!clash(dx,dy)){ best=[dx,dy]; break; } }
     if(!best) best=[0,0];
-    const [dx,dy]=best; for(const it of out){ if(it.type==='stroke') it.pts.forEach(q=>{q[0]+=dx;q[1]+=dy;}); else if(it.type==='arrow'){ for(const e of ['a','b']) if(it[e]&&it[e].id==null){ it[e].x+=dx; it[e].y+=dy; } } else if(!(it.type==='ptr'&&it.at)){ it.x+=dx; it.y+=dy; } }
+    const [dx,dy]=best; shiftOut(out,dx,dy);
     const v=V(), cx=box.x+dx+box.w/2, cy=box.y+dy+box.h/2, vw=W/v.z, vh=H/v.z;
     if(box.x+dx<v.x||box.y+dy<v.y||box.x+dx+box.w>v.x+vw||box.y+dy+box.h>v.y+vh){ v.x=cx-vw/2; v.y=cy-vh/2; } }
 
@@ -2336,6 +2485,17 @@ const SK=(()=>{
     $('#skLive').addEventListener('click',()=>{ stopPlay(); go(1e9); });
     $('#skRestore').addEventListener('click',()=>{ const f=curFrame(); if(!f||f.live) return; commit(); D().items=JSON.parse(JSON.stringify(f.items)); sel.clear(); selCell=null; stopPlay(); go(1e9); changed(); toast('That step is now on the live board'); });
     $$('[data-ins]').forEach(b=>b.addEventListener('click',()=>insert(b.dataset.ins)));
+    $$('#skInsMode button').forEach(b=>b.addEventListener('click',()=>{ S.ui.skEmpty=b.dataset.v==='1'; syncInsMode(); save(); })); syncInsMode();
+    opsEl.addEventListener('pointerdown',e=>e.stopPropagation());
+    opsEl.addEventListener('click',e=>{ const b=e.target.closest('[data-op]'); if(!b||b.disabled) return; runOp(+opsEl.dataset.id,b.dataset.op,b.dataset.v); });
+    menuEl.addEventListener('click',e=>{ const md=e.target.closest('[data-mode]'); if(md){ S.ui.skEmpty=md.dataset.mode==='1'; syncInsMode(); save();
+        menuEl.querySelectorAll('[data-mode]').forEach(x=>x.setAttribute('aria-pressed',String(x===md))); return; }
+      const ins=e.target.closest('[data-ins-at]'); if(ins){ const at=menuAt; closeMenu(); insert(ins.dataset.insAt,{at}); return; }
+      const b=e.target.closest('[data-op]'); if(!b||b.disabled) return; const id=+menuEl.dataset.id; closeMenu(); runOp(id,b.dataset.op,b.dataset.v); });
+    menuEl.addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Escape'){ e.preventDefault(); closeMenu(); cv.focus&&cv.focus(); }
+      else if(e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault(); const bs=[...menuEl.querySelectorAll('button:not([disabled])')], i=bs.indexOf(document.activeElement); const n=bs[(i+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length]; if(n) n.focus(); } });
+    document.addEventListener('pointerdown',e=>{ if(!menuEl.hidden&&!menuEl.contains(e.target)) closeMenu(); },true);
+    cv.addEventListener('contextmenu',e=>{ if(S.mode!=='sketch') return; e.preventDefault(); act=null; openMenu(e); });
     const steps=$('#skSteps');
     steps.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; const k=+b.dataset.k;
       if(b.classList.contains('step-go')){ stopPlay(); go(k); } else if(b.classList.contains('step-del')){ D().frames.splice(k,1); syncRuns(false); save(); refresh(); } });
@@ -2347,7 +2507,8 @@ const SK=(()=>{
     pr.addEventListener('keydown',e=>{ if(e.key==='Enter'&&(e.target.dataset.prop||e.target.dataset.mem)&&e.target.tagName==='INPUT'){ e.preventDefault(); e.target.blur(); } });
     setTool('select'); syncColor(); syncRuns(true);
   }
-  return {init,render,down,move,up,dbl,wheel,key,side,props,syncRuns,closeEdit:k=>closeEdit(k),fit,insert,capture,leave};
+  function hideOverlays(){ opsEl.hidden=true; menuEl.hidden=true; menuAt=null; }
+  return {init,render,down,move,up,dbl,wheel,key,side,props,syncRuns,closeEdit:k=>closeEdit(k),fit,insert,capture,leave,hideOverlays};
 })();
 
 /* keyboard */

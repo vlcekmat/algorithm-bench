@@ -29,7 +29,8 @@ self.addEventListener('fetch', e => {
     e.respondWith((async () => {
       const cache = await caches.open(VERSION);
       try {
-        const res = await Promise.race([fetch(req), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 3000))]);
+        // no-cache: always ask the server whether the page changed, instead of trusting the browser's HTTP cache
+        const res = await Promise.race([fetch(req.url, {cache: 'no-cache', credentials: 'same-origin'}), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 3000))]);
         const path = new URL(req.url).pathname;
         // the guide is cached under its own name; only the app page itself goes in as index.html
         const key = req.mode !== 'navigate' ? './version.js' : (path.endsWith('/') || path.endsWith('/index.html')) ? './index.html' : req;
