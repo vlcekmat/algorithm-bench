@@ -15,6 +15,7 @@
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="stylesheet" href="fonts.css">
+<script src="version.js"></script>
 <script>try{var t=localStorage.getItem('algobench.theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t;}catch(e){}</script>
 <style>
 html{color-scheme:light;box-sizing:border-box}
@@ -78,6 +79,7 @@ header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .modes button kbd{font:500 10px var(--f-mono);color:var(--muted);opacity:.7}
 .modes button[aria-selected="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(10,20,40,.12)}
 .theme-btn{padding:6px 8px}
+.ver{font:500 11px var(--f-mono);color:var(--muted);background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;letter-spacing:0;align-self:center}
 .btn{font:500 13px var(--f-ui);color:var(--fg);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:6px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .btn:hover{border-color:var(--muted)}
 a.btn{text-decoration:none}
@@ -244,6 +246,29 @@ ul.td-lists button[aria-current="true"]{background:var(--accent-soft);border-col
 ul.td-lists .n{font:500 11.5px var(--f-mono);color:var(--muted);flex:none}
 ul.td-lists .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
+.td-crumb{font:600 11px var(--f-ui);text-transform:uppercase;letter-spacing:.09em;color:var(--accent);margin-bottom:-10px}
+.td-newlist{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}
+.td-newlist input{min-width:0;font:13px var(--f-ui);color:var(--fg);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+.td-newlist input[name=name]{grid-column:1/-1}
+ul.td-lists li.td-cat{margin-top:6px}
+ul.td-lists li.td-cat:first-child{margin-top:0}
+ul.td-lists .td-cat button{padding:3px 4px;font:600 11px var(--f-ui);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);justify-content:flex-start;gap:6px}
+ul.td-lists .td-cat button:hover{background:none;color:var(--fg)}
+ul.td-lists .td-cat svg{transition:transform .15s;flex:none}
+ul.td-lists .td-cat button[aria-expanded="false"] svg{transform:rotate(-90deg)}
+ul.td-lists .td-cat .n{margin-left:auto;text-transform:none;letter-spacing:0}
+ul.td-lists.grouped li:not(.td-cat) button{padding-left:22px}
+.menu{position:relative}
+.menu > summary{list-style:none}
+.menu > summary::-webkit-details-marker{display:none}
+.menu[open] > summary{border-color:var(--muted)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;width:290px;max-width:calc(100vw - 32px);background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 28px rgba(10,20,40,.22);padding:6px;display:flex;flex-direction:column;gap:2px}
+.menu-pop > button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left;font:500 13px var(--f-ui);color:var(--fg);background:transparent;border:0;border-radius:7px;padding:7px 10px;cursor:pointer}
+.menu-pop > button:hover,.menu-pop > button:focus-visible{background:var(--surface-2)}
+.menu-pop small{font:12px var(--f-ui);color:var(--muted)}
+.menu-pop hr{border:0;border-top:1px solid var(--line);margin:4px 0;width:100%}
+.menu-confirm{display:flex;flex-direction:column;gap:8px;padding:8px 10px;margin-top:4px;border-radius:8px;background:var(--swap-soft);font-size:12.5px}
+
 @media (max-width:880px){
   html,body{height:auto}
   .app{height:auto}
@@ -261,7 +286,7 @@ ul.td-lists .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   <header class="top">
     <h1 class="brand">
       <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="11" width="4" height="9" rx="1" fill="var(--bar)"/><rect x="9" y="4" width="4" height="16" rx="1" fill="var(--accent)"/><rect x="16" y="8" width="4" height="12" rx="1" fill="var(--cmp)"/></svg>
-      Algorithm Bench
+      Algorithm Bench <span class="ver" id="appVer" hidden></span>
     </h1>
     <nav class="modes" role="tablist" aria-label="Workspace">
       <button role="tab" data-mode="array" id="tab-array">Array <kbd>1</kbd></button>
@@ -273,6 +298,19 @@ ul.td-lists .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     </nav>
     <div class="spacer"></div>
     <button class="btn primary" id="installBtn" hidden title="Install as an app on this device">Install app</button>
+    <details class="menu" id="backupMenu">
+      <summary class="btn" title="Save your data to a file, or load it back">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v8M4.5 6.5L8 10l3.5-3.5M2.5 11v2.5h11V11"/></svg>Backup</summary>
+      <div class="menu-pop">
+        <button type="button" data-bk="all">Export everything<small>.json · all workspaces, sketches and todo lists</small></button>
+        <button type="button" data-bk="todos">Export todo lists<small>.json · can be imported again</small></button>
+        <button type="button" data-bk="md">Export todo lists as text<small>.md · a readable checklist</small></button>
+        <hr>
+        <button type="button" data-bk="import">Import from file…<small>a full backup or a todo export</small></button>
+        <div class="menu-confirm" id="bkConfirm" hidden><span id="bkConfirmMsg"></span><div class="row"><button type="button" class="btn primary" data-bk="replace">Replace everything</button><button type="button" class="btn" data-bk="cancel">Cancel</button></div></div>
+      </div>
+    </details>
+    <input type="file" id="bkFile" accept=".json,application/json" hidden>
     <button class="btn theme-btn" id="themeBtn" type="button" aria-label="Theme"></button>
     <a class="btn" id="guideBtn" href="guide.html" title="Algorithms, problem-solving patterns, technologies and working with AI">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M2 3.5c2-.8 4-.8 6 .6 2-1.4 4-1.4 6-.6v9c-2-.8-4-.8-6 .6-2-1.4-4-1.4-6-.6zM8 4.1v9"/></svg>Guide</a>
@@ -280,6 +318,8 @@ ul.td-lists .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M11.3 1.7l3 3L5 14H2v-3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Annotate</button>
     <button class="btn" id="inkClear" title="Erase your notes in this workspace">Clear notes</button>
   </header>
+<script>(()=>{ const v=document.getElementById('appVer'); if(!v||!self.APP_VERSION) return; v.textContent='v'+self.APP_VERSION;
+  v.title='Algorithm Bench '+self.APP_VERSION+(self.APP_DATE?' · released '+new Date(self.APP_DATE+'T12:00').toLocaleDateString():''); v.hidden=false; })();</script>
 <script>
 /* theme: auto (follows the system) -> dark -> light; shared by the bench and the guide */
 (()=>{ const K='algobench.theme', root=document.documentElement, b=document.getElementById('themeBtn');
@@ -348,6 +388,7 @@ ul.td-lists .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       </div>
       <div class="todo-view" data-for="todo">
         <div class="td-wrap">
+          <div class="td-crumb" id="tdCrumb" hidden></div>
           <input class="td-title" id="tdTitle" aria-label="List name" spellcheck="false" autocomplete="off">
           <div class="td-meta"><div class="td-bar"><i id="tdBar"></i></div><span id="tdCount"></span></div>
           <div class="td-list" id="tdMain">
@@ -390,13 +431,15 @@ ul.td-lists .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       <div class="card" data-for="todo">
         <h3>Lists</h3>
         <ul class="td-lists" id="tdLists"></ul>
-        <form class="td-add" id="tdNewList"><input placeholder="New list…" aria-label="New list name" autocomplete="off"><button class="btn">Add</button></form>
+        <form class="td-newlist" id="tdNewList"><input name="name" placeholder="Name (default: today's date)" aria-label="New list name" autocomplete="off"><input name="cat" placeholder="Category (optional)" aria-label="Category for the new list" list="tdCats" autocomplete="off"><button class="btn">Add</button></form>
       </div>
       <div class="card" data-for="todo">
         <h3>This list</h3>
+        <label class="field" for="tdCat"><span>Category</span><input type="text" id="tdCat" list="tdCats" placeholder="No category" autocomplete="off"><span></span></label>
         <div class="row"><button class="btn" id="tdDelList">Delete list</button></div>
-        <p class="small muted" style="margin:0">Click the title to rename it. Click a task to edit it. The selected list also sits in a collapsible card beside every other workspace, so you can tick things off while you work.</p>
+        <p class="small muted" style="margin:0">Click the title to rename it. Click a task to edit it. Lists with the same category are grouped; click a category to fold it. The selected list also sits in a collapsible card beside every other workspace.</p>
       </div>
+      <datalist id="tdCats"></datalist>
 
       <!-- ARRAY -->
       <div class="card" data-for="array">
@@ -703,7 +746,9 @@ function defaultSketch(){
   const arrows=[{id:nid(),type:'arrow',a:{id:head.id},b:{id:nodes[0].id},color:'muted'}].concat(nodes.slice(0,-1).map((n,k)=>({id:nid(),type:'arrow',a:{id:n.id,port:'next'},b:{id:nodes[k+1].id},color:'fg'})));
   return {items:[a,tmp,...nodes,head,note,...arrows,pi,pj],frames:[],view:{x:0,y:0,z:1},nextId:id,fitted:false};
 }
-function defaultTodo(){ return {lists:[{id:1,name:'To do',items:[]}],active:1,nextId:2,hideDone:false,panel:{collapsed:false}}; }
+/* new todo lists are named after the day they were made, e.g. "Tue 24 Nov 2026" */
+function todayName(){ return new Date().toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'}); }
+function defaultTodo(){ return {lists:[{id:1,name:todayName(),cat:'',items:[]}],active:1,nextId:2,hideDone:false,panel:{collapsed:false},closedCats:[]}; }
 const MODES=['array','graph','grid','custom','sketch','todo'];
 const DEF = {
   mode:'array', speed:3,
@@ -725,6 +770,7 @@ function load(){
     if(MODES.includes(o.mode)) s.mode=o.mode;
     if(!Array.isArray(s.todo.lists)||!s.todo.lists.length||!s.todo.lists.every(l=>l&&Array.isArray(l.items))) s.todo=defaultTodo();
     if(!s.todo.panel||typeof s.todo.panel!=='object') s.todo.panel={collapsed:false};
+    if(!Array.isArray(s.todo.closedCats)) s.todo.closedCats=[];
     if(!Array.isArray(s.sketch.items)||!Array.isArray(s.sketch.frames)||!s.sketch.view) s.sketch=defaultSketch();
     if(Number.isInteger(o.speed)) s.speed=clamp(o.speed,0,7);
     if(!Array.isArray(s.array.values)||!s.array.values.length) s.array.values=clone(DEF.array.values);
@@ -747,8 +793,8 @@ let pendingInsert=null;   // #sketch:stack etc. drops that structure on the boar
   if(m==='sketch'&&['array','stack','queue','matrix','list','tree','hash','var','ptr','box','class','interface','note','actor','usecase','lifeline','umlclass','umlseq'].includes(a)) pendingInsert=a;
   try{ history.replaceState(null,'',location.pathname+location.search); }catch(_){}
 })();
-let saveT=0;
-function save(){ clearTimeout(saveT); saveT=setTimeout(()=>{ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }, 300); }
+let saveT=0, saveBlocked=false;   // blocked while a backup is being restored, so the old state can't overwrite it
+function save(){ clearTimeout(saveT); if(saveBlocked) return; saveT=setTimeout(()=>{ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }, 300); }
 
 /* ---------------- canvas + theme ---------------- */
 const cv=$('#cv'), stage=$('#stage'); let ctx=cv.getContext('2d');
@@ -2342,6 +2388,9 @@ const TD=(()=>{
     const l=list(), c=counts(l), main=S.mode==='todo';
     if(main){
       const t=$('#tdTitle'); if(document.activeElement!==t) t.value=l.name;
+      const ci=$('#tdCat'); if(document.activeElement!==ci) ci.value=l.cat||'';
+      $('#tdCrumb').hidden=!l.cat; $('#tdCrumb').textContent=l.cat||'';
+      $('#tdCats').innerHTML=cats().filter(Boolean).map(k=>`<option value="${esc(k)}">`).join('');
       $('#tdBar').style.width=(c.total?c.done/c.total*100:0)+'%';
       $('#tdCount').textContent=c.total?`${c.done} / ${c.total} done`:'empty';
       fill(roots[0]); renderLists();
@@ -2350,12 +2399,22 @@ const TD=(()=>{
       $('#tdCollapse').setAttribute('aria-expanded',String(!col)); roots[1].hidden=col;
       $('#tdSideCount').textContent=c.total?(c.left?`${c.left} left`:'all done'):'';
       const sel=$('#tdSideList'); sel.hidden=D().lists.length<2;
-      sel.innerHTML=D().lists.map(x=>`<option value="${x.id}"${x.id===l.id?' selected':''}>${esc(x.name)}</option>`).join('');
+      const opt=x=>`<option value="${x.id}"${x.id===l.id?' selected':''}>${esc(x.name||'Untitled')}</option>`, cs=cats();
+      sel.innerHTML=cs.length<2&&!cs[0]?D().lists.map(opt).join(''):cs.map(k=>`<optgroup label="${esc(k||'No category')}">${inCat(k).map(opt).join('')}</optgroup>`).join('');
       if(!col) fill(roots[1]);
     }
   }
-  function renderLists(){ const l=list();
-    $('#tdLists').innerHTML=D().lists.map(x=>{ const c=counts(x); return `<li><button data-list="${x.id}" aria-current="${x.id===l.id}"><span class="nm">${esc(x.name||'Untitled')}</span><span class="n">${c.done}/${c.total}</span></button></li>`; }).join(''); }
+  // categories in display order: named ones alphabetically, uncategorized ('') last
+  const catOf=x=>(x.cat||'').trim();
+  function cats(){ const s=[...new Set(D().lists.map(catOf))]; return s.filter(Boolean).sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:'base'})).concat(s.includes('')?['']:[]); }
+  const inCat=k=>D().lists.filter(x=>catOf(x)===k);
+  function renderLists(){ const l=list(), cs=cats(), grouped=cs.some(Boolean), closed=new Set(D().closedCats);
+    const row=x=>{ const c=counts(x); return `<li><button data-list="${x.id}" aria-current="${x.id===l.id}"><span class="nm">${esc(x.name||'Untitled')}</span><span class="n">${c.done}/${c.total}</span></button></li>`; };
+    const chev='<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3l3.5 4 3.5-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    $('#tdLists').classList.toggle('grouped',grouped);
+    $('#tdLists').innerHTML=grouped?cs.map(k=>{ const ls=inCat(k), open=!closed.has(k);
+      return `<li class="td-cat"><button data-cat="${esc(k)}" aria-expanded="${open}">${chev}${esc(k||'No category')}<span class="n">${ls.length}</span></button></li>`+(open?ls.map(row).join(''):''); }).join('')
+      : D().lists.map(row).join(''); }
 
   const rootOf=el=>roots.find(r=>r.contains(el));
   function focusItem(id,atStart){ const root=S.mode==='todo'?roots[0]:roots[1]; const el=root.querySelector(`li[data-id="${id}"] .td-text`); if(!el) return;
@@ -2401,24 +2460,80 @@ const TD=(()=>{
         else if(e.key==='Escape'){ t.blur(); } });
     }
     $('#tdTitle').addEventListener('input',e=>{ list().name=e.target.value; save(); renderLists(); });
-    $('#tdTitle').addEventListener('blur',e=>{ if(!e.target.value.trim()){ list().name='Untitled'; e.target.value='Untitled'; changed(); } });
+    $('#tdTitle').addEventListener('blur',e=>{ if(!e.target.value.trim()){ list().name=todayName(); e.target.value=list().name; changed(); } });
     $('#tdTitle').addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Enter'){ e.preventDefault(); roots[0].querySelector('.td-add input').focus(); } });
-    $('#tdLists').addEventListener('click',e=>{ const b=e.target.closest('[data-list]'); if(!b) return; D().active=+b.dataset.list; changed(); });
-    $('#tdNewList').addEventListener('submit',e=>{ e.preventDefault(); const inp=e.target.querySelector('input'), v=inp.value.trim()||'Untitled';
-      const nl={id:D().nextId++,name:v,items:[]}; D().lists.push(nl); D().active=nl.id; inp.value=''; changed(); roots[0].querySelector('.td-add input').focus(); });
+    $('#tdLists').addEventListener('click',e=>{ const c=e.target.closest('[data-cat]');
+      if(c){ const k=c.dataset.cat, cl=D().closedCats, i=cl.indexOf(k); i<0?cl.push(k):cl.splice(i,1); changed(); return; }
+      const b=e.target.closest('[data-list]'); if(!b) return; D().active=+b.dataset.list; changed(); });
+    $('#tdNewList').addEventListener('submit',e=>{ e.preventDefault(); const f=e.target, cat=f.cat.value.trim();
+      const nl={id:D().nextId++,name:f.name.value.trim()||todayName(),cat,items:[]}; D().lists.push(nl); D().active=nl.id;
+      D().closedCats=D().closedCats.filter(k=>k!==cat); f.name.value=''; f.cat.value=''; changed(); roots[0].querySelector('.td-add input').focus(); });
+    $('#tdCat').addEventListener('input',e=>{ list().cat=e.target.value.trim(); save(); renderLists(); $('#tdCrumb').hidden=!list().cat; $('#tdCrumb').textContent=list().cat; });
+    $('#tdCat').addEventListener('change',()=>changed());
+    $('#tdCat').addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Enter'){ e.preventDefault(); e.target.blur(); } });
     $('#tdNewList').addEventListener('keydown',e=>e.stopPropagation());
     let delArm=0;
     $('#tdDelList').addEventListener('click',e=>{ const b=e.currentTarget, l=list();
       if(l.items.length&&!delArm){ b.textContent='Click again to delete'; delArm=setTimeout(()=>{ delArm=0; b.textContent='Delete list'; },3000); return; }
       clearTimeout(delArm); delArm=0; b.textContent='Delete list';
-      D().lists=D().lists.filter(x=>x!==l); if(!D().lists.length) D().lists.push({id:D().nextId++,name:'To do',items:[]});
+      D().lists=D().lists.filter(x=>x!==l); if(!D().lists.length) D().lists.push({id:D().nextId++,name:todayName(),cat:'',items:[]});
       D().active=D().lists[0].id; changed(); toast(`Deleted “${l.name}”`); });
     $('#tdCollapse').addEventListener('click',()=>{ D().panel.collapsed=!D().panel.collapsed; changed(); });
     $('#tdSideList').addEventListener('change',e=>{ D().active=+e.target.value; changed(); });
     $('#tdSideList').addEventListener('keydown',e=>e.stopPropagation());
     $('#tdOpenTab').addEventListener('click',()=>setMode('todo'));
   }
-  return {init,render};
+  // add lists from a todo export; they get fresh ids so nothing already here is touched
+  function importLists(lists){ let n=0;
+    for(const x of lists){ if(!x||!Array.isArray(x.items)) continue;
+      D().lists.push({id:D().nextId++,name:String(x.name||todayName()),cat:String(x.cat||'').trim(),
+        items:x.items.filter(i=>i&&typeof i.text==='string').map(i=>({id:D().nextId++,text:i.text,done:!!i.done}))}); n++; }
+    if(n){ D().active=D().lists[D().lists.length-n].id; changed(); } return n; }
+  function markdown(){ const out=['# Todo lists','',`Exported ${new Date().toLocaleString()}`,''];
+    for(const k of cats()){ const ls=inCat(k); if(cats().some(Boolean)) out.push(`## ${k||'No category'}`,'');
+      for(const l of ls){ out.push(`### ${l.name||'Untitled'}`,''); if(!l.items.length) out.push('_(empty)_');
+        for(const i of l.items) out.push(`- [${i.done?'x':' '}] ${i.text.replace(/\n/g,' ')}`); out.push(''); } }
+    return out.join('\n'); }
+  return {init,render,importLists,markdown};
+})();
+
+/* ---------------- backup: export to / import from a local file ---------------- */
+(()=>{
+  const menu=$('#backupMenu'), file=$('#bkFile'); let pending=null;
+  const stamp=()=>{ const d=new Date(), p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; };
+  const pack=(kind,data)=>JSON.stringify({app:'algorithm-bench',appVersion:self.APP_VERSION||null,kind,version:1,exported:new Date().toISOString(),data},null,2);
+  async function saveFile(name,text,mime,ext){ const blob=new Blob([text],{type:mime});
+    if(window.showSaveFilePicker){   // Chrome/Edge: lets you pick the folder
+      try{ const h=await showSaveFilePicker({suggestedName:name,types:[{description:ext.toUpperCase()+' file',accept:{[mime]:['.'+ext]}}]});
+        const w=await h.createWritable(); await w.write(blob); await w.close(); toast('Saved '+h.name); return; }
+      catch(e){ if(e&&e.name==='AbortError') return; }   // cancelled, or not allowed here: fall back to a download
+    }
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000); toast('Downloaded '+name); }
+  const close=()=>{ menu.open=false; $('#bkConfirm').hidden=true; pending=null; };
+  menu.addEventListener('click',async e=>{ const b=e.target.closest('[data-bk]'); if(!b) return; const k=b.dataset.bk;
+    if(k==='all'){ close(); let theme=null; try{ theme=localStorage.getItem('algobench.theme'); }catch(_){}
+      await saveFile(`algorithm-bench-backup-${stamp()}.json`,pack('all',{state:S,theme}),'application/json','json'); }
+    else if(k==='todos'){ close(); await saveFile(`algorithm-bench-todos-${stamp()}.json`,pack('todos',{lists:S.todo.lists}),'application/json','json'); }
+    else if(k==='md'){ close(); await saveFile(`algorithm-bench-todos-${stamp()}.md`,TD.markdown(),'text/markdown','md'); }
+    else if(k==='import'){ file.value=''; file.click(); }
+    else if(k==='cancel') close();
+    else if(k==='replace'&&pending){ const st=pending; saveBlocked=true; clearTimeout(saveT);
+      try{ localStorage.setItem(KEY,JSON.stringify(st.state)); if(st.theme==='dark'||st.theme==='light') localStorage.setItem('algobench.theme',st.theme); else localStorage.removeItem('algobench.theme'); }
+      catch(_){ saveBlocked=false; toast("Couldn't restore: browser storage is full or blocked."); return; }
+      location.reload(); } });
+  file.addEventListener('change',async()=>{ const f=file.files[0]; if(!f) return; let o;
+    try{ o=JSON.parse(await f.text()); }catch(_){ toast("That file isn't valid JSON."); return; }
+    if(!o||o.app!=='algorithm-bench'||!o.data){ toast("That file isn't an Algorithm Bench export."); return; }
+    if(o.kind==='todos'&&Array.isArray(o.data.lists)){ const n=TD.importLists(o.data.lists); close();
+      if(n&&S.mode!=='todo') setMode('todo'); toast(n?`Added ${n} list${n>1?'s':''} from ${f.name}`:'No lists found in that file.'); }
+    else if(o.kind==='all'&&o.data.state&&typeof o.data.state==='object'){ pending=o.data;
+      $('#bkConfirmMsg').textContent=`Replace everything here with the backup from ${new Date(o.exported).toLocaleString()}? Your current boards and todo lists will be lost (export them first if you want to keep them).`;
+      $('#bkConfirm').hidden=false; menu.open=true; }
+    else toast("That file isn't an Algorithm Bench export."); });
+  // close on outside click / Escape, and keep menu keys away from the workspace shortcuts
+  document.addEventListener('pointerdown',e=>{ if(menu.open&&!menu.contains(e.target)) close(); });
+  menu.addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Escape'){ close(); menu.querySelector('summary').focus(); } });
 })();
 
 /* utils */

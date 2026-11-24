@@ -11,6 +11,7 @@
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="stylesheet" href="fonts.css">
+<script src="version.js"></script>
 <script>try{var t=localStorage.getItem('algobench.theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t;}catch(e){}</script>
 <style>
 :root{
@@ -46,6 +47,7 @@ header.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:1
 .brand small{font:500 13px var(--f-ui);color:var(--muted);margin-left:2px}
 .spacer{flex:1}
 .theme-btn{padding:6px 8px}
+.ver{font:500 11px var(--f-mono);color:var(--muted);background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;letter-spacing:0;align-self:center}
 .btn{font:500 13px var(--f-ui);color:var(--fg);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:6px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none}
 .btn:hover{border-color:var(--muted)}
 .search{position:relative;flex:0 1 300px;min-width:0}
@@ -181,7 +183,7 @@ mark{background:var(--cmp-soft);color:inherit;border-radius:3px}
 <header class="top">
   <a class="brand" href="index.html" title="Back to the bench">
     <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="11" width="4" height="9" rx="1" fill="var(--bar)"/><rect x="9" y="4" width="4" height="16" rx="1" fill="var(--accent)"/><rect x="16" y="8" width="4" height="12" rx="1" fill="var(--cmp)"/></svg>
-    Algorithm Bench <small>Guide</small>
+    Algorithm Bench <small>Guide</small> <span class="ver" id="appVer" hidden></span>
   </a>
   <div class="spacer"></div>
   <label class="search"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.8"/><path d="M10.6 10.6L14 14"/></svg>
@@ -189,6 +191,8 @@ mark{background:var(--cmp-soft);color:inherit;border-radius:3px}
   <button class="btn theme-btn" id="themeBtn" type="button" aria-label="Theme"></button>
   <a class="btn" href="index.html">← Back to the bench</a>
 </header>
+<script>(()=>{ const v=document.getElementById('appVer'); if(!v||!self.APP_VERSION) return; v.textContent='v'+self.APP_VERSION;
+  v.title='Algorithm Bench '+self.APP_VERSION+(self.APP_DATE?' · released '+new Date(self.APP_DATE+'T12:00').toLocaleDateString():''); v.hidden=false; })();</script>
 <script>
 /* theme: auto (follows the system) -> dark -> light; shared by the bench and the guide */
 (()=>{ const K='algobench.theme', root=document.documentElement, b=document.getElementById('themeBtn');
