@@ -11,6 +11,8 @@ A scratchpad for wrapping your head around algorithms while you code. Drag data 
 - **Quick add** (in Sketch): select or hover an array, stack, table or list node and click **+** to append a cell, push, add a row/column or add the next node. Enter keeps adding; Esc stops.
 - **Arrows** (in Sketch): hover a shape and drag one of its blue dots to connect it to something. Drag an arrow to move it as a whole without changing its direction; ends dropped on a shape stay pinned to that spot.
 - **Guide** (`guide.html`): algorithms with their costs; data structures and when to use each; a problem-solving process, signals-to-pattern table and code templates; design principles and all 22 classic design patterns (linked to Refactoring Guru) plus architecture patterns; popular technologies with "pick it when / pick something else when" for each; an interactive **technology picker** that asks a few questions and recommends a stack; and rules for working with AI without losing code quality. *Try it* and *Draw it* links open the matching view in the bench.
+- **Todo** (6): several todo lists. Enter adds the next task, Backspace on an empty one removes it, drag the handle or press Alt + ↑/↓ to reorder, tick tasks off, hide or clear finished ones. The selected list also sits in a collapsible card at the top of the side panel in every other workspace.
+- **Theme**: the button next to Guide switches between auto (follows your system), dark and light; the choice is remembered on both pages.
 - **Annotate** (P) draws notes over any view. Space plays, arrow keys step.
 
 Works offline and installs as an app (Chrome/Edge: install icon in the address bar; iPhone: Share → Add to Home Screen; Android: menu → Install app).

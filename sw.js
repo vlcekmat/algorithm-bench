@@ -1,5 +1,5 @@
 // Offline cache. Bump VERSION whenever any file changes.
-const VERSION = 'algobench-v7';
+const VERSION = 'algobench-v8';
 const FILES = [
   './', './index.html', './guide.html', './fonts.css', './manifest.webmanifest',
   './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png',

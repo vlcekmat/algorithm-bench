@@ -11,6 +11,7 @@
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="stylesheet" href="fonts.css">
+<script>try{var t=localStorage.getItem('algobench.theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t;}catch(e){}</script>
 <style>
 :root{
   --bg:#EDF0F4; --surface:#FFFFFF; --surface-2:#F4F6F9; --line:#D5DBE4; --fg:#17202C; --muted:#5A6577;
@@ -44,6 +45,7 @@ header.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:1
 .brand{font:700 19px var(--f-display);letter-spacing:-.01em;display:flex;align-items:center;gap:9px;margin:0;color:var(--fg);text-decoration:none}
 .brand small{font:500 13px var(--f-ui);color:var(--muted);margin-left:2px}
 .spacer{flex:1}
+.theme-btn{padding:6px 8px}
 .btn{font:500 13px var(--f-ui);color:var(--fg);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:6px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none}
 .btn:hover{border-color:var(--muted)}
 .search{position:relative;flex:0 1 300px;min-width:0}
@@ -184,8 +186,27 @@ mark{background:var(--cmp-soft);color:inherit;border-radius:3px}
   <div class="spacer"></div>
   <label class="search"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.8"/><path d="M10.6 10.6L14 14"/></svg>
     <input type="search" id="q" placeholder="Search the guide (press /)" aria-label="Search the guide" autocomplete="off"></label>
+  <button class="btn theme-btn" id="themeBtn" type="button" aria-label="Theme"></button>
   <a class="btn" href="index.html">← Back to the bench</a>
 </header>
+<script>
+/* theme: auto (follows the system) -> dark -> light; shared by the bench and the guide */
+(()=>{ const K='algobench.theme', root=document.documentElement, b=document.getElementById('themeBtn');
+  const ICON={auto:'<circle cx="8" cy="8" r="5.6"/><path d="M8 2.4v11.2a5.6 5.6 0 000-11.2z" fill="currentColor" stroke="none"/>',
+    dark:'<path d="M13.6 9.6A5.8 5.8 0 016.4 2.4a5.8 5.8 0 107.2 7.2z"/>',
+    light:'<circle cx="8" cy="8" r="2.9"/><path d="M8 1.2v1.7M8 13.1v1.7M1.2 8h1.7M13.1 8h1.7M3.2 3.2l1.2 1.2M11.6 11.6l1.2 1.2M3.2 12.8l1.2-1.2M11.6 4.4l1.2-1.2"/>'};
+  const LBL={auto:'Theme: auto (follows your system)',dark:'Theme: dark',light:'Theme: light'};
+  const get=()=>{ try{ const t=localStorage.getItem(K); return t==='dark'||t==='light'?t:'auto'; }catch(e){ return 'auto'; } };
+  function apply(t){ if(t==='auto') delete root.dataset.theme; else root.dataset.theme=t;
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m=>{ if(!m.dataset.c) m.dataset.c=m.content; m.content=t==='auto'?m.dataset.c:(t==='dark'?'#0E1319':'#EDF0F4'); });
+    b.innerHTML='<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICON[t]+'</svg>';
+    b.title=LBL[t]+'. Click to switch.'; b.setAttribute('aria-label',LBL[t]); }
+  b.addEventListener('click',()=>{ const n={auto:'dark',dark:'light',light:'auto'}[get()]; try{ localStorage.setItem(K,n); }catch(e){} apply(n); });
+  addEventListener('storage',e=>{ if(e.key===K) apply(get()); });
+  apply(get());
+})();
+</script>
+
 
 <div class="wrap">
   <nav class="toc" id="toc" aria-label="Contents"></nav>

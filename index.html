@@ -15,6 +15,7 @@
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="stylesheet" href="fonts.css">
+<script>try{var t=localStorage.getItem('algobench.theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t;}catch(e){}</script>
 <style>
 html{color-scheme:light;box-sizing:border-box}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -76,6 +77,7 @@ header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .modes button{font:500 13px var(--f-ui);color:var(--muted);background:transparent;border:0;border-radius:7px;padding:6px 12px;cursor:pointer;display:flex;gap:6px;align-items:center}
 .modes button kbd{font:500 10px var(--f-mono);color:var(--muted);opacity:.7}
 .modes button[aria-selected="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(10,20,40,.12)}
+.theme-btn{padding:6px 8px}
 .btn{font:500 13px var(--f-ui);color:var(--fg);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:6px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .btn:hover{border-color:var(--muted)}
 a.btn{text-decoration:none}
@@ -192,6 +194,56 @@ ol.steps li.on{background:var(--accent-soft)}
 .caption{flex-wrap:wrap}
 .cap-actions{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
 
+/* todo lists: full view in the Todo tab, compact card beside the other workspaces */
+.todo-view{flex:1;min-height:280px;overflow:auto;padding:22px 24px}
+.td-wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.td-title{font:700 24px/1.2 var(--f-display);letter-spacing:-.01em;color:var(--fg);background:transparent;border:1px solid transparent;border-radius:8px;padding:4px 8px;margin-left:-9px;width:100%}
+.td-title:hover,.td-title:focus{border-color:var(--line);background:var(--surface-2)}
+.td-meta{display:flex;align-items:center;gap:12px;font:500 12px var(--f-mono);color:var(--muted)}
+.td-bar{flex:1;height:6px;border-radius:3px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden}
+.td-bar i{display:block;height:100%;width:0;background:var(--done);transition:width .2s}
+.td-list{display:flex;flex-direction:column;gap:8px}
+.td-add{display:flex;gap:6px}
+.td-add input{flex:1;min-width:0;font:14px var(--f-ui);color:var(--fg);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.td-compact .td-add input{font-size:13px;padding:6px 9px}
+ul.td-items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+ul.td-items li{display:grid;grid-template-columns:18px 18px minmax(0,1fr) 26px;gap:8px;align-items:start;padding:6px 4px;border-radius:8px}
+ul.td-items li:hover{background:var(--surface-2)}
+ul.td-items li.dragging{background:var(--accent-soft);box-shadow:0 2px 8px rgba(10,20,40,.15)}
+.td-grip{height:22px;display:grid;place-items:center;color:var(--muted);cursor:grab;touch-action:none;opacity:.5}
+li:hover .td-grip{opacity:1}
+.td-check{width:16px;height:16px;margin:3px 0 0;accent-color:var(--done);cursor:pointer}
+.td-text{min-height:22px;line-height:22px;white-space:pre-wrap;overflow-wrap:anywhere;outline:none;border-radius:4px;padding:0 4px;margin:0 -4px}
+.td-text:focus{background:var(--surface);box-shadow:0 0 0 2px var(--accent)}
+.td-text:empty::before{content:'New task';color:var(--muted)}
+li.done .td-text{color:var(--muted);text-decoration:line-through}
+.td-del{height:22px;border:0;background:transparent;color:var(--muted);font-size:17px;line-height:1;cursor:pointer;border-radius:6px;padding:0;opacity:0}
+li:hover .td-del,.td-del:focus-visible{opacity:1}
+.td-del:hover{color:var(--swap)}
+@media (pointer:coarse){.td-del,.td-grip{opacity:1}}
+ul.td-items li.td-empty{display:block;color:var(--muted);font-size:13px;padding:10px 4px}
+ul.td-items li.td-empty:hover{background:none}
+.td-compact ul.td-items{max-height:300px;overflow:auto}
+.td-compact ul.td-items li{gap:6px;padding:4px 2px;font-size:13px}
+.td-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.td-foot .btn{padding:3px 9px;font-size:12px}
+.td-foot .check{font-size:12.5px;margin-left:auto}
+#todoSide h3{text-transform:none;letter-spacing:0}
+.td-collapse{display:flex;align-items:center;gap:6px;background:none;border:0;padding:0;cursor:pointer;font:600 11px var(--f-ui);text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+.td-collapse svg{transition:transform .15s}
+.td-collapse[aria-expanded="false"] svg{transform:rotate(-90deg)}
+.td-badge{font:500 11px var(--f-mono);text-transform:none;letter-spacing:0;color:var(--fg);background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:0 6px}
+.td-badge:empty{display:none}
+.td-side-act{display:flex;gap:6px;align-items:center}
+.td-side-act select{width:auto!important;max-width:130px;padding:3px 6px!important;font-size:12px!important}
+.td-side-act .btn{padding:2px 8px;font-size:11.5px}
+ul.td-lists{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+ul.td-lists button{width:100%;display:flex;justify-content:space-between;gap:10px;align-items:center;text-align:left;font:500 13px var(--f-ui);color:var(--fg);background:transparent;border:1px solid transparent;border-radius:8px;padding:7px 9px;cursor:pointer}
+ul.td-lists button:hover{background:var(--surface-2)}
+ul.td-lists button[aria-current="true"]{background:var(--accent-soft);border-color:var(--accent)}
+ul.td-lists .n{font:500 11.5px var(--f-mono);color:var(--muted);flex:none}
+ul.td-lists .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
 @media (max-width:880px){
   html,body{height:auto}
   .app{height:auto}
@@ -217,15 +269,35 @@ ol.steps li.on{background:var(--accent-soft)}
       <button role="tab" data-mode="grid" id="tab-grid">Grid <kbd>3</kbd></button>
       <button role="tab" data-mode="custom" id="tab-custom"><span class="long">Your code</span><span class="short">Code</span> <kbd>4</kbd></button>
       <button role="tab" data-mode="sketch" id="tab-sketch">Sketch <kbd>5</kbd></button>
+      <button role="tab" data-mode="todo" id="tab-todo">Todo <kbd>6</kbd></button>
     </nav>
     <div class="spacer"></div>
     <button class="btn primary" id="installBtn" hidden title="Install as an app on this device">Install app</button>
+    <button class="btn theme-btn" id="themeBtn" type="button" aria-label="Theme"></button>
     <a class="btn" id="guideBtn" href="guide.html" title="Algorithms, problem-solving patterns, technologies and working with AI">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M2 3.5c2-.8 4-.8 6 .6 2-1.4 4-1.4 6-.6v9c-2-.8-4-.8-6 .6-2-1.4-4-1.4-6-.6zM8 4.1v9"/></svg>Guide</a>
     <button class="btn" id="penBtn" aria-pressed="false" title="Draw notes on top of the canvas (P)">
       <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M11.3 1.7l3 3L5 14H2v-3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Annotate</button>
     <button class="btn" id="inkClear" title="Erase your notes in this workspace">Clear notes</button>
   </header>
+<script>
+/* theme: auto (follows the system) -> dark -> light; shared by the bench and the guide */
+(()=>{ const K='algobench.theme', root=document.documentElement, b=document.getElementById('themeBtn');
+  const ICON={auto:'<circle cx="8" cy="8" r="5.6"/><path d="M8 2.4v11.2a5.6 5.6 0 000-11.2z" fill="currentColor" stroke="none"/>',
+    dark:'<path d="M13.6 9.6A5.8 5.8 0 016.4 2.4a5.8 5.8 0 107.2 7.2z"/>',
+    light:'<circle cx="8" cy="8" r="2.9"/><path d="M8 1.2v1.7M8 13.1v1.7M1.2 8h1.7M13.1 8h1.7M3.2 3.2l1.2 1.2M11.6 11.6l1.2 1.2M3.2 12.8l1.2-1.2M11.6 4.4l1.2-1.2"/>'};
+  const LBL={auto:'Theme: auto (follows your system)',dark:'Theme: dark',light:'Theme: light'};
+  const get=()=>{ try{ const t=localStorage.getItem(K); return t==='dark'||t==='light'?t:'auto'; }catch(e){ return 'auto'; } };
+  function apply(t){ if(t==='auto') delete root.dataset.theme; else root.dataset.theme=t;
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m=>{ if(!m.dataset.c) m.dataset.c=m.content; m.content=t==='auto'?m.dataset.c:(t==='dark'?'#0E1319':'#EDF0F4'); });
+    b.innerHTML='<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICON[t]+'</svg>';
+    b.title=LBL[t]+'. Click to switch.'; b.setAttribute('aria-label',LBL[t]); }
+  b.addEventListener('click',()=>{ const n={auto:'dark',dark:'light',light:'auto'}[get()]; try{ localStorage.setItem(K,n); }catch(e){} apply(n); });
+  addEventListener('storage',e=>{ if(e.key===K) apply(get()); });
+  apply(get());
+})();
+</script>
+
 
   <main class="work">
     <section class="stage-wrap">
@@ -272,6 +344,18 @@ ol.steps li.on{background:var(--accent-soft)}
           <button class="ib-s" id="skFit" title="Fit the board to the screen" aria-label="Fit to screen"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg></button>
         </div>
         <div data-for="custom"><span class="hint">Write <code>run(data, step)</code>, press <b>Run</b>. Every <code>step()</code> call becomes a frame.</span></div>
+        <div data-for="todo"><span class="hint"><b>Enter</b> adds the next task, <b>Backspace</b> on an empty one removes it, <b>Alt + ↑/↓</b> or the handle moves it.</span></div>
+      </div>
+      <div class="todo-view" data-for="todo">
+        <div class="td-wrap">
+          <input class="td-title" id="tdTitle" aria-label="List name" spellcheck="false" autocomplete="off">
+          <div class="td-meta"><div class="td-bar"><i id="tdBar"></i></div><span id="tdCount"></span></div>
+          <div class="td-list" id="tdMain">
+            <form class="td-add"><input placeholder="Add a task…" aria-label="New task" autocomplete="off"><button class="btn primary">Add</button></form>
+            <ul class="td-items"></ul>
+            <div class="td-foot"></div>
+          </div>
+        </div>
       </div>
       <div class="stage" id="stage"><canvas id="cv" aria-label="Visualization canvas"></canvas><input id="inlineEdit" class="inline-edit" hidden></div>
       <div class="caption"><span class="stepno" id="stepno"></span><span id="msg"></span><span class="cap-actions" id="capActions" hidden><button class="btn" id="skLive">Back to live board</button><button class="btn" id="skRestore">Restore this step</button></span></div>
@@ -284,11 +368,36 @@ ol.steps li.on{background:var(--accent-soft)}
         <input type="range" id="pScrub" min="0" max="0" value="0" aria-label="Timeline">
         <span class="count" id="pCount">0 / 0</span>
         <label class="speed" for="pSpeed">Speed <input type="range" id="pSpeed" min="0" max="7" step="1"><output id="pSpeedLbl"></output></label>
-        <div class="keys"><span><kbd>Space</kbd> play</span><span><kbd>←</kbd> <kbd>→</kbd> step</span><span><kbd>Home</kbd> <kbd>End</kbd> jump</span><span><kbd>P</kbd> annotate</span><span><kbd>1</kbd>–<kbd>5</kbd> switch workspace</span></div>
+        <div class="keys"><span><kbd>Space</kbd> play</span><span><kbd>←</kbd> <kbd>→</kbd> step</span><span><kbd>Home</kbd> <kbd>End</kbd> jump</span><span><kbd>P</kbd> annotate</span><span><kbd>1</kbd>–<kbd>6</kbd> switch workspace</span></div>
       </div>
     </section>
 
     <aside class="panel">
+      <!-- TODO (side card, shown in every other workspace) -->
+      <div class="card" id="todoSide">
+        <h3>
+          <button class="td-collapse" id="tdCollapse" aria-expanded="true" aria-controls="tdSide"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3l3.5 4 3.5-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Todo <span class="td-badge" id="tdSideCount"></span></button>
+          <span class="td-side-act"><select id="tdSideList" aria-label="Todo list"></select><button class="btn" id="tdOpenTab" title="Open this list in the Todo tab (6)">Open</button></span>
+        </h3>
+        <div class="td-list td-compact" id="tdSide">
+          <form class="td-add"><input placeholder="Add a task…" aria-label="New task" autocomplete="off"><button class="btn">Add</button></form>
+          <ul class="td-items"></ul>
+          <div class="td-foot"></div>
+        </div>
+      </div>
+
+      <!-- TODO tab -->
+      <div class="card" data-for="todo">
+        <h3>Lists</h3>
+        <ul class="td-lists" id="tdLists"></ul>
+        <form class="td-add" id="tdNewList"><input placeholder="New list…" aria-label="New list name" autocomplete="off"><button class="btn">Add</button></form>
+      </div>
+      <div class="card" data-for="todo">
+        <h3>This list</h3>
+        <div class="row"><button class="btn" id="tdDelList">Delete list</button></div>
+        <p class="small muted" style="margin:0">Click the title to rename it. Click a task to edit it. The selected list also sits in a collapsible card beside every other workspace, so you can tick things off while you work.</p>
+      </div>
+
       <!-- ARRAY -->
       <div class="card" data-for="array">
         <h3>Algorithm</h3>
@@ -594,8 +703,11 @@ function defaultSketch(){
   const arrows=[{id:nid(),type:'arrow',a:{id:head.id},b:{id:nodes[0].id},color:'muted'}].concat(nodes.slice(0,-1).map((n,k)=>({id:nid(),type:'arrow',a:{id:n.id,port:'next'},b:{id:nodes[k+1].id},color:'fg'})));
   return {items:[a,tmp,...nodes,head,note,...arrows,pi,pj],frames:[],view:{x:0,y:0,z:1},nextId:id,fitted:false};
 }
+function defaultTodo(){ return {lists:[{id:1,name:'To do',items:[]}],active:1,nextId:2,hideDone:false,panel:{collapsed:false}}; }
+const MODES=['array','graph','grid','custom','sketch','todo'];
 const DEF = {
   mode:'array', speed:3,
+  todo:defaultTodo(),
   ui:{gtool:'move', brush:1},
   array:{values:[38,12,61,27,85,44,9,70,53,19,66,31], algo:'bubble', target:53},
   graph:Object.assign(sampleGraph(), {directed:false, algo:'dijkstra', start:0, target:7, weights:true}),
@@ -609,8 +721,10 @@ function load(){
   try{
     const raw = localStorage.getItem(KEY); if(!raw) return s;
     const o = JSON.parse(raw);
-    for(const k of ['ui','array','graph','grid','custom','ink','sketch']) if(o[k] && typeof o[k]==='object') Object.assign(s[k], o[k]);
-    if(['array','graph','grid','custom','sketch'].includes(o.mode)) s.mode=o.mode;
+    for(const k of ['ui','array','graph','grid','custom','ink','sketch','todo']) if(o[k] && typeof o[k]==='object') Object.assign(s[k], o[k]);
+    if(MODES.includes(o.mode)) s.mode=o.mode;
+    if(!Array.isArray(s.todo.lists)||!s.todo.lists.length||!s.todo.lists.every(l=>l&&Array.isArray(l.items))) s.todo=defaultTodo();
+    if(!s.todo.panel||typeof s.todo.panel!=='object') s.todo.panel={collapsed:false};
     if(!Array.isArray(s.sketch.items)||!Array.isArray(s.sketch.frames)||!s.sketch.view) s.sketch=defaultSketch();
     if(Number.isInteger(o.speed)) s.speed=clamp(o.speed,0,7);
     if(!Array.isArray(s.array.values)||!s.array.values.length) s.array.values=clone(DEF.array.values);
@@ -622,7 +736,7 @@ function load(){
 const S = load();
 /* links like index.html#array:quick (from the guide) open a workspace with an algorithm picked */
 let pendingInsert=null;   // #sketch:stack etc. drops that structure on the board after boot
-(function openFromHash(){ const [m,a]=decodeURIComponent(location.hash.slice(1)).split(':'); if(!['array','graph','grid','custom','sketch'].includes(m)) return;
+(function openFromHash(){ const [m,a]=decodeURIComponent(location.hash.slice(1)).split(':'); if(!MODES.includes(m)) return;
   S.mode=m;
   if(m==='array'&&['bubble','insertion','selection','quick','merge','binary','twosum'].includes(a)) S.array.algo=a;
   if(m==='graph'&&['bfs','dfs','dijkstra','prim','topo'].includes(a)){ S.graph.algo=a;
@@ -649,7 +763,7 @@ function text(t,x,y,{font=`500 12px ${FM}`,color=T.fg,align='center',base='middl
 function pill(t,x,y,fg,bg,border){ ctx.font=`500 11px ${FM}`; const w=ctx.measureText(t).width+10,h=17; rr(x-w/2,y-h/2,w,h,8); ctx.fillStyle=bg; ctx.fill(); if(border){ctx.strokeStyle=border;ctx.lineWidth=1;ctx.stroke();} text(t,x,y+.5,{font:`500 11px ${FM}`,color:fg}); }
 
 /* ---------------- runs & player ---------------- */
-const runs={array:{frames:null,fi:0},graph:{frames:null,fi:0},grid:{frames:null,fi:0},custom:{frames:null,fi:0,logs:[]},sketch:{frames:null,fi:0}};
+const runs={array:{frames:null,fi:0},graph:{frames:null,fi:0},grid:{frames:null,fi:0},custom:{frames:null,fi:0,logs:[]},sketch:{frames:null,fi:0},todo:{frames:null,fi:0}};
 const cur=()=>runs[S.mode];
 const curFrame=()=>{ const R=cur(); return R.frames?R.frames[R.fi]:null; };
 let playing=false, raf=0, lastT=0, acc=0;
@@ -965,7 +1079,7 @@ function rebuild(){
 
 /* ---------------- DRAW ---------------- */
 function draw(){
-  if(!W) return;
+  if(!W||S.mode==='todo') return;
   if(S.mode==='sketch'){ SK.render(); return; }
   ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
   ctx.fillStyle=T.surface; ctx.fillRect(0,0,W,H);
@@ -1156,6 +1270,7 @@ let pcKey='';
 function pcLines(){ if(S.mode==='array') return (ARR[S.array.algo]||ARR.bubble).pc; if(S.mode==='graph') return GPC[S.graph.algo]; if(S.mode==='grid') return gridPC(S.grid.algo); return []; }
 function fmtVal(v){ if(typeof v==='number') return isFinite(v)?String(Math.round(v*1000)/1000):(v>0?'∞':'−∞'); if(typeof v==='string') return v; const s=JSON.stringify(v); return s&&s.length>120?s.slice(0,118)+'…':String(s); }
 function renderSide(){
+  if(S.mode==='todo') return;
   if(S.mode==='sketch'){ SK.side(); return; }
   const R=cur(), f=curFrame();
   $('#msg').textContent = f? f.msg : (S.mode==='custom'?'Not run yet.':'Editing…');
@@ -1270,13 +1385,16 @@ function setMode(m){
   stopPlay(); hideInline(); S.mode=m;
   $$('.modes button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.mode===m)));
   $$('[data-for]').forEach(el=>el.hidden=el.dataset.for!==m);
-  $('#pcCard').hidden= m==='custom'||m==='sketch';
-  $('#stateCard').hidden= m==='sketch';
-  $('#penBtn').hidden=$('#inkClear').hidden= m==='sketch';
+  $('#pcCard').hidden= m==='custom'||m==='sketch'||m==='todo';
+  $('#stateCard').hidden= m==='sketch'||m==='todo';
+  $('#penBtn').hidden=$('#inkClear').hidden= m==='sketch'||m==='todo';
+  $('#stage').hidden=$('.caption').hidden=$('.player').hidden= m==='todo';
+  $('#todoSide').hidden= m==='todo';
   if(m!=='sketch') SK.closeEdit(true);
-  if(m==='sketch') setPen(false);
-  resize();
-  if(m==='sketch'){ SK.syncRuns(false); SK.props(); if(!S.sketch.fitted){ S.sketch.fitted=true; SK.fit(); } }
+  if(m==='sketch'||m==='todo') setPen(false);
+  resize(); TD.render();
+  if(m==='todo'){ /* nothing to run */ }
+  else if(m==='sketch'){ SK.syncRuns(false); SK.props(); if(!S.sketch.fitted){ S.sketch.fitted=true; SK.fit(); } }
   else if(m==='custom'){ if(!runs.custom.frames) runCustom(); }
   else if(!runs[m].frames) rebuild();
   refresh(); save();
@@ -2198,10 +2316,110 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='ArrowLeft'){ e.preventDefault(); stopPlay(); go(cur().fi-1); }
   else if(e.key==='Home'){ e.preventDefault(); stopPlay(); go(0); }
   else if(e.key==='End'){ e.preventDefault(); stopPlay(); go(1e9); }
-  else if(e.key==='p'||e.key==='P'){ setPen(!penOn); }
+  else if((e.key==='p'||e.key==='P')&&S.mode!=='todo'){ setPen(!penOn); }
   else if(e.key==='Escape'&&penOn){ setPen(false); }
-  else if(['1','2','3','4','5'].includes(e.key)){ setMode(['array','graph','grid','custom','sketch'][+e.key-1]); }
+  else if(['1','2','3','4','5','6'].includes(e.key)){ setMode(MODES[+e.key-1]); }
 });
+
+/* ---------------- TODO lists ---------------- */
+const TD=(()=>{
+  const D=()=>S.todo;
+  const list=()=>D().lists.find(l=>l.id===D().active)||D().lists[0];
+  const counts=l=>{ const done=l.items.filter(i=>i.done).length; return {done,left:l.items.length-done,total:l.items.length}; };
+  const roots=[$('#tdMain'),$('#tdSide')];
+  const visibleItems=l=>D().hideDone?l.items.filter(i=>!i.done):l.items;
+  const changed=()=>{ save(); render(); };
+
+  function fill(root){
+    const l=list(), c=counts(l), vis=visibleItems(l);
+    const grip='<svg width="10" height="14" viewBox="0 0 10 14" aria-hidden="true"><g fill="currentColor"><circle cx="3" cy="3" r="1.2"/><circle cx="7" cy="3" r="1.2"/><circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="3" cy="11" r="1.2"/><circle cx="7" cy="11" r="1.2"/></g></svg>';
+    let h=vis.map(it=>`<li data-id="${it.id}"${it.done?' class="done"':''}><span class="td-grip" title="Drag to reorder">${grip}</span><input type="checkbox" class="td-check"${it.done?' checked':''} aria-label="Done"><div class="td-text" contenteditable="plaintext-only" spellcheck="true">${esc(it.text)}</div><button class="td-del" title="Delete task" aria-label="Delete task">×</button></li>`).join('');
+    if(!vis.length) h=`<li class="td-empty">${c.total?`Everything here is done (${c.done} hidden).`:'No tasks yet. Type one above and press Enter.'}</li>`;
+    root.querySelector('.td-items').innerHTML=h;
+    root.querySelector('.td-foot').innerHTML=c.total?`<span>${c.left} left</span>${c.done?`<button class="btn" data-act="clear">Clear done (${c.done})</button>`:''}<label class="check"><input type="checkbox" data-act="hide"${D().hideDone?' checked':''}> Hide done</label>`:'';
+  }
+  function render(){
+    const l=list(), c=counts(l), main=S.mode==='todo';
+    if(main){
+      const t=$('#tdTitle'); if(document.activeElement!==t) t.value=l.name;
+      $('#tdBar').style.width=(c.total?c.done/c.total*100:0)+'%';
+      $('#tdCount').textContent=c.total?`${c.done} / ${c.total} done`:'empty';
+      fill(roots[0]); renderLists();
+    } else {
+      const col=!!D().panel.collapsed;
+      $('#tdCollapse').setAttribute('aria-expanded',String(!col)); roots[1].hidden=col;
+      $('#tdSideCount').textContent=c.total?(c.left?`${c.left} left`:'all done'):'';
+      const sel=$('#tdSideList'); sel.hidden=D().lists.length<2;
+      sel.innerHTML=D().lists.map(x=>`<option value="${x.id}"${x.id===l.id?' selected':''}>${esc(x.name)}</option>`).join('');
+      if(!col) fill(roots[1]);
+    }
+  }
+  function renderLists(){ const l=list();
+    $('#tdLists').innerHTML=D().lists.map(x=>{ const c=counts(x); return `<li><button data-list="${x.id}" aria-current="${x.id===l.id}"><span class="nm">${esc(x.name||'Untitled')}</span><span class="n">${c.done}/${c.total}</span></button></li>`; }).join(''); }
+
+  const rootOf=el=>roots.find(r=>r.contains(el));
+  function focusItem(id,atStart){ const root=S.mode==='todo'?roots[0]:roots[1]; const el=root.querySelector(`li[data-id="${id}"] .td-text`); if(!el) return;
+    el.focus(); const r=document.createRange(); r.selectNodeContents(el); r.collapse(!!atStart); const s=getSelection(); s.removeAllRanges(); s.addRange(r); }
+  const item=id=>list().items.find(i=>i.id===id);
+  const idOf=el=>{ const li=el.closest('li[data-id]'); return li?+li.dataset.id:null; };
+  function remove(id){ const l=list(); l.items=l.items.filter(i=>i.id!==id); }
+  // reorder the visible items to `order`; hidden (done) items keep their slots
+  function applyOrder(order){ const l=list(), byId=new Map(l.items.map(i=>[i.id,i])), set=new Set(order);
+    const slots=[]; l.items.forEach((it,k)=>{ if(set.has(it.id)) slots.push(k); }); slots.forEach((k,j)=>l.items[k]=byId.get(order[j])); }
+  function moveBy(id,d){ const order=visibleItems(list()).map(i=>i.id), k=order.indexOf(id), j=k+d; if(k<0||j<0||j>=order.length) return;
+    [order[k],order[j]]=[order[j],order[k]]; applyOrder(order); changed(); focusItem(id); }
+
+  function startDrag(e){ const li=e.target.closest('li[data-id]'), ul=li.parentElement; e.preventDefault(); li.classList.add('dragging');
+    const onMove=ev=>{ let before=null; for(const s of ul.children){ if(s===li) continue; const r=s.getBoundingClientRect(); if(ev.clientY<r.top+r.height/2){ before=s; break; } }
+      if(li.nextElementSibling!==before) ul.insertBefore(li,before); };
+    const onUp=()=>{ removeEventListener('pointermove',onMove); removeEventListener('pointerup',onUp); removeEventListener('pointercancel',onUp);
+      li.classList.remove('dragging'); applyOrder([...ul.children].map(x=>+x.dataset.id)); changed(); };
+    addEventListener('pointermove',onMove); addEventListener('pointerup',onUp); addEventListener('pointercancel',onUp); }
+
+  function init(){
+    for(const root of roots){
+      root.querySelector('.td-add').addEventListener('submit',e=>{ e.preventDefault(); const inp=e.target.querySelector('input'), v=inp.value.trim(); if(!v) return;
+        list().items.push({id:D().nextId++,text:v,done:false}); inp.value=''; changed(); inp.focus(); });
+      root.addEventListener('change',e=>{ const t=e.target;
+        if(t.classList.contains('td-check')){ const it=item(idOf(t)); if(it){ it.done=t.checked; changed(); } }
+        else if(t.dataset.act==='hide'){ D().hideDone=t.checked; changed(); } });
+      root.addEventListener('click',e=>{ const t=e.target.closest('button'); if(!t) return;
+        if(t.classList.contains('td-del')){ remove(idOf(t)); changed(); }
+        else if(t.dataset.act==='clear'){ const l=list(); l.items=l.items.filter(i=>!i.done); changed(); toast('Cleared finished tasks'); } });
+      root.addEventListener('input',e=>{ if(!e.target.classList.contains('td-text')) return; const it=item(idOf(e.target)); if(it){ it.text=e.target.textContent; save(); } });
+      root.addEventListener('focusout',e=>{ if(!e.target.classList.contains('td-text')) return; const id=idOf(e.target), it=item(id);
+        if(it&&!it.text.trim()){ remove(id); setTimeout(changed); } });
+      root.addEventListener('pointerdown',e=>{ if(e.target.closest('.td-grip')&&e.button===0) startDrag(e); });
+      // keys typed in the todo list must not reach the workspace shortcuts
+      root.addEventListener('keydown',e=>{ e.stopPropagation(); const t=e.target; if(!t.classList.contains('td-text')||e.isComposing) return;
+        const id=idOf(t), l=list();
+        if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); const k=l.items.findIndex(i=>i.id===id), n={id:D().nextId++,text:'',done:false};
+          l.items.splice(k+1,0,n); changed(); focusItem(n.id); }
+        else if(e.key==='Backspace'&&!t.textContent){ e.preventDefault(); const vis=visibleItems(l), k=vis.findIndex(i=>i.id===id), prev=vis[k-1];
+          remove(id); changed(); if(prev) focusItem(prev.id); else root.querySelector('.td-add input').focus(); }
+        else if(e.altKey&&(e.key==='ArrowUp'||e.key==='ArrowDown')){ e.preventDefault(); moveBy(id,e.key==='ArrowUp'?-1:1); }
+        else if(e.key==='Escape'){ t.blur(); } });
+    }
+    $('#tdTitle').addEventListener('input',e=>{ list().name=e.target.value; save(); renderLists(); });
+    $('#tdTitle').addEventListener('blur',e=>{ if(!e.target.value.trim()){ list().name='Untitled'; e.target.value='Untitled'; changed(); } });
+    $('#tdTitle').addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Enter'){ e.preventDefault(); roots[0].querySelector('.td-add input').focus(); } });
+    $('#tdLists').addEventListener('click',e=>{ const b=e.target.closest('[data-list]'); if(!b) return; D().active=+b.dataset.list; changed(); });
+    $('#tdNewList').addEventListener('submit',e=>{ e.preventDefault(); const inp=e.target.querySelector('input'), v=inp.value.trim()||'Untitled';
+      const nl={id:D().nextId++,name:v,items:[]}; D().lists.push(nl); D().active=nl.id; inp.value=''; changed(); roots[0].querySelector('.td-add input').focus(); });
+    $('#tdNewList').addEventListener('keydown',e=>e.stopPropagation());
+    let delArm=0;
+    $('#tdDelList').addEventListener('click',e=>{ const b=e.currentTarget, l=list();
+      if(l.items.length&&!delArm){ b.textContent='Click again to delete'; delArm=setTimeout(()=>{ delArm=0; b.textContent='Delete list'; },3000); return; }
+      clearTimeout(delArm); delArm=0; b.textContent='Delete list';
+      D().lists=D().lists.filter(x=>x!==l); if(!D().lists.length) D().lists.push({id:D().nextId++,name:'To do',items:[]});
+      D().active=D().lists[0].id; changed(); toast(`Deleted “${l.name}”`); });
+    $('#tdCollapse').addEventListener('click',()=>{ D().panel.collapsed=!D().panel.collapsed; changed(); });
+    $('#tdSideList').addEventListener('change',e=>{ D().active=+e.target.value; changed(); });
+    $('#tdSideList').addEventListener('keydown',e=>e.stopPropagation());
+    $('#tdOpenTab').addEventListener('click',()=>setMode('todo'));
+  }
+  return {init,render};
+})();
 
 /* utils */
 let toastT=0;
@@ -2219,7 +2437,7 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ readT
 new MutationObserver(()=>{ readTheme(); draw(); }).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 new ResizeObserver(()=>resize()).observe(stage);
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>draw());
-syncArrayField(); syncArrayAlgo(); syncGraphSelects(); syncGTool(); syncGrid(); SK.init();
+syncArrayField(); syncArrayAlgo(); syncGraphSelects(); syncGTool(); syncGrid(); SK.init(); TD.init();
 setMode(S.mode);
 if(pendingInsert) SK.insert(pendingInsert);
 })();
