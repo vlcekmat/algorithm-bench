@@ -279,7 +279,8 @@ ul.td-lists.grouped li:not(.td-cat) button{padding-left:22px}
 .sk-ops button.dot i,.sk-menu button.dot i{width:13px;height:13px;border-radius:50%;background:var(--mk);border:1.5px solid var(--muted);display:block}
 .sk-ops button.dot.on i,.sk-menu button.dot.on i{border-color:var(--fg);box-shadow:0 0 0 1.5px var(--fg)}
 .sk-menu{position:absolute;z-index:6;min-width:200px;max-width:min(330px,calc(100% - 8px));max-height:calc(100% - 8px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 28px rgba(10,20,40,.22);padding:5px;display:flex;flex-direction:column;gap:1px}
-.sk-menu > button{text-align:left;font:500 13px var(--f-ui);color:var(--fg);background:transparent;border:0;border-radius:7px;padding:6px 10px;cursor:pointer}
+.sk-menu > button{text-align:left;font:500 13px var(--f-ui);color:var(--fg);background:transparent;border:0;border-radius:7px;padding:6px 10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:18px}
+.sk-menu kbd{font:500 11px var(--f-mono);color:var(--muted);flex:none}
 .sk-menu .mh{font:600 10.5px var(--f-ui);text-transform:uppercase;letter-spacing:.09em;color:var(--muted);padding:6px 10px 3px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .sk-menu hr{border:0;border-top:1px solid var(--line);margin:4px 0;width:100%}
 .sk-menu .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:1px}
@@ -613,6 +614,7 @@ ul.td-lists.grouped li:not(.td-cat) button{padding-left:22px}
         <h3>Board</h3>
         <div class="row"><button class="btn" id="skFit2">Fit to screen</button><button class="btn" id="skPng">Export PNG</button><button class="btn" id="skClear">Clear board</button></div>
         <p class="small muted" style="margin:0"><b>Select</b> a structure to get its operations (push, pop, enqueue, insert node…) in a bar right next to it. <b>Two-finger click</b> (right-click) the board to insert a structure right there, or a structure to see everything you can do with it.</p>
+        <p class="small muted" style="margin:0" id="skOpKeys">Operation keys, with <b>⌥ Option</b> (Alt) held: <b>A</b> add / push / enqueue, <b>R</b> remove / pop / dequeue, <b>K</b> peek, <b>B</b> prepend, <b>I</b> insert after (<b>⇧I</b> before), <b>D</b> delete, <b>V</b> reverse, <b>C</b> clear, <b>E</b> edit, <b>F</b> / <b>M</b> field / method, <b>↑ ↓ ← →</b> rows and columns, tree children, +1 / −1, <b>1–5</b> highlight. Hover a button in the bar to see its key. <b>I</b> opens the insert menu at the cursor; <b>Shift+F10</b> (or the menu key) opens the operations menu for the selection; move with the arrow keys and press Enter.</p>
         <p class="small muted" style="margin:0">Scroll or two-finger drag to pan. Pinch or ⌘/Ctrl + scroll to zoom. Keys: V select, D draw, E erase, R box, O circle, A arrow, T text, H pan, ⌘Z undo, Delete removes.</p>
       </div>
 
@@ -2117,7 +2119,7 @@ const SK=(()=>{
     const it=h.it; sel=new Set([it.id]); let t=slotOf(h);
     if(h.grip) t={id:it.id,f:'label'}; else if(it.type==='var'&&h.f==='name') t={id:it.id,f:'name'}; else if(it.type==='ptr') t={id:it.id,f:'name'};
     if(!t) return; selCell=(t.k!=null||t.i!=null)?t:null; render(); props(); openEdit(t); }
-  function hover(s){ const p=toW(s.x,s.y), z=V().z; let c='default', hid=null;
+  function hover(s){ lastPt=s; const p=toW(s.x,s.y), z=V().z; let c='default', hid=null;
     if(tool==='select'&&isLive()){ const h=hit(p,solid);
       if(h&&!(h.it.type==='lifeline'&&h.line)) hid=h.it.id;
       else if(hoverId!=null&&ITEM(hoverId)){ const b=bb(ITEM(hoverId)), o=34/z; if(inR(p,{x:b.x-o,y:b.y-o,w:b.w+2*o,h:b.h+2*o})) hid=hoverId; } }
@@ -2143,6 +2145,8 @@ const SK=(()=>{
     if(mod&&(e.key==='z'||e.key==='Z')){ e.preventDefault(); e.shiftKey?redo():undo(); return true; }
     if(mod&&e.key==='y'){ e.preventDefault(); redo(); return true; }
     if(mod&&e.key==='d'){ e.preventDefault(); duplicate(); return true; }
+    if(isLive()&&opKey(e)) return true;
+    if(isLive()&&(e.key==='ContextMenu'||(e.key==='F10'&&e.shiftKey))&&keyMenu(e)) return true;
     if(mod||e.altKey||!isLive()) return false;
     if(e.key==='Delete'||e.key==='Backspace'){ e.preventDefault(); if(selCell){ commit(); slotSet(selCell,''); changed(); } else if(sel.size){ commit(); removeItems([...sel]); changed(); } return true; }
     if(e.key==='Escape'){ sel.clear(); selCell=null; setTool('select'); props(); render(); return true; }
@@ -2157,6 +2161,7 @@ const SK=(()=>{
       if(A&&d){ e.preventDefault(); commit(); one.at.k=clamp(one.at.k+d,0,A.cells.length-1); changed(); return true; } }
     if(one&&e.key==='Enter'){ const t=one.type==='ptr'?{id:one.id,f:'name'}:TEXTY.has(one.type)?{id:one.id,f:'text'}:one.type==='class'?{id:one.id,f:'name'}:one.type==='arrow'?{id:one.id,f:'label'}:(one.type==='node'||one.type==='var')?{id:one.id,f:'v'}:(one.type==='array'||one.type==='matrix')?{id:one.id,f:'label'}:null;
       if(t){ e.preventDefault(); openEdit(t); return true; } }
+    if((e.key==='i'||e.key==='I')&&keyMenu(e)) return true;
     const TK={v:'select',d:'pen',p:'pen',e:'erase',r:'rect',o:'ellipse',a:'arrow',t:'text',h:'hand'}, k=e.key.toLowerCase();
     if(TK[k]){ setTool(TK[k]); return true; }
     return false;
@@ -2357,13 +2362,41 @@ const SK=(()=>{
     if((it.type==='array'||it.type==='matrix')&&!sc) o.push(['edit','Rename']);
     o.push('|',['dup','Duplicate'],['del','Delete',null,'',false,true]);
     return o; }
+  /* keyboard: ⌥ Option / Alt + key runs an operation; the same key means the same idea on every structure */
+  const MAC=/Mac|iPhone|iPad/.test(navigator.platform);
+  function keyFor(a,v){ switch(a){
+    case 'push': case 'appendEnd': case 'chain': return 'A';          // add
+    case 'pop': case 'shift': return 'R';                              // remove
+    case 'peek': return 'K';
+    case 'unshift': return 'B';                                        // add at the beginning
+    case 'insAfter': case 'nextNode': return 'I';
+    case 'insBefore': return 'Shift+I';
+    case 'delCell': case 'delNode': case 'delSub': return 'D';
+    case 'revArr': case 'reverse': return 'V';
+    case 'clearArr': case 'clearVals': case 'clearV': return 'C';
+    case 'edit': return 'E';
+    case 'addMember': return v==='attrs'?'F':'M';
+    case 'addRow': return 'ArrowDown'; case 'delRow': return 'ArrowUp'; case 'addCol': return 'ArrowRight'; case 'delCol': return 'ArrowLeft';
+    case 'child': return v==='L'?'ArrowLeft':'ArrowRight';
+    case 'inc': return 'ArrowUp'; case 'dec': return 'ArrowDown';
+    case 'dup': return 'mod+D'; case 'del': return 'Delete';
+  } return null; }
+  function keyLabel(d){ if(!d) return ''; if(d==='Delete') return MAC?'⌫':'Del'; if(d.startsWith('mod+')) return (MAC?'⌘':'Ctrl+')+d.slice(4);
+    const sh=d.startsWith('Shift+'), k=sh?d.slice(6):d, A={ArrowUp:'↑',ArrowDown:'↓',ArrowLeft:'←',ArrowRight:'→'};
+    return (MAC?'⌥':'Alt+')+(sh?(MAC?'⇧':'Shift+'):'')+(A[k]||k); }
+  function opKey(e){ if(!e.altKey||e.metaKey||e.ctrlKey) return false; const it=opTarget(); if(!it) return false;
+    const c=e.code, k=c.startsWith('Key')?c.slice(3):c, d=(e.shiftKey?'Shift+':'')+k, list=opsFor(it);
+    if(/^Digit[1-5]$/.test(c)&&list.includes('marks')){ e.preventDefault(); runOp(it.id,'mark',MK[+c.slice(5)-1][0]); return true; }
+    const q=list.find(q=>Array.isArray(q)&&keyFor(q[0],q[2])===d); if(!q) return false; e.preventDefault();
+    if(q[4]) toast(`${q[1]} isn't possible right now`+(q[3]&&/first/.test(q[3])?` (${q[3].toLowerCase()})`:'')); else runOp(it.id,q[0],q[2]); return true; }
   const curMark=it=>{ const sc=selCell&&selCell.id===it.id?selCell:null; const c=sc?(sc.k!=null?it.cells[sc.k]:it.rows[sc.i]?.[sc.j]):it; return (c&&c.m)||''; };
   function opsHTML(it,menu){ const m=curMark(it); let h='';
     for(const q of opsFor(it)){
       if(q==='|'){ h+=menu?'<hr>':'<span class="sep"></span>'; continue; }
-      if(q==='marks'){ const dots=MK.map(([v,l])=>`<button type="button" class="dot${m===v?' on':''}" data-op="mark" data-v="${v}" title="Highlight: ${l}" aria-label="Highlight: ${l}" style="--mk:var(--${v?v+'-soft':'surface'})"><i></i></button>`).join('');
+      if(q==='marks'){ const dots=MK.map(([v,l],n)=>`<button type="button" class="dot${m===v?' on':''}" data-op="mark" data-v="${v}" title="Highlight: ${l} (${keyLabel(String(n+1))})" aria-label="Highlight: ${l}" style="--mk:var(--${v?v+'-soft':'surface'})"><i></i></button>`).join('');
         h+=menu?`<div class="mh">Highlight</div><div class="mdots">${dots}</div>`:dots; continue; }
-      const [a,l,v,t,dis,danger]=q; h+=`<button type="button" data-op="${a}"${v!=null?` data-v="${esc(v)}"`:''}${t?` title="${esc(t)}"`:''}${dis?' disabled':''}${danger?' class="danger"':''}>${esc(l)}</button>`; }
+      const [a,l,v,t,dis,danger]=q, kl=keyLabel(keyFor(a,v)), tip=[t,kl].filter(Boolean).join(' · ');
+      h+=`<button type="button" data-op="${a}"${v!=null?` data-v="${esc(v)}"`:''}${tip?` title="${esc(tip)}"`:''}${kl?` aria-keyshortcuts="${esc(kl)}"`:''}${dis?' disabled':''}${danger?' class="danger"':''}>${esc(l)}${menu&&kl?`<kbd>${esc(kl)}</kbd>`:''}</button>`; }
     return h; }
   // the thing the floating bar works on: the one selected item, ignoring the pointers/arrows/labels that came with it
   function opTarget(){ if(tool!=='select'||!isLive()||act||edT) return null; const L=[...sel].map(ITEM).filter(Boolean); if(!L.length) return null; if(L.length===1) return L[0];
@@ -2381,16 +2414,28 @@ const SK=(()=>{
   /* right-click / two-finger click menu */
   const INSERTABLE=[['array','Array'],['stack','Stack'],['queue','Queue'],['matrix','Table / DP'],['list','Linked list'],['tree','Binary tree'],['hash','Hash table'],['var','Variable'],['ptr','Pointer'],['box','Box'],['class','Class'],['interface','Interface'],['note','Note'],['actor','Actor'],['usecase','Use case'],['lifeline','Lifeline']];
   let menuAt=null;
-  function openMenu(e){ if(!isLive()){ toast('You are viewing a captured step. Press "Back to live board" to edit.'); return; }
-    if(edT) closeEdit(true); const s=pt(e), p=toW(s.x,s.y), h=hit(p); menuAt=p;
-    if(h&&solid(h.it)||h&&['arrow','ptr'].includes(h.it.type)){ const it=h.it; sel=new Set([it.id]); selCell=(h.k!=null||h.i!=null)?slotOf(h):null;
+  let lastPt=null;   // last pointer position over the board, so keyboard-opened menus appear where you are looking
+  const openMenu=e=>openMenuAt(pt(e));
+  // force: 'insert' (always the insert menu) or an item (its operations); otherwise whatever is under s
+  function openMenuAt(s,force){ if(!isLive()){ toast('You are viewing a captured step. Press "Back to live board" to edit.'); return; }
+    if(edT) closeEdit(true); const p=toW(s.x,s.y), h=force?(force==='insert'?null:{it:force}):hit(p); menuAt=p;
+    if(h&&solid(h.it)||h&&['arrow','ptr'].includes(h.it.type)){ const it=h.it; if(!force){ sel=new Set([it.id]); selCell=(h.k!=null||h.i!=null)?slotOf(h):null; }
       const NM={stack:'Stack',queue:'Queue',array:'Array',table:'Table',hash:'Hash table',node:'List node',tnode:'Tree node',var:'Variable',ptr:'Pointer',class:'Class',arrow:'Arrow'};
       menuEl.innerHTML=`<div class="mh">${esc(NM[skind(it)]||'Selection')}${selCell&&selCell.k!=null?` [${selCell.k}]`:selCell&&selCell.i!=null?` [${selCell.i}, ${selCell.j}]`:''}</div>`+opsHTML(it,true); menuEl.dataset.id=it.id; }
     else { const E=!!S.ui.skEmpty; menuEl.dataset.id='';
       menuEl.innerHTML=`<div class="mh">Insert here <span class="seg ins-mode"><button type="button" data-mode="0" aria-pressed="${!E}">Example</button><button type="button" data-mode="1" aria-pressed="${E}">Empty</button></span></div><div class="mgrid">${INSERTABLE.map(([k,l])=>`<button type="button" data-ins-at="${k}">${l}</button>`).join('')}</div>`; }
     menuEl.hidden=false; opsEl.hidden=true; render();
-    const w=menuEl.offsetWidth, hh=menuEl.offsetHeight; menuEl.style.left=clamp(s.x+2,4,Math.max(4,W-w-4))+'px'; menuEl.style.top=clamp(s.y+2,4,Math.max(4,H-hh-4))+'px';
-    (menuEl.querySelector('button:not([disabled])')||menuEl).focus({preventScroll:true}); }
+    const w=menuEl.offsetWidth, hh=menuEl.offsetHeight; let left=s.x+2, top=s.y+2;
+    if(s.box&&top+hh>H-4){ const b=s.box;   // opened for a selected thing: below it, else above it, else beside it, so it never covers it
+      if(b.top-hh-8>=4) top=b.top-hh-8;
+      else { top=b.top; left=b.right+8+w<=W-4?b.right+8:b.left-w-8; } }
+    menuEl.style.left=clamp(left,4,Math.max(4,W-w-4))+'px'; menuEl.style.top=clamp(top,4,Math.max(4,H-hh-4))+'px';
+    (menuEl.querySelector('[data-ins-at],[data-op]:not([disabled])')||menuEl).focus({preventScroll:true}); }
+  function keyMenu(e){ const k=e.key;
+    if(k==='ContextMenu'||(k==='F10'&&e.shiftKey)){ e.preventDefault(); const it=opTarget();
+      if(it){ const b=bb(it), q=toS(b.x,b.y+b.h); const t=toS(b.x,b.y), r=toS(b.x+b.w,b.y+b.h); openMenuAt({x:clamp(q.x,4,W-4),y:clamp(q.y+8,4,H-4),box:{top:t.y,left:t.x,right:r.x}},it); } else openMenuAt(lastPt||{x:W/2,y:H/2},'insert'); return true; }
+    if((k==='i'||k==='I')&&!e.shiftKey&&!e.altKey&&!e.metaKey&&!e.ctrlKey&&tool==='select'){ e.preventDefault(); openMenuAt(lastPt&&lastPt.x<W&&lastPt.y<H?lastPt:{x:W/2-140,y:H/2-120},'insert'); return true; }
+    return false; }
   function closeMenu(){ if(menuEl.hidden) return; menuEl.hidden=true; menuAt=null; render(); }
   function syncInsMode(){ const E=!!S.ui.skEmpty; $$('#skInsMode button').forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.v==='1')===E))); }
 
@@ -2485,6 +2530,7 @@ const SK=(()=>{
     $('#skLive').addEventListener('click',()=>{ stopPlay(); go(1e9); });
     $('#skRestore').addEventListener('click',()=>{ const f=curFrame(); if(!f||f.live) return; commit(); D().items=JSON.parse(JSON.stringify(f.items)); sel.clear(); selCell=null; stopPlay(); go(1e9); changed(); toast('That step is now on the live board'); });
     $$('[data-ins]').forEach(b=>b.addEventListener('click',()=>insert(b.dataset.ins)));
+    if(!MAC){ const k=$('#skOpKeys'); if(k) k.innerHTML=k.innerHTML.replace('<b>⌥ Option</b> (Alt)','<b>Alt</b>').replace('<b>⇧I</b>','<b>Shift+I</b>'); }
     $$('#skInsMode button').forEach(b=>b.addEventListener('click',()=>{ S.ui.skEmpty=b.dataset.v==='1'; syncInsMode(); save(); })); syncInsMode();
     opsEl.addEventListener('pointerdown',e=>e.stopPropagation());
     opsEl.addEventListener('click',e=>{ const b=e.target.closest('[data-op]'); if(!b||b.disabled) return; runOp(+opsEl.dataset.id,b.dataset.op,b.dataset.v); });
@@ -2493,7 +2539,9 @@ const SK=(()=>{
       const ins=e.target.closest('[data-ins-at]'); if(ins){ const at=menuAt; closeMenu(); insert(ins.dataset.insAt,{at}); return; }
       const b=e.target.closest('[data-op]'); if(!b||b.disabled) return; const id=+menuEl.dataset.id; closeMenu(); runOp(id,b.dataset.op,b.dataset.v); });
     menuEl.addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Escape'){ e.preventDefault(); closeMenu(); cv.focus&&cv.focus(); }
-      else if(e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault(); const bs=[...menuEl.querySelectorAll('button:not([disabled])')], i=bs.indexOf(document.activeElement); const n=bs[(i+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length]; if(n) n.focus(); } });
+      else if(['ArrowDown','ArrowUp','ArrowLeft','ArrowRight'].includes(e.key)){ e.preventDefault(); const bs=[...menuEl.querySelectorAll('button:not([disabled])')], i=bs.indexOf(document.activeElement);
+        const grid=document.activeElement&&document.activeElement.closest('.mgrid'), d={ArrowDown:grid?2:1,ArrowUp:grid?-2:-1,ArrowRight:1,ArrowLeft:-1}[e.key];
+        const n=bs[(i+d+bs.length)%bs.length]; if(n) n.focus(); } });
     document.addEventListener('pointerdown',e=>{ if(!menuEl.hidden&&!menuEl.contains(e.target)) closeMenu(); },true);
     cv.addEventListener('contextmenu',e=>{ if(S.mode!=='sketch') return; e.preventDefault(); act=null; openMenu(e); });
     const steps=$('#skSteps');
